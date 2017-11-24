@@ -1,0 +1,28 @@
+{
+  "name": "landkid",
+  "version": "0.0.0",
+  "description": "CI Queue",
+  "main": "server.js",
+  "author": "James Kyle <me@thejameskyle.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.59.0",
+    "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "axios": "^0.17.1",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "load-json-file": "^4.0.0",
+    "lockfile": "^1.0.3",
+    "morgan": "^1.9.0",
+    "path-exists": "^3.0.0",
+    "strip-indent": "^2.0.0",
+    "write-json-file": "^2.3.0"
+  }
+}
