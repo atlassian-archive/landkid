@@ -2,20 +2,39 @@
   "name": "landkid",
   "version": "0.0.0",
   "description": "CI Queue",
-  "main": "server.js",
-  "author": "James Kyle <me@thejameskyle.com>",
+  "main": "lib/index.js",
+  "contributors": [
+    "James Kyle <me@thejameskyle.com>",
+    "Luke Batchelor <batchelor.luke@gmail.com>"
+  ],
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "node server.js",
-    "test": "jest"
+    "clean": "rm -rf dist",
+    "flow": "flow status",
+    "test": "jest --coverage",
+    "format": "prettier --write src/**/*.js",
+    "build:legacy": "BABEL_ENV=legacy babel src -d dist/legacy",
+    "build:modern": "BABEL_ENV=modern babel src -d dist/modern",
+    "build": "yarn run clean && yarn build:legacy && yarn build:modern",
+    "prepublish": "yarn build",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.23.0",
     "flow-bin": "^0.59.0",
-    "jest": "^21.2.1"
+    "husky": "^0.14.3",
+    "jest": "^21.2.1",
+    "lint-staged": "^5.0.0",
+    "prettier": "^1.8.2"
   },
   "dependencies": {
     "axios": "^0.17.1",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "babel-runtime": "^6.26.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "load-json-file": "^4.0.0",
@@ -24,5 +43,20 @@
     "path-exists": "^3.0.0",
     "strip-indent": "^2.0.0",
     "write-json-file": "^2.3.0"
+  },
+  "jest": {
+    "resetMocks": true,
+    "testMatch": [
+      "<rootDir>/src/**/__tests__/*.js"
+    ]
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }
