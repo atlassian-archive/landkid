@@ -1,18 +1,19 @@
 // @flow
 import Queue from './Queue';
-import { type Host, type CI } from './types';
+import { type Env } from './types';
 
 export default class Runner {
   queue: Queue;
+  env: Env;
 
-
-  constructor(queue: Queue, host: Host, ci: CI) {
+  constructor(queue: Queue, env: Env) {
     this.queue = queue;
+    this.env = env;
   }
 
-  next() {
-    let item = this.queue.dequeue();
-
-    // ...
+  async next() {
+    let item = await this.queue.dequeue();
+    let commit = await this.env.host.pullRequestToCommit(item.pullRequestId);
+    await this.env.ci.createLandBuild(commit);
   }
 }

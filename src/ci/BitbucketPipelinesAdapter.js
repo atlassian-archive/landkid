@@ -5,6 +5,14 @@ const BitbucketPipelinesAdapter: CIAdapter = async (config: {}) => ({
   processStatusWebhook(req): StatusEvent {
     // ...
   },
+
+  async createLandBuild(commit: string) {
+
+  },
+
+  async isLandBuildRunning(): Promise<boolean> {
+
+  },
 });
 
 export default BitbucketPipelinesAdapter;

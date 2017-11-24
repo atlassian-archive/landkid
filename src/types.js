@@ -11,12 +11,15 @@ export type JSONValue =
 export type CommandName = 'cancel' | 'help' | 'land';
 
 export type Host = {
-  processCommentWebhook(body: JSONValue): CommentEvent;
-  createComment(pullRequestId: string, parentCommentId: string | null, message: string): Promise<mixed>;
+  processCommentWebhook(body: JSONValue): CommentEvent,
+  createComment(pullRequestId: string, parentCommentId: string | null, message: string): Promise<mixed>,
+  pullRequestToCommit(pullRequestId: string): Promise<string>,
 };
 
 export type CI = {
-  processStatusWebhook(body: JSONValue): StatusEvent;
+  processStatusWebhook(body: JSONValue): StatusEvent,
+  createLandBuild(commit: string): Promise<mixed>,
+  isLandBuildRunning(): Promise<boolean>,
 };
 
 export type HostAdapter = (config: {}) => Promise<Host>;

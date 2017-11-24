@@ -7,7 +7,11 @@ const GitHubAdapter: HostAdapter = async (config: {}) => ({
   },
 
   async createComment(pullRequestId, parentCommentId, message) {
+    // ...
+  },
 
+  async pullRequestToCommit(pullRequestId): Promise<string> {
+    // ...
   },
 });
 
