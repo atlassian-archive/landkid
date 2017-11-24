@@ -8,7 +8,6 @@
     "Luke Batchelor <batchelor.luke@gmail.com>"
   ],
   "license": "MIT",
-  "private": true,
   "scripts": {
     "clean": "rm -rf dist",
     "flow": "flow status",
