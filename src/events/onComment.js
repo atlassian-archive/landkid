@@ -1,8 +1,8 @@
 // @flow
-import { type Env, type JSONValue, type CommandName } from '../types';
+import { type Env, type JSONValue } from '../types';
 import commands from '../commands';
 
-function toCommandName(commentBody: string): CommandName | null {
+function toCommandName(commentBody: string): $Keys<typeof commands> | null {
   return 'help';
 }
 

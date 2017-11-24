@@ -9,6 +9,7 @@ const lock = promisify(lockFile.lock);
 const unlock = promisify(lockFile.unlock);
 
 type QueueItem = {
+  buildId: string | null,
   pullRequestId: string;
   userId: string;
   commentId: string;
@@ -21,7 +22,8 @@ function validate(item: any): QueueItem {
     !Array.isArray(item) &&
     typeof item.pullRequestId === 'string' &&
     typeof item.commentId === 'string' &&
-    typeof item.userId === 'string'
+    typeof item.userId === 'string' &&
+    (typeof item.buildId === 'string' || item.buildId === null)
   ) {
     return item;
   } else {
@@ -33,13 +35,15 @@ export default class Queue {
   queuePath: string;
   lockPath: string;
 
-  constructor(opts: { queuePath: string, lockPath: string }) {
-    this.queuePath = opts.queuePath;
-    this.lockPath = opts.lockPath;
+  constructor(queuePath: string, lockPath: string) {
+    this.queuePath = queuePath;
+    this.lockPath = lockPath;
   }
 
-  async exists() {
-    return await pathExists(this.queuePath);
+  async init() {
+    if (!await pathExists(this.queuePath)) {
+      this.write([]);
+    }
   }
 
   async read(): Promise<Array<QueueItem>> {
@@ -71,6 +75,20 @@ export default class Queue {
     await this.write(newQueue);
     await this.unlock();
     return position;
+  }
+
+  async updateItem(pullRequestId: string, buildId: string) {
+    await this.lock();
+    let queue = await this.read();
+    let newQueue = queue.map(item => {
+      if (item.pullRequestId === pullRequestId) {
+        return { ...item, buildId };
+      } else {
+        return item;
+      }
+    });
+    await this.write(newQueue);
+    await this.unlock();
   }
 
   async dequeue(): Promise<QueueItem> {

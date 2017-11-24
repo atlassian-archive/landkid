@@ -8,8 +8,6 @@ export type JSONValue =
   | Array<JSONValue>
   | { [key: string]: JSONValue };
 
-export type CommandName = 'cancel' | 'help' | 'land';
-
 export type Host = {
   processCommentWebhook(body: JSONValue): CommentEvent,
   createComment(pullRequestId: string, parentCommentId: string | null, message: string): Promise<mixed>,
@@ -28,6 +26,7 @@ export type CIAdapter = (config: {}) => Promise<CI>;
 export type Env = {
   host: Host,
   ci: CI,
+  persona: Persona,
 };
 
 export type CommentEvent = {
@@ -41,4 +40,13 @@ export type StatusEvent = {
   pullRequestId: string,
   passed: boolean,
   description: string | null,
+};
+
+export type Persona = {
+  helpContent: string,
+  addedToQueue: string,
+  removedFromQueue: string,
+  notRemovedFromQueue: string,
+  unknownCommand: string,
+  error: string,
 };
