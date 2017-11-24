@@ -10,36 +10,39 @@ export type JSONValue =
 
 export type Host = {
   processCommentWebhook(body: JSONValue): CommentEvent,
-  createComment(pullRequestId: string, parentCommentId: string | null, message: string): Promise<mixed>,
-  pullRequestToCommit(pullRequestId: string): Promise<string>,
+  createComment(
+    pullRequestId: string,
+    parentCommentId: string | null,
+    message: string
+  ): Promise<mixed>,
+  pullRequestToCommit(pullRequestId: string): Promise<string>
 };
 
 export type CI = {
-  processStatusWebhook(body: JSONValue): StatusEvent,
+  processStatusWebhook(body: JSONValue): StatusEvent | null,
   createLandBuild(commit: string): Promise<mixed>,
-  isLandBuildRunning(): Promise<boolean>,
+  isLandBuildRunning(): Promise<boolean>
 };
 
-export type HostAdapter = (config: {}) => Promise<Host>;
-export type CIAdapter = (config: {}) => Promise<CI>;
+export type HostAdapter = (config: Object) => Promise<Host>;
+export type CIAdapter = (config: Object) => Promise<CI>;
 
 export type Env = {
   host: Host,
   ci: CI,
-  persona: Persona,
+  persona: Persona
 };
 
 export type CommentEvent = {
   userId: string,
   pullRequestId: string,
   commentId: string,
-  commentBody: string,
+  commentBody: string
 };
 
 export type StatusEvent = {
-  pullRequestId: string,
-  passed: boolean,
-  description: string | null,
+  buildId: string,
+  passed: boolean
 };
 
 export type Persona = {
@@ -48,5 +51,5 @@ export type Persona = {
   removedFromQueue: string,
   notRemovedFromQueue: string,
   unknownCommand: string,
-  error: string,
+  error: string
 };

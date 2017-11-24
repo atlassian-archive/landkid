@@ -26,7 +26,7 @@ export default function api(
 
   server.get(
     '/status',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       let items = await queue.read();
       res.status(200).send({ queue: items });
     })
@@ -34,7 +34,7 @@ export default function api(
 
   server.post(
     '/enqueue',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       let item = {
         pullRequestId: req.body.pullRequestId,
         commentId: req.body.commentId,
@@ -48,7 +48,7 @@ export default function api(
 
   server.get(
     '/dequeue',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       let item = await queue.dequeue();
       res.status(200).send({ item });
     })
@@ -56,15 +56,31 @@ export default function api(
 
   server.post(
     '/remove',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       let removed = await queue.remove(req.body.pullRequestId);
       res.status(200).send({ removed });
     })
   );
 
   server.post(
+    '/pause',
+    wrap(async (req, res) => {
+      runner.pause();
+      res.status(200).send({ paused: runner.paused });
+    })
+  );
+
+  server.post(
+    '/unpause',
+    wrap(async (req, res) => {
+      runner.unpause();
+      res.status(200).send({ paused: runner.paused });
+    })
+  );
+
+  server.post(
     '/webhook/comment',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       res.status(200).send({});
       await onComment(env, req.body);
     })
@@ -72,7 +88,7 @@ export default function api(
 
   server.post(
     '/webhook/status',
-    wrap(async (req, res, next) => {
+    wrap(async (req, res) => {
       res.status(200).send({});
       await onStatus(env, req.body);
     })
@@ -81,6 +97,8 @@ export default function api(
   server.use((err, req, res, next) => {
     if (err) {
       res.status(500).send({ error: err.message });
+    } else {
+      next();
     }
   });
 }
