@@ -11,7 +11,7 @@ if (majorVer < 4) {
   );
   process.exit(1);
 } else if (majorVer < 8) {
-  module.exports = require('./dist/legacy/index');
+  module.exports = require('./dist/legacy/index').default;
 } else {
-  module.exports = require('./dist/modern/index');
+  module.exports = require('./dist/modern/index').default;
 }
