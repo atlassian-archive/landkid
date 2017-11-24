@@ -2,7 +2,7 @@
   "name": "landkid",
   "version": "0.0.1",
   "description": "CI Queue",
-  "main": "lib/index.js",
+  "main": "index.js",
   "contributors": [
     "James Kyle <me@thejameskyle.com>",
     "Luke Batchelor <batchelor.luke@gmail.com>"
