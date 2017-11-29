@@ -10,9 +10,9 @@ const GitHubAdapter: HostAdapter = async (config: {}) => ({
     // ...
   },
 
-  async pullRequestToCommit(pullRequestId): Promise<string> {
+  async pullRequestToCommitHash(pullRequestId): Promise<string> {
     // ...
-  },
+  }
 });
 
 export default GitHubAdapter;

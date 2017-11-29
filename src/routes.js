@@ -2,6 +2,7 @@
 import { type Env } from './types';
 import Queue from './Queue';
 import Runner from './Runner';
+import LandRequest from './models/LandRequest';
 import onComment from './events/onComment';
 import onStatus from './events/onStatus';
 
@@ -11,72 +12,65 @@ function wrap(fn: Function) {
   };
 }
 
-export default function api(
+export default function routes(
   server: any,
   env: Env,
   queue: Queue,
   runner: Runner
 ) {
   server.get(
-    '/',
+    '/api/land-requests',
     wrap(async (req, res) => {
-      res.redirect(301, '/status');
-    })
-  );
-
-  server.get(
-    '/status',
-    wrap(async (req, res) => {
-      let items = await queue.read();
-      res.status(200).send({ queue: items });
+      let items = await queue.list('land-requests');
+      res.status(200).send({ landRequests: items });
     })
   );
 
   server.post(
-    '/enqueue',
+    '/api/land-requests/enqueue',
     wrap(async (req, res) => {
-      let item = {
+      let landRequest = LandRequest.create({
         pullRequestId: req.body.pullRequestId,
         commentId: req.body.commentId,
-        userId: req.body.userId,
-        buildId: req.body.buildId || null
-      };
-      let position = await queue.enqueue(item);
-      res.status(200).send({ position, item });
+        userId: req.body.userId
+      });
+      let position = await queue.enqueue('land-requests', landRequest);
+      res.status(200).send({ landRequest, position });
     })
   );
 
   server.get(
-    '/dequeue',
+    '/api/land-requests/dequeue',
     wrap(async (req, res) => {
-      let item = await queue.dequeue();
-      res.status(200).send({ item });
+      let landRequest = await queue.dequeue('land-requests');
+      LandRequest.validate(landRequest);
+      res.status(200).send({ landRequest });
     })
   );
 
-  server.post(
-    '/remove',
-    wrap(async (req, res) => {
-      let removed = await queue.remove(req.body.pullRequestId);
-      res.status(200).send({ removed });
-    })
-  );
+  // server.post(
+  //   '/api/land-requests/remove',
+  //   wrap(async (req, res) => {
+  //     let removed = await queue.remove(req.body.pullRequestId);
+  //     res.status(200).send({ removed });
+  //   })
+  // );
 
-  server.post(
-    '/pause',
-    wrap(async (req, res) => {
-      runner.pause();
-      res.status(200).send({ paused: runner.paused });
-    })
-  );
-
-  server.post(
-    '/unpause',
-    wrap(async (req, res) => {
-      runner.unpause();
-      res.status(200).send({ paused: runner.paused });
-    })
-  );
+  // server.post(
+  //   '/api/land-requests/pause',
+  //   wrap(async (req, res) => {
+  //     runner.pause();
+  //     res.status(200).send({ paused: runner.paused });
+  //   })
+  // );
+  //
+  // server.post(
+  //   '/api/land-requests/unpause',
+  //   wrap(async (req, res) => {
+  //     runner.unpause();
+  //     res.status(200).send({ paused: runner.paused });
+  //   })
+  // );
 
   server.post(
     '/webhook/comment',
@@ -96,7 +90,7 @@ export default function api(
 
   server.use((err, req, res, next) => {
     if (err) {
-      res.status(500).send({ error: err.message });
+      res.status(500).send({ error: err.message, stack: err.stack });
     } else {
       next();
     }

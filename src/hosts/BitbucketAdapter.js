@@ -58,7 +58,7 @@ const BitbucketAdapter: HostAdapter = async (config: Config) => {
       return response.data.comment_id;
     },
 
-    async pullRequestToCommit(pullRequestId): Promise<string> {
+    async pullRequestToCommitHash(pullRequestId): Promise<string> {
       // ...
     }
   };

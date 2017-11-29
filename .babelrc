@@ -1,10 +1,33 @@
 {
-  "presets": [
-    ["env", { "targets": { "node": "8", "loose": true } }],
-    "flow"
-  ],
-  "plugins": [
-    "transform-object-rest-spread",
-    "transform-runtime"
-  ]
+  "env": {
+    "test": {
+      "presets": [
+        "flow",
+        ["env", { "loose": true, "targets": { "node": "current" } }]
+      ],
+      "plugins": [
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-runtime"
+      ]
+    },
+    "legacy": {
+      "presets": ["flow", ["env", { "loose": true, "targets": { "node": 4 } }]],
+      "plugins": [
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-runtime"
+      ],
+      "ignore": ["__tests__"]
+    },
+    "modern": {
+      "presets": ["flow", ["env", { "loose": true, "targets": { "node": 8 } }]],
+      "plugins": [
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-runtime"
+      ],
+      "ignore": ["__tests__"]
+    }
+  }
 }

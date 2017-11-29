@@ -15,7 +15,7 @@ export type Host = {
     parentCommentId: string | null,
     message: string
   ): Promise<mixed>,
-  pullRequestToCommit(pullRequestId: string): Promise<string>
+  pullRequestToCommitHash(pullRequestId: string): Promise<string>
 };
 
 export type CI = {
