@@ -1,4 +1,6 @@
 // @flow
+import express from 'express';
+import path from 'path';
 import { type Env } from './types';
 import Queue from './Queue';
 import Runner from './Runner';
@@ -18,6 +20,10 @@ export default function routes(
   queue: Queue,
   runner: Runner
 ) {
+  server.get('/', (req, res) => {
+    res.sendStatus(200);
+  });
+
   server.get(
     '/api/land-requests',
     wrap(async (req, res) => {
@@ -25,6 +31,14 @@ export default function routes(
       res.status(200).send({ landRequests: items });
     })
   );
+
+  server.get('/api/current-queue', (req, res) => {
+    res
+      .header('Access-Control-Allow-Origin', '*')
+      .status(200)
+      .json({ currentQueue: [1, 2, 3, 4] })
+      .send();
+  });
 
   server.post(
     '/api/land-requests/enqueue',
@@ -87,6 +101,9 @@ export default function routes(
       await onStatus(env, req.body);
     })
   );
+
+  // serve static files from the 'static' directory
+  server.use(express.static(path.join(__dirname, 'static')));
 
   server.use((err, req, res, next) => {
     if (err) {

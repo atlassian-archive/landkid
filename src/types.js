@@ -15,7 +15,8 @@ export type Host = {
     parentCommentId: string | null,
     message: string
   ): Promise<mixed>,
-  pullRequestToCommitHash(pullRequestId: string): Promise<string>
+  pullRequestToCommitHash(pullRequestId: string): Promise<string>,
+  getCurrentQueue(): Promise<Array<JSONValue>>
 };
 
 export type CI = {

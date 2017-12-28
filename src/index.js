@@ -10,6 +10,7 @@ import Queue from './Queue';
 import { createRedisClient } from './redis';
 import Runner from './Runner';
 import routes from './routes';
+import land from './commands/land';
 
 type Config = {
   port?: number,
@@ -36,8 +37,8 @@ export default async function atlaskid(config: Config) {
     persona: personas[config.persona || 'goat']
   };
 
-  let client = await createRedisClient({ host: 'redis', port: 6379 });
-  let queue = new Queue(client);
+  // let client = await createRedisClient({ host: 'redis', port: 6379 });
+  let queue = new Queue();
   let runner = new Runner(queue, env);
 
   routes(server, env, queue, runner);
@@ -48,8 +49,11 @@ export default async function atlaskid(config: Config) {
     });
 
     server.listen(port, () => {
-      console.log(`Landkid server started at https://localhost:${port}`);
+      console.log(`Landkid server started at http://localhost:${port}`);
+
       resolve();
     });
+
+    // env.host.getCurrentQueue();
   });
 }

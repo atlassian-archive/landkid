@@ -1,5 +1,5 @@
 // @flow
-import { type HostAdapter, type CommentEvent } from '../types';
+import { type HostAdapter, type CommentEvent, type JSONValue } from '../types';
 import axios from 'axios';
 
 type Config = {
@@ -60,6 +60,28 @@ const BitbucketAdapter: HostAdapter = async (config: Config) => {
 
     async pullRequestToCommitHash(pullRequestId): Promise<string> {
       // ...
+    },
+
+    async getCurrentQueue(): Promise<Array<JSONValue>> {
+      const allPullRequests = await axios
+        .get(
+          `https://api.bitbucket.org/2.0/repositories/${config.REPO_OWNER}/${
+            config.REPO_SLUG
+          }/pullrequests/`
+        )
+        .then(resp => resp.data.values);
+      let comments = allPullRequests.map(pr => {
+        const pullRequestId = pr.id;
+        return axios
+          .get(
+            `https://api.bitbucket.org/2.0/repositories/${config.REPO_OWNER}/${
+              config.REPO_SLUG
+            }/pullrequests/${pullRequestId}/comments/`
+          )
+          .then(resp => resp.data.values);
+      });
+      await Promise.all(comments);
+      console.log(comments[0]);
     }
   };
 };
