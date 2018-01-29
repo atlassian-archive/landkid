@@ -1,6 +1,7 @@
 // @flow
-import { type HostAdapter, type CommentEvent, type JSONValue } from '../types';
+import { type HostAdapter, type JSONValue } from '../types';
 import axios from 'axios';
+import Logger from '../Logger';
 
 type Config = {
   REPO_OWNER: string,
@@ -9,7 +10,9 @@ type Config = {
   BITBUCKET_PASSWORD: string
 };
 
-const BitbucketAdapter: HostAdapter = async (config: Config) => {
+const USERS_ALLOWED_TO_APPROVE = ['luke_batchelor', 'thejameskyle'];
+
+const BitbucketAdapter = async (config: Config) => {
   let axiosGetConfig = {
     auth: {
       username: config.BITBUCKET_USERNAME,
@@ -25,16 +28,11 @@ const BitbucketAdapter: HostAdapter = async (config: Config) => {
   };
 
   return {
-    processCommentWebhook(data: any): CommentEvent {
-      return {
-        userId: data.actor.uuid,
-        pullRequestId: data.pullrequest.id,
-        commentId: data.comment.id,
-        commentBody: data.comment.content.raw
-      };
-    },
-
-    async createComment(pullRequestId, parentCommentId, message) {
+    async createComment(
+      pullRequestId: string,
+      parentCommentId: ?string,
+      message: string
+    ) {
       let data = {};
 
       data.content = message;
@@ -58,30 +56,66 @@ const BitbucketAdapter: HostAdapter = async (config: Config) => {
       return response.data.comment_id;
     },
 
-    async pullRequestToCommitHash(pullRequestId): Promise<string> {
-      // ...
+    // This is run when a build is at the front of the queue
+    async isAllowedToLand(pullRequestId: string): Promise<boolean> {
+      // check the last build status for the pr
+      // double check the reviewers
+      // custom rules like certain teams for certain packages
+      const pullRequest = await this.getPullRequest(pullRequestId);
+      const buildStatuses = await this.getPullRequestBuildStatuses(
+        pullRequestId
+      );
+
+      const isOpen = pullRequest.state === 'OPEN';
+      const createdBy = pullRequest.author.username;
+      const isApproved = pullRequest.participants.some(
+        participant =>
+          participant.approved && !participant.username !== createdBy
+      );
+      const buildIsGreen = buildStatuses.every(
+        buildStatus => buildStatus.state === 'SUCCESSFUL'
+      );
+      return true;
     },
 
-    async getCurrentQueue(): Promise<Array<JSONValue>> {
-      const allPullRequests = await axios
-        .get(
-          `https://api.bitbucket.org/2.0/repositories/${config.REPO_OWNER}/${
-            config.REPO_SLUG
-          }/pullrequests/`
-        )
-        .then(resp => resp.data.values);
-      let comments = allPullRequests.map(pr => {
-        const pullRequestId = pr.id;
-        return axios
-          .get(
-            `https://api.bitbucket.org/2.0/repositories/${config.REPO_OWNER}/${
-              config.REPO_SLUG
-            }/pullrequests/${pullRequestId}/comments/`
-          )
-          .then(resp => resp.data.values);
-      });
-      await Promise.all(comments);
-      console.log(comments[0]);
+    async mergePullRequest(pullRequestId: string) {
+      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
+        config.REPO_OWNER
+      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}/merge`;
+      Logger.info({ pullRequestId, endpoint }, 'Merging pull reuest');
+      const data = {
+        close_source_branch: true,
+        message: 'Merged by Landkid after successful build rebased on Master',
+        merge_strategy: 'merge_commit'
+      };
+      const resp = await axios.post(
+        // prettier-ignore
+        endpoint,
+        JSON.stringify(data),
+        {
+          ...axiosGetConfig,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      Logger.info({ pullRequestId }, 'Merged Pull Request');
+    },
+
+    async getPullRequest(pullRequestId: string) {
+      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
+        config.REPO_OWNER
+      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}`;
+      const resp = await axios.get(endpoint, axiosGetConfig);
+      return resp.data;
+    },
+
+    async getPullRequestBuildStatuses(pullRequestId: string) {
+      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
+        config.REPO_OWNER
+      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}/statuses`;
+      const resp = await axios.get(endpoint, axiosGetConfig);
+      return resp.data.values;
     }
   };
 };

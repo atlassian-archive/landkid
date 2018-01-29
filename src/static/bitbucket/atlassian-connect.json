@@ -1,7 +1,7 @@
 {
   "name": "Atlaskid",
   "description": "Addon to display a 'release queue' panel in PRs",
-  "baseUrl": "https://6e0b089e.ngrok.io",
+  "baseUrl": "https://lbatch.ngrok.io/",
   "key": "atlaskid-addon",
   "vendor": {
     "name": "Luke Batchelor"
@@ -10,41 +10,39 @@
   "authentication": {
     "type": "jwt"
   },
-  "contexts": [
-    "account"
-  ],
+  "contexts": ["personal"],
   "modules": {
-    "webPanels": [{
-      "weight": 100,
-      "tooltip": {
-        "value": "Packages to be released in this PR"
-      },
-      "key": "atlaskid-addon-panel",
-      "name": {
-        "value": "Release queue"
-      },
-      "url": "/bitbucket/index.html?user={pullrequest.source.repository.owner.username}&repo={pullrequest.source.repository.name}&pullrequestid={pullrequest.id}",
-      "location": "org.bitbucket.pullrequest.overview.informationPanel",
-      "conditions": [
-        {
-          "condition": "has_permission",
-          "params": {
-            "permission": "write"
-          }
-        }
-      ]
-    }],
-    "webItems": [
+    "webPanels": [
       {
-        "url": "/ready-to-land",
-        "name": {
-          "value": "Ready to land!"
+        "weight": 100,
+        "tooltip": {
+          "value": "Packages to be released in this PR"
         },
-        "location": "org.bitbucket.pullrequest.summary.actions",
-        "key": "atlaskid-addon-land-button",
-        "params": {
-          "auiIcon": "aui-iconfont-homepage"
-        }
+        "key": "atlaskid-addon-panel",
+        "name": {
+          "value": "Release queue"
+        },
+        "url":
+          "/bitbucket/index.html?repoOwner={pullrequest.source.repository.owner.username}&repoSlug={pullrequest.source.repository.name}&pullRequestId={pullrequest.id}&username={user.username}&userUuid={user.uuid}&state={pullrequest.state}&commit={pullrequest.source.commit.hash}&title={pullrequest.title}",
+        "location": "org.bitbucket.pullrequest.overview.informationPanel",
+        "conditions": [
+          {
+            "condition": "has_permission",
+            "params": {
+              "permission": "write"
+            }
+          }
+        ]
+      }
+    ],
+    "webhooks": [
+      {
+        "event": "repo:commit_status_created",
+        "url": "/webhook/status-updated"
+      },
+      {
+        "event": "repo:commit_status_updated",
+        "url": "/webhook/status-updated"
       }
     ]
   }

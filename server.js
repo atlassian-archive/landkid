@@ -10,9 +10,7 @@ const landkidConfig = Object.assign(
     host: 'bitbucket',
     hostConfig: {},
     ci: 'bitbucket-pipelines',
-    ciConfig: {},
-    queuePath: path.join(__dirname, 'landkid-queue.json'),
-    lockPath: path.join(__dirname, 'landkid-queue.lock')
+    ciConfig: {}
   },
   localConfig
 );

@@ -1,104 +1,118 @@
 // @flow
 import express from 'express';
 import path from 'path';
-import { type Env } from './types';
+import { type LandRequest } from './types';
 import Queue from './Queue';
 import Runner from './Runner';
-import LandRequest from './models/LandRequest';
-import onComment from './events/onComment';
+import Client from './Client';
 import onStatus from './events/onStatus';
+import Logger from './Logger';
 
 function wrap(fn: Function) {
   return (req, res, next) => {
+    Logger.info({ req }, 'Request received');
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 }
 
 export default function routes(
   server: any,
-  env: Env,
+  client: Client,
   queue: Queue,
   runner: Runner
 ) {
-  server.get('/', (req, res) => {
-    res.sendStatus(200);
-  });
-
   server.get(
-    '/api/land-requests',
-    wrap(async (req, res) => {
-      let items = await queue.list('land-requests');
-      res.status(200).send({ landRequests: items });
-    })
-  );
-
-  server.get('/api/current-queue', (req, res) => {
-    res
-      .header('Access-Control-Allow-Origin', '*')
-      .status(200)
-      .json({ currentQueue: [1, 2, 3, 4] })
-      .send();
-  });
-
-  server.post(
-    '/api/land-requests/enqueue',
-    wrap(async (req, res) => {
-      let landRequest = LandRequest.create({
-        pullRequestId: req.body.pullRequestId,
-        commentId: req.body.commentId,
-        userId: req.body.userId
-      });
-      let position = await queue.enqueue('land-requests', landRequest);
-      res.status(200).send({ landRequest, position });
+    '/',
+    wrap((req, res) => {
+      res.sendStatus(200);
     })
   );
 
   server.get(
-    '/api/land-requests/dequeue',
+    '/api/current-queue',
     wrap(async (req, res) => {
-      let landRequest = await queue.dequeue('land-requests');
-      LandRequest.validate(landRequest);
-      res.status(200).send({ landRequest });
-    })
-  );
+      const currentQueue = queue.list();
+      Logger.info({ currentQueue }, 'Requesting queue');
 
-  // server.post(
-  //   '/api/land-requests/remove',
-  //   wrap(async (req, res) => {
-  //     let removed = await queue.remove(req.body.pullRequestId);
-  //     res.status(200).send({ removed });
-  //   })
-  // );
-
-  // server.post(
-  //   '/api/land-requests/pause',
-  //   wrap(async (req, res) => {
-  //     runner.pause();
-  //     res.status(200).send({ paused: runner.paused });
-  //   })
-  // );
-  //
-  // server.post(
-  //   '/api/land-requests/unpause',
-  //   wrap(async (req, res) => {
-  //     runner.unpause();
-  //     res.status(200).send({ paused: runner.paused });
-  //   })
-  // );
-
-  server.post(
-    '/webhook/comment',
-    wrap(async (req, res) => {
-      res.status(200).send({});
-      await onComment(env, req.body);
+      res.header('Access-Control-Allow-Origin', '*').json({ currentQueue });
     })
   );
 
   server.post(
-    '/webhook/status',
+    '/api/land-pr/:pullRequestId',
+    wrap(async (req, res) => {
+      const pullRequestId = req.params.pullRequestId;
+      const username = req.query.username;
+      const userUuid = req.query.userUuid;
+      const commit = req.query.commit;
+      const title = req.query.title;
+
+      // obviously we need more checks than this later
+      if (!pullRequestId || !userUuid || !commit || !title) {
+        res.sendStatus(404);
+        return;
+      }
+
+      const landRequest: LandRequest = {
+        pullRequestId,
+        username,
+        userUuid,
+        commit,
+        title
+      };
+      const positionInQueue = queue.enqueue(landRequest);
+      Logger.info({ landRequest, positionInQueue }, 'Request to land received');
+
+      res
+        .header('Access-Control-Allow-Origin', '*')
+        .status(200)
+        .json({ positionInQueue });
+
+      runner.next();
+    })
+  );
+
+  server.post(
+    '/api/cancel-pr/:pullRequestId',
+    wrap(async (req, res) => {
+      const pullRequestId = String(req.params.pullRequestId);
+      const userUuid = req.query.userUuid;
+      const username = req.query.username;
+
+      // do proper checks here to know if a person is allowed to cancel the build?
+      if (!pullRequestId || !userUuid) {
+        res.sendStatus(404);
+        return;
+      }
+      if (runner.running && runner.running.pullRequestId === pullRequestId) {
+        runner.cancelCurrentlyRunningBuild();
+      }
+      queue.filter(
+        (landRequest: LandRequest) =>
+          landRequest.pullRequestId !== pullRequestId
+      );
+      const newQueue = queue.list();
+
+      Logger.info(
+        { requestedToRemove: pullRequestId },
+        'Request to remove land request'
+      );
+
+      res
+        .header('Access-Control-Allow-Origin', '*')
+        .status(200)
+        .json({ newQueue });
+    })
+  );
+
+  server.post(
+    '/webhook/status-updated',
     wrap(async (req, res) => {
       res.status(200).send({});
-      await onStatus(env, req.body);
+      // status event will be null if we don't care about it
+      const statusEvent = onStatus(client, req.body, runner);
+      if (!statusEvent) return;
+      runner.mergePassedBuildIfRunning(statusEvent);
     })
   );
 
@@ -107,6 +121,7 @@ export default function routes(
 
   server.use((err, req, res, next) => {
     if (err) {
+      Logger.error({ err }, 'Error ');
       res.status(500).send({ error: err.message, stack: err.stack });
     } else {
       next();

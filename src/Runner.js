@@ -1,22 +1,65 @@
 // @flow
 import Queue from './Queue';
-import { type Env } from './types';
+import Client from './Client';
+import Logger from './Logger';
+import type { Env, LandRequest, StatusEvent } from './types';
 
 export default class Runner {
   queue: Queue;
-  env: Env;
+  running: ?LandRequest;
+  client: Client;
   paused: boolean;
 
-  constructor(queue: Queue, env: Env) {
+  constructor(queue: Queue, client: Client) {
     this.queue = queue;
-    this.env = env;
+    this.running = null;
+    this.client = client;
     this.paused = true;
   }
 
   async next() {
-    let item = await this.queue.dequeue();
-    let commit = await this.env.host.pullRequestToCommit(item.pullRequestId);
-    await this.env.ci.createLandBuild(commit);
+    if (this.running) return;
+    let landRequest: ?LandRequest = this.queue.dequeue();
+    if (!landRequest) return;
+
+    let commit = await landRequest.commit;
+    let isAllowedToLand = await this.client.isAllowedToLand(
+      landRequest.pullRequestId
+    );
+    Logger.info(
+      { landRequest, isAllowedToLand },
+      'Fetching next land request from queue'
+    );
+    if (isAllowedToLand) {
+      const buildId = await this.client.createLandBuild(commit);
+      this.running = { ...landRequest, buildId, buildStatus: 'PENDING' };
+      Logger.info({ running: this.running }, 'Running is now');
+    }
+  }
+
+  mergePassedBuildIfRunning(statusEvent: StatusEvent) {
+    if (!this.running) return;
+    if (statusEvent.buildId === this.running.buildId) {
+      if (statusEvent.passed) {
+        const pullRequestId = this.running.pullRequestId;
+        // this.env.host.mergePullRequest(pullRequestId);
+        Logger.info({ pullRequestId }, 'Would have merged PR now');
+      }
+      this.running = null;
+      this.next();
+    } else {
+      // Comment on the build to tell them it failed?
+      // Or don't bother? They'll have a red build status either way.
+    }
+  }
+
+  cancelCurrentlyRunningBuild() {
+    if (!this.running) return;
+    const cancelling = this.running;
+    this.running = null;
+    if (cancelling.buildId) {
+      this.client.stopLandBuild(cancelling.buildId);
+    }
   }
 
   pause() {

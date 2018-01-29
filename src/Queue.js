@@ -1,23 +1,32 @@
 // @flow
-import BaseModel from './models/BaseModel';
+import type { LandRequest } from './types';
 
 export default class Queue {
-  client: Object;
+  queue: Array<LandRequest>;
 
-  constructor(client: Object) {
-    this.client = client;
+  constructor() {
+    this.queue = [];
   }
 
-  async list(name: string) {
-    let items = await this.client.lrangeAsync(name, 0, -1);
-    return items.map(item => JSON.parse(item));
+  list() {
+    return Array.from(this.queue);
   }
 
-  async enqueue(name: string, model: BaseModel) {
-    return await this.client.rpushAsync(name, JSON.stringify(model));
+  enqueue(model: LandRequest) {
+    this.queue.push(model);
+    // we'll return the new position in the queue so we dont have to search for it after enqueueing
+    return this.queue.length - 1;
   }
 
-  async dequeue(name: string): Promise<JSONValue> {
-    return JSON.parse(await this.client.lpopAsync(name));
+  dequeue(): ?LandRequest {
+    if (this.queue.length > 0) {
+      return this.queue.shift();
+    }
+    return null;
+  }
+
+  filter(filterFn: () => boolean) {
+    //$FlowFixMe Not sure how to fix this tbh....
+    this.queue = this.queue.filter(filterFn);
   }
 }

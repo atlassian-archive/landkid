@@ -1,7 +1,12 @@
 // @flow
 import { type Env, type JSONValue } from '../types';
+import Runner from '../Runner';
+import Client from '../Client';
 
-export default async function onStatus(env: Env, body: JSONValue) {
-  let statusEvent = env.ci.processStatusWebhook(body);
-  // ...
+export default function onStatus(
+  client: Client,
+  body: JSONValue,
+  runner: Runner
+) {
+  return client.processStatusWebhook(body);
 }
