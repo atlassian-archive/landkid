@@ -29,7 +29,6 @@ const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
     processStatusWebhook(body: JSONValue): StatusEvent | null {
       if (
         !body ||
-        !body ||
         !body.commit_status ||
         !body.commit_status.state ||
         !body.commit_status.url ||
@@ -46,7 +45,7 @@ const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
       if (buildStatus === 'INPROGRESS') return null;
 
       // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
-      const buildUrl: string = `${body.commit_status.url}`;
+      const buildUrl: string = body.commit_status.url;
       const buildUrlParts = buildUrl.split('/');
       const buildId = buildUrlParts[buildUrlParts.length - 1];
 

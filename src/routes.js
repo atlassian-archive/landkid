@@ -10,17 +10,11 @@ import Logger from './Logger';
 
 function wrap(fn: Function) {
   return (req, res, next) => {
-    Logger.info({ req }, 'Request received');
-    Promise.resolve(fn(req, res, next)).catch(next);
+    return Promise.resolve(fn(req, res, next)).catch(next);
   };
 }
 
-export default function routes(
-  server: any,
-  client: Client,
-  queue: Queue,
-  runner: Runner
-) {
+export default function routes(server: any, client: Client, runner: Runner) {
   server.get(
     '/',
     wrap((req, res) => {
@@ -29,12 +23,23 @@ export default function routes(
   );
 
   server.get(
-    '/api/current-queue',
+    '/api/current-state',
     wrap(async (req, res) => {
-      const currentQueue = queue.list();
-      Logger.info({ currentQueue }, 'Requesting queue');
+      const currentQueue = runner.getQueue();
+      const running = runner.getRunning();
+      const state = { currentQueue, running };
+      Logger.info(state, 'Requesting current state');
 
-      res.header('Access-Control-Allow-Origin', '*').json({ currentQueue });
+      res.header('Access-Control-Allow-Origin', '*').json(state);
+    })
+  );
+
+  server.get(
+    '/api/is-allowed-to-land/:pullRequestId',
+    wrap(async (req, res) => {
+      const pullRequestId = req.params.pullRequestId;
+      const isAllowedToLand = await client.isAllowedToLand(pullRequestId);
+      res.header('Access-Control-Allow-Origin', '*').json({ isAllowedToLand });
     })
   );
 
@@ -60,7 +65,7 @@ export default function routes(
         commit,
         title
       };
-      const positionInQueue = queue.enqueue(landRequest);
+      const positionInQueue = runner.enqueue(landRequest);
       Logger.info({ landRequest, positionInQueue }, 'Request to land received');
 
       res
@@ -87,11 +92,9 @@ export default function routes(
       if (runner.running && runner.running.pullRequestId === pullRequestId) {
         runner.cancelCurrentlyRunningBuild();
       }
-      queue.filter(
-        (landRequest: LandRequest) =>
-          landRequest.pullRequestId !== pullRequestId
-      );
-      const newQueue = queue.list();
+      runner.removeLandReuqestByPullRequestId(pullRequestId);
+
+      const newQueue = runner.getQueue();
 
       Logger.info(
         { requestedToRemove: pullRequestId },

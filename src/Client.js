@@ -28,7 +28,7 @@ export default class Client {
   }
 
   async stopLandBuild(buildId: string) {
-    return await this.ciAdaptor.stopBuild(buildId);
+    return await this.ciAdaptor.stopLandBuild(buildId);
   }
 
   processStatusWebhook(body: JSONValue): StatusEvent | null {

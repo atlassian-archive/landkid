@@ -26,7 +26,6 @@ export default async function atlaskid(config: Config) {
   let port = config.port || 8000;
 
   server.use(bodyParser.json());
-  server.use(morgan('combined'));
 
   const host = await hosts[config.host](config.hostConfig);
   const ci = await cis[config.ci](config.ciConfig);
@@ -36,7 +35,7 @@ export default async function atlaskid(config: Config) {
   let queue = new Queue();
   let runner = new Runner(queue, client);
 
-  routes(server, client, queue, runner);
+  routes(server, client, runner);
 
   return new Promise((resolve, reject) => {
     server.on('error', err => {
