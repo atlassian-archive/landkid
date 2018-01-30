@@ -1,16 +1,27 @@
 'use strict';
 
-const landkid = require('./');
+const fs = require('fs');
 const path = require('path');
+const landkid = require('./');
 
-landkid({
-  port: 8000,
-  host: 'bitbucket',
-  hostConfig: {},
-  ci: 'bitbucket-pipelines',
-  ciConfig: {},
-  queuePath: path.join(__dirname, 'landkid-queue.json'),
-  lockPath: path.join(__dirname, 'landkid-queue.lock')
-}).catch(err => {
+if (!fs.existsSync('./config.js')) {
+  console.error('No config.js file found.');
+  console.error('See the readme for information about this');
+}
+
+const localConfig = require('./config');
+
+const landkidConfig = Object.assign(
+  {
+    port: 8000,
+    host: 'bitbucket',
+    hostConfig: {},
+    ci: 'bitbucket-pipelines',
+    ciConfig: {}
+  },
+  localConfig
+);
+
+landkid(landkidConfig).catch(err => {
   console.log(err);
 });

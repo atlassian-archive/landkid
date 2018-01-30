@@ -1,23 +1,22 @@
 // @flow
 import express from 'express';
 import hosts from './hosts';
-import ci from './ci';
+import cis from './ci';
 import personas from './personas';
-import { type Env } from './types';
+import type { Env } from './types';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import Queue from './Queue';
-import { createRedisClient } from './redis';
 import Runner from './Runner';
 import routes from './routes';
+import Client from './Client';
+import Logger from './Logger';
 
 type Config = {
   port?: number,
-  queuePath: string,
-  lockPath: string,
   host: $Keys<typeof hosts>,
   hostConfig: {},
-  ci: $Keys<typeof ci>,
+  ci: $Keys<typeof cis>,
   ciConfig: {},
   persona?: $Keys<typeof personas>
 };
@@ -25,22 +24,18 @@ type Config = {
 export default async function atlaskid(config: Config) {
   let server = express();
   let port = config.port || 8000;
-  let { queuePath, lockPath } = config;
 
   server.use(bodyParser.json());
-  server.use(morgan('combined'));
 
-  let env: Env = {
-    host: await hosts[config.host](config.hostConfig),
-    ci: await ci[config.ci](config.ciConfig),
-    persona: personas[config.persona || 'goat']
-  };
+  const host = await hosts[config.host](config.hostConfig);
+  const ci = await cis[config.ci](config.ciConfig);
+  const persona = personas[config.persona || 'goat'];
+  let client = new Client(host, ci, persona);
 
-  let client = await createRedisClient({ host: 'redis', port: 6379 });
-  let queue = new Queue(client);
-  let runner = new Runner(queue, env);
+  let queue = new Queue();
+  let runner = new Runner(queue, client);
 
-  routes(server, env, queue, runner);
+  routes(server, client, runner);
 
   return new Promise((resolve, reject) => {
     server.on('error', err => {
@@ -48,7 +43,8 @@ export default async function atlaskid(config: Config) {
     });
 
     server.listen(port, () => {
-      console.log(`Landkid server started at https://localhost:${port}`);
+      Logger.info(`Landkid server started at http://localhost:${port}`);
+
       resolve();
     });
   });

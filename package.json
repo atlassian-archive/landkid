@@ -8,15 +8,18 @@
     "Luke Batchelor <batchelor.luke@gmail.com>"
   ],
   "license": "MIT",
+  "bin": {
+    "landkid": "server.js"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "flow": "flow status",
     "test": "jest --coverage",
     "format": "prettier --write src/**/*.js",
-    "build:legacy": "BABEL_ENV=legacy babel src -d dist/legacy",
-    "build:modern": "BABEL_ENV=modern babel src -d dist/modern",
+    "build:legacy": "BABEL_ENV=legacy babel src -d dist/legacy -D",
+    "build:modern": "BABEL_ENV=modern babel src -d dist/modern -D",
     "build": "yarn run clean && yarn build:legacy && yarn build:modern",
-    "start": "node server.js",
+    "start": "node server.js | bunyan -o short",
     "prepublish": "yarn build",
     "precommit": "lint-staged"
   },
@@ -38,6 +41,7 @@
     "babel-runtime": "^6.26.0",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
+    "bunyan": "^1.8.12",
     "express": "^4.16.2",
     "joi": "^13.0.2",
     "load-json-file": "^4.0.0",
@@ -51,15 +55,10 @@
   },
   "jest": {
     "resetMocks": true,
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/*.js"
-    ]
+    "testMatch": ["<rootDir>/src/**/__tests__/*.js"]
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.js": ["prettier --write", "git add"]
   },
   "prettier": {
     "singleQuote": true

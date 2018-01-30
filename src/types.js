@@ -9,19 +9,19 @@ export type JSONValue =
   | { [key: string]: JSONValue };
 
 export type Host = {
-  processCommentWebhook(body: JSONValue): CommentEvent,
   createComment(
     pullRequestId: string,
     parentCommentId: string | null,
     message: string
   ): Promise<mixed>,
-  pullRequestToCommitHash(pullRequestId: string): Promise<string>
+  isAllowedToLand(landRequest: LandRequest): Promise<boolean>,
+  mergePullRequest(pullRequestId: string): Promise<boolean>
 };
 
 export type CI = {
   processStatusWebhook(body: JSONValue): StatusEvent | null,
   createLandBuild(commit: string): Promise<mixed>,
-  isLandBuildRunning(): Promise<boolean>
+  stopLandBuild(commit: string): Promise<mixed>
 };
 
 export type HostAdapter = (config: Object) => Promise<Host>;
@@ -33,14 +33,8 @@ export type Env = {
   persona: Persona
 };
 
-export type CommentEvent = {
-  userId: string,
-  pullRequestId: string,
-  commentId: string,
-  commentBody: string
-};
-
 export type StatusEvent = {
+  buildUrl: string,
   buildId: string,
   passed: boolean
 };
@@ -52,4 +46,40 @@ export type Persona = {
   notRemovedFromQueue: string,
   unknownCommand: string,
   error: string
+};
+
+export type LandRequest = {
+  pullRequestId: string,
+  username: string,
+  userUuid: string,
+  pullRequestState?: 'OPEN' | 'DECLINED' | 'MERGED',
+  commit: string,
+  title: string,
+
+  // These properties exist after a landRequest begins landing
+  buildId?: string,
+  buildStatus?: string,
+  landed?: boolean
+};
+
+export type HostConfig = {
+  BITBUCKET_USERNAME: string,
+  BITBUCKET_PASSWORD: string,
+  REPO_OWNER: string,
+  REPO_SLUG: string
+};
+
+export type CIConfig = {
+  BITBUCKET_USERNAME: string,
+  BITBUCKET_PASSWORD: string,
+  REPO_OWNER: string,
+  REPO_SLUG: string
+};
+
+export type Config = {
+  port: number,
+  host: 'bitbucket' | 'github',
+  ci: 'bitbucket-pipelines' | 'circle-ci' | 'travis-ci',
+  hostConfig: HostConfig,
+  ciConfig: CIConfig
 };

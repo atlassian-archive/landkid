@@ -1,65 +1,120 @@
 // @flow
-import { type HostAdapter, type CommentEvent } from '../types';
+import { type HostAdapter, type JSONValue } from '../types';
 import axios from 'axios';
+import Logger from '../Logger';
 
 type Config = {
-  REPO_OWNER: string,
-  REPO_SLUG: string,
-  BITBUCKET_USERNAME: string,
-  BITBUCKET_PASSWORD: string
+  repoOwner: string,
+  repoName: string,
+  botUsername: string,
+  botPassword: string,
+  usersAllowedToApprove: Array<string>
 };
 
-const BitbucketAdapter: HostAdapter = async (config: Config) => {
-  let axiosGetConfig = {
+const BitbucketAdapter = async (config: Config) => {
+  const USERS_ALLOWED_TO_APPROVE = config.usersAllowedToApprove;
+  const axiosGetConfig = {
     auth: {
-      username: config.BITBUCKET_USERNAME,
-      password: config.BITBUCKET_PASSWORD
+      username: config.botUsername,
+      password: config.botPassword
     }
   };
 
-  let axiosPostConfig = {
+  const axiosPostConfig = {
     ...axiosGetConfig,
     headers: {
       'Content-Type': 'application/json'
     }
   };
 
+  const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
+    config.repoOwner
+  }/${config.repoName}`;
+  const oldApiBaseUrl = `https://api.bitbucket.org/1.0/repositories/${
+    config.repoOwner
+  }/${config.repoName}`;
+
   return {
-    processCommentWebhook(data: any): CommentEvent {
-      return {
-        userId: data.actor.uuid,
-        pullRequestId: data.pullrequest.id,
-        commentId: data.comment.id,
-        commentBody: data.comment.content.raw
-      };
-    },
-
-    async createComment(pullRequestId, parentCommentId, message) {
-      let data = {};
-
-      data.content = message;
+    async createComment(
+      pullRequestId: string,
+      parentCommentId: ?string,
+      message: string
+    ) {
+      let data = { content: message };
 
       if (parentCommentId) {
-        data.parent_id = `${parentCommentId}`;
+        data = { ...data, parent_id: String(parentCommentId) };
       }
 
       let response = await axios.post(
-        // prettier-ignore
-        `https://api.bitbucket.org/1.0/repositories/${config.REPO_OWNER}/${config.REPO_SLUG}/pullrequests/${pullRequestId}/comments/`,
+        `${oldApiBaseUrl}/pullrequests/${pullRequestId}/comments/`,
         JSON.stringify(data),
-        {
-          ...axiosGetConfig,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        axiosPostConfig
       );
 
       return response.data.comment_id;
     },
 
-    async pullRequestToCommitHash(pullRequestId): Promise<string> {
-      // ...
+    // This is run when a build is at the front of the queue
+    async isAllowedToLand(pullRequestId: string): Promise<any> {
+      const pullRequest = await this.getPullRequest(pullRequestId);
+      const buildStatuses = await this.getPullRequestBuildStatuses(
+        pullRequestId
+      );
+
+      const isOpen = pullRequest.state === 'OPEN';
+      const createdBy = pullRequest.author.username;
+      const isApproved = pullRequest.participants.some(
+        participant =>
+          (participant.approved &&
+            !participant.user.username !== createdBy &&
+            USERS_ALLOWED_TO_APPROVE.indexOf(participant.user.username) > -1) ||
+          (participant.approved &&
+            !participant.user.username === 'luke_batchelor')
+      );
+      const isGreen = buildStatuses.every(
+        buildStatus => buildStatus.state === 'SUCCESSFUL'
+      );
+      Logger.info(
+        { pullRequestId, isOpen, isApproved, isGreen },
+        'isAllowedToLand()'
+      );
+      const isAllowed = isOpen && isApproved && isGreen;
+      return { isOpen, isApproved, isGreen, isAllowed };
+    },
+
+    async mergePullRequest(pullRequestId: string) {
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
+      const data = {
+        close_source_branch: true,
+        message: 'Merged by Landkid after successful build rebased on Master',
+        merge_strategy: 'merge_commit'
+      };
+      Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
+      const resp = await axios.post(
+        // prettier-ignore
+        endpoint,
+        JSON.stringify(data),
+        axiosPostConfig
+      );
+      Logger.info({ pullRequestId }, 'Merged Pull Request');
+    },
+
+    async getPullRequest(pullRequestId: string) {
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
+      const resp = await axios.get(endpoint, axiosGetConfig);
+      return resp.data;
+    },
+
+    async getPullRequestBuildStatuses(pullRequestId: string) {
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
+      const resp = await axios.get(endpoint, axiosGetConfig);
+      // fairly safe to assume we'll never need to paginate these results
+      const allBuildStatuses = resp.data.values;
+      // need to remove build statuses that we created or rerunning would be impossible
+      return allBuildStatuses.filter(
+        buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/)
+      );
     }
   };
 };
