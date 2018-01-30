@@ -1,17 +1,18 @@
+#!/usr/bin/env node
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const landkid = require('./');
+let fs = require('fs');
+let path = require('path');
+let landkid = require('./');
 
 if (!fs.existsSync('./config.js')) {
   console.error('No config.js file found.');
   console.error('See the readme for information about this');
 }
 
-const localConfig = require('./config');
+let localConfig = require('./config');
 
-const landkidConfig = Object.assign(
+let landkidConfig = Object.assign(
   {
     port: 8000,
     host: 'bitbucket',
