@@ -11,6 +11,11 @@
   "bin": {
     "landkid": "server.js"
   },
+  "files": [
+    "dist",
+    "server.js",
+    "index.js"
+  ],
   "scripts": {
     "clean": "rm -rf dist",
     "flow": "flow status",
