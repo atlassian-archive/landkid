@@ -43,7 +43,6 @@
     "body-parser": "^1.18.2",
     "bunyan": "^1.8.12",
     "express": "^4.16.2",
-    "joi": "^13.0.2",
     "load-json-file": "^4.0.0",
     "lockfile": "^1.0.3",
     "morgan": "^1.9.0",
