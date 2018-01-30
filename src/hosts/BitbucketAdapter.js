@@ -2,31 +2,37 @@
 import { type HostAdapter, type JSONValue } from '../types';
 import axios from 'axios';
 import Logger from '../Logger';
-import { isObject } from 'util';
 
 type Config = {
-  REPO_OWNER: string,
-  REPO_SLUG: string,
-  BITBUCKET_USERNAME: string,
-  BITBUCKET_PASSWORD: string
+  repoOwner: string,
+  repoName: string,
+  botUsername: string,
+  botPassword: string,
+  usersAllowedToApprove: Array<string>
 };
 
-const USERS_ALLOWED_TO_APPROVE = ['luke_batchelor', 'thejameskyle'];
-
 const BitbucketAdapter = async (config: Config) => {
-  let axiosGetConfig = {
+  const USERS_ALLOWED_TO_APPROVE = config.usersAllowedToApprove;
+  const axiosGetConfig = {
     auth: {
-      username: config.BITBUCKET_USERNAME,
-      password: config.BITBUCKET_PASSWORD
+      username: config.botUsername,
+      password: config.botPassword
     }
   };
 
-  let axiosPostConfig = {
+  const axiosPostConfig = {
     ...axiosGetConfig,
     headers: {
       'Content-Type': 'application/json'
     }
   };
+
+  const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
+    config.repoOwner
+  }/${config.repoName}`;
+  const oldApiBaseUrl = `https://api.bitbucket.org/1.0/repositories/${
+    config.repoOwner
+  }/${config.repoName}`;
 
   return {
     async createComment(
@@ -41,9 +47,7 @@ const BitbucketAdapter = async (config: Config) => {
       }
 
       let response = await axios.post(
-        `https://api.bitbucket.org/1.0/repositories/${config.REPO_OWNER}/${
-          config.REPO_SLUG
-        }/pullrequests/${pullRequestId}/comments/`,
+        `${oldApiBaseUrl}/pullrequests/${pullRequestId}/comments/`,
         JSON.stringify(data),
         axiosPostConfig
       );
@@ -80,15 +84,13 @@ const BitbucketAdapter = async (config: Config) => {
     },
 
     async mergePullRequest(pullRequestId: string) {
-      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
-        config.REPO_OWNER
-      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}/merge`;
-      Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
       const data = {
         close_source_branch: true,
         message: 'Merged by Landkid after successful build rebased on Master',
         merge_strategy: 'merge_commit'
       };
+      Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
       const resp = await axios.post(
         // prettier-ignore
         endpoint,
@@ -99,17 +101,13 @@ const BitbucketAdapter = async (config: Config) => {
     },
 
     async getPullRequest(pullRequestId: string) {
-      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
-        config.REPO_OWNER
-      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}`;
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
       const resp = await axios.get(endpoint, axiosGetConfig);
       return resp.data;
     },
 
     async getPullRequestBuildStatuses(pullRequestId: string) {
-      const endpoint = `https://api.bitbucket.org/2.0/repositories/${
-        config.REPO_OWNER
-      }/${config.REPO_SLUG}/pullrequests/${pullRequestId}/statuses`;
+      const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
       const resp = await axios.get(endpoint, axiosGetConfig);
       // fairly safe to assume we'll never need to paginate these results
       const allBuildStatuses = resp.data.values;

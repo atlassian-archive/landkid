@@ -8,6 +8,9 @@
     "Luke Batchelor <batchelor.luke@gmail.com>"
   ],
   "license": "MIT",
+  "bin": {
+    "landkid": "server.js"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "flow": "flow status",
@@ -16,7 +19,7 @@
     "build:legacy": "BABEL_ENV=legacy babel src -d dist/legacy -D",
     "build:modern": "BABEL_ENV=modern babel src -d dist/modern -D",
     "build": "yarn run clean && yarn build:legacy && yarn build:modern",
-    "start": "node server.js",
+    "start": "node server.js | bunyan -o short",
     "prepublish": "yarn build",
     "precommit": "lint-staged"
   },
@@ -52,15 +55,10 @@
   },
   "jest": {
     "resetMocks": true,
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/*.js"
-    ]
+    "testMatch": ["<rootDir>/src/**/__tests__/*.js"]
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.js": ["prettier --write", "git add"]
   },
   "prettier": {
     "singleQuote": true

@@ -4,17 +4,17 @@ import Logger from '../Logger';
 import { type CIAdapter, type StatusEvent, JSONValue } from '../types';
 
 type Config = {
-  REPO_OWNER: string,
-  REPO_SLUG: string,
-  BITBUCKET_USERNAME: string,
-  BITBUCKET_PASSWORD: string
+  repoOwner: string,
+  repoName: string,
+  botUsername: string,
+  botPassword: string
 };
 
 const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
   let axiosGetConfig = {
     auth: {
-      username: config.BITBUCKET_USERNAME,
-      password: config.BITBUCKET_PASSWORD
+      username: config.botUsername,
+      password: config.botPassword
     }
   };
 
@@ -24,6 +24,10 @@ const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
       'Content-Type': 'application/json'
     }
   };
+
+  const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
+    config.repoOwner
+  }/${config.repoName}`;
 
   return {
     processStatusWebhook(body: JSONValue): StatusEvent | null {
@@ -72,8 +76,7 @@ const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
         }
       };
       const resp = await axios.post(
-        // prettier-ignore
-        `https://api.bitbucket.org/2.0/repositories/${config.REPO_OWNER}/${config.REPO_SLUG}/pipelines/`,
+        `${apiBaseUrl}/pipelines/`,
         JSON.stringify(data),
         axiosPostConfig
       );

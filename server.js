@@ -1,7 +1,14 @@
 'use strict';
 
-const landkid = require('./');
+const fs = require('fs');
 const path = require('path');
+const landkid = require('./');
+
+if (!fs.existsSync('./config.js')) {
+  console.error('No config.js file found.');
+  console.error('See the readme for information about this');
+}
+
 const localConfig = require('./config');
 
 const landkidConfig = Object.assign(

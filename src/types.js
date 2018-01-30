@@ -63,7 +63,6 @@ export type LandRequest = {
 };
 
 export type HostConfig = {
-  baseUrl: string,
   BITBUCKET_USERNAME: string,
   BITBUCKET_PASSWORD: string,
   REPO_OWNER: string,
@@ -71,7 +70,6 @@ export type HostConfig = {
 };
 
 export type CIConfig = {
-  baseUrl: string,
   BITBUCKET_USERNAME: string,
   BITBUCKET_PASSWORD: string,
   REPO_OWNER: string,
