@@ -1,6 +1,6 @@
 {
   "name": "landkid",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CI Queue",
   "main": "index.js",
   "contributors": [
@@ -55,10 +55,15 @@
   },
   "jest": {
     "resetMocks": true,
-    "testMatch": ["<rootDir>/src/**/__tests__/*.js"]
+    "testMatch": [
+      "<rootDir>/src/**/__tests__/*.js"
+    ]
   },
   "lint-staged": {
-    "*.js": ["prettier --write", "git add"]
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "prettier": {
     "singleQuote": true
