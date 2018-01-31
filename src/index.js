@@ -18,7 +18,8 @@ type Config = {
   hostConfig: {},
   ci: $Keys<typeof cis>,
   ciConfig: {},
-  persona?: $Keys<typeof personas>
+  persona?: $Keys<typeof personas>,
+  baseUrl: string
 };
 
 export default async function atlaskid(config: Config) {
@@ -26,6 +27,7 @@ export default async function atlaskid(config: Config) {
   let port = config.port || 8000;
 
   server.use(bodyParser.json());
+  server.set('baseUrl', config.baseUrl);
 
   const host = await hosts[config.host](config.hostConfig);
   const ci = await cis[config.ci](config.ciConfig);
@@ -44,6 +46,7 @@ export default async function atlaskid(config: Config) {
 
     server.listen(port, () => {
       Logger.info(`Landkid server started at http://localhost:${port}`);
+      Logger.info(`BaseUrl set to ${config.baseUrl}`);
 
       resolve();
     });
