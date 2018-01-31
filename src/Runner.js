@@ -21,7 +21,7 @@ export default class Runner {
 
   async next() {
     Logger.info(
-      { running: this.running, locked: this.locked },
+      { running: this.running, locked: this.locked, queue: this.queue },
       'Next() called'
     );
     if (this.running || this.locked) return;
@@ -70,6 +70,7 @@ export default class Runner {
     if (!this.running) return;
     const cancelling = this.running;
     this.running = null;
+    this.locked = false;
     if (cancelling.buildId) {
       this.client.stopLandBuild(cancelling.buildId);
     }
