@@ -7,6 +7,7 @@ import Runner from './Runner';
 import Client from './Client';
 import onStatus from './events/onStatus';
 import Logger from './Logger';
+import bitbucketAddonDescriptor from './static/bitbucket/atlassian-connect.json';
 
 function wrap(fn: Function) {
   return (req, res, next) => {
@@ -15,6 +16,8 @@ function wrap(fn: Function) {
 }
 
 export default function routes(server: any, client: Client, runner: Runner) {
+  bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
+
   server.get(
     '/',
     wrap((req, res) => {
@@ -122,6 +125,14 @@ export default function routes(server: any, client: Client, runner: Runner) {
       runner.mergePassedBuildIfRunning(statusEvent);
     })
   );
+
+  // Note: since this path is here first, atlassian-connect.json will be served here, not from the
+  // the express.static call below (we need to send the modified descriptor)
+  server.get('/bitbucket/atlassian-connect.json', (req, res) => {
+    res
+      .header('Access-Control-Allow-Origin', '*')
+      .json(bitbucketAddonDescriptor);
+  });
 
   // serve static files from the 'static' directory
   server.use(express.static(path.join(__dirname, 'static')));
