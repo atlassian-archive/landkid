@@ -22,6 +22,10 @@ export default function routes(server: any, client: Client, runner: Runner) {
     })
   );
 
+  server.get('/healthcheck', (req, res) => {
+    res.sendStatus(200);
+  });
+
   server.get(
     '/api/current-state',
     wrap(async (req, res) => {
