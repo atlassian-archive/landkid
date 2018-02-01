@@ -86,6 +86,9 @@ function wantToMergeClicked() {
       } else {
         setView(notAllowedToLand(data.isAllowedToLand));
       }
+    })
+    .catch(err => {
+      setView(errorCreatingLandRequestView(err));
     });
 }
 
@@ -128,14 +131,16 @@ function cancelButtonClicked() {
     });
 }
 
-function displayQueueOrLandButton(queue) {
+function displayQueueOrLandButton(queue, running) {
   const queryStringVars = getQueryStringVars();
   const pullRequestId = queryStringVars.pullRequestId;
-  const isQueued = queue.some(pr => pr.pullRequestId === pullRequestId);
+  const isQueuedOrRunning =
+    queue.some(pr => pr.pullRequestId === pullRequestId) ||
+    running.pullRequestId === pullRequestId;
 
   console.log('Current queue: ', queue);
 
-  if (isQueued) {
+  if (isQueuedOrRunning) {
     setView(isQueuedView());
   } else {
     setView(landButtonView());
@@ -148,7 +153,7 @@ if (qs.state === 'OPEN') {
   getCurrentState().then(stateResp => {
     const allowedToMerge = stateResp.usersAllowedToMerge;
     if (allowedToMerge.indexOf(qs.username) > -1) {
-      displayQueueOrLandButton(stateResp.queue);
+      displayQueueOrLandButton(stateResp.queue, stateResp.running);
     }
   });
 } else {
