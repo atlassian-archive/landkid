@@ -25,10 +25,9 @@ export default class Runner {
       'Next() called'
     );
     if (this.running || this.locked) return;
-    this.locked = true;
-    Logger.info('Nothing currently running, dequeueing next land request');
     let landRequest: ?LandRequest = this.queue.dequeue();
     if (!landRequest) return;
+    this.locked = true;
     Logger.info({ landRequest }, 'Checking if still allowed to land...');
 
     let commit = await landRequest.commit;
@@ -52,18 +51,31 @@ export default class Runner {
   }
 
   mergePassedBuildIfRunning(statusEvent: StatusEvent) {
-    if (!this.running) return;
+    if (!this.running) {
+      Logger.info(statusEvent, 'No build running, status event is irrelevant');
+      return;
+    }
+    Logger.info(
+      { statusEvent, running: this.running },
+      'Status event May be relevant!'
+    );
     if (statusEvent.buildId === this.running.buildId) {
       if (statusEvent.passed) {
         const pullRequestId = this.running.pullRequestId;
-        // this.env.host.mergePullRequest(pullRequestId);
-        Logger.info({ pullRequestId }, 'Would have merged PR now');
+        Logger.info(
+          { pullRequestId, running: this.running },
+          'Merging pull request'
+        );
+        this.client.mergePullRequest(pullRequestId);
+      } else {
+        Logger.info(
+          { running: this.running, statusEvent },
+          'Land build failed'
+        );
       }
-    } else {
-      Logger.info({ running: this.running, statusEvent }, 'Land build failed');
+      this.running = null;
+      this.next();
     }
-    this.running = null;
-    this.next();
   }
 
   cancelCurrentlyRunningBuild() {
@@ -94,11 +106,11 @@ export default class Runner {
     );
   }
 
-  getQueue() {
-    return this.queue.list();
-  }
-
-  getRunning() {
-    return Object.assign({}, this.running);
+  getState() {
+    return {
+      queue: this.queue.list(),
+      running: Object.assign({}, this.running),
+      locked: this.locked
+    };
   }
 }

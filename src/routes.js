@@ -17,6 +17,7 @@ function wrap(fn: Function) {
 
 export default function routes(server: any, client: Client, runner: Runner) {
   bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
+  const usersAllowedToMerge = server.settings.usersAllowedToMerge;
 
   server.get(
     '/',
@@ -32,12 +33,12 @@ export default function routes(server: any, client: Client, runner: Runner) {
   server.get(
     '/api/current-state',
     wrap(async (req, res) => {
-      const currentQueue = runner.getQueue();
-      const running = runner.getRunning();
-      const state = { currentQueue, running };
+      const state = runner.getState();
       Logger.info(state, 'Requesting current state');
 
-      res.header('Access-Control-Allow-Origin', '*').json(state);
+      res
+        .header('Access-Control-Allow-Origin', '*')
+        .json({ ...state, usersAllowedToMerge });
     })
   );
 
@@ -101,7 +102,7 @@ export default function routes(server: any, client: Client, runner: Runner) {
       }
       runner.removeLandReuqestByPullRequestId(pullRequestId);
 
-      const newQueue = runner.getQueue();
+      const state = runner.getState();
 
       Logger.info(
         { requestedToRemove: pullRequestId },
@@ -111,7 +112,7 @@ export default function routes(server: any, client: Client, runner: Runner) {
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
-        .json({ newQueue });
+        .json({ newQueue: state.queue });
     })
   );
 

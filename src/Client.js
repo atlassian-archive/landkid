@@ -31,6 +31,10 @@ export default class Client {
     return await this.ciAdaptor.stopLandBuild(buildId);
   }
 
+  async mergePullRequest(pullRequestId: string) {
+    return await this.hostAdaptor.mergePullRequest(pullRequestId);
+  }
+
   processStatusWebhook(body: JSONValue): StatusEvent | null {
     return this.ciAdaptor.processStatusWebhook(body);
   }

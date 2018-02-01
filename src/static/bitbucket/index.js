@@ -128,12 +128,12 @@ function cancelButtonClicked() {
     });
 }
 
-function displayQueueOrLandButton(currentQueue) {
+function displayQueueOrLandButton(queue) {
   const queryStringVars = getQueryStringVars();
   const pullRequestId = queryStringVars.pullRequestId;
-  const isQueued = currentQueue.some(pr => pr.pullRequestId === pullRequestId);
+  const isQueued = queue.some(pr => pr.pullRequestId === pullRequestId);
 
-  console.log('Current queue: ', currentQueue);
+  console.log('Current queue: ', queue);
 
   if (isQueued) {
     setView(isQueuedView());
@@ -142,11 +142,14 @@ function displayQueueOrLandButton(currentQueue) {
   }
 }
 
-const queryStringVars = getQueryStringVars();
+const qs = getQueryStringVars();
 
-if (queryStringVars.state === 'OPEN') {
+if (qs.state === 'OPEN') {
   getCurrentState().then(stateResp => {
-    displayQueueOrLandButton(stateResp.currentQueue);
+    const allowedToMerge = stateResp.usersAllowedToMerge;
+    if (allowedToMerge.indexOf(qs.username) > -1) {
+      displayQueueOrLandButton(stateResp.queue);
+    }
   });
 } else {
   setView(notAllowedToLand({ isOpen: false }));
