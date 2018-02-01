@@ -10,7 +10,7 @@
   "authentication": {
     "type": "jwt"
   },
-  "contexts": ["personal"],
+  "contexts": ["account"],
   "modules": {
     "webPanels": [
       {
