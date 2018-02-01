@@ -41,16 +41,6 @@
           }
         ]
       }
-    ],
-    "webhooks": [
-      {
-        "event": "repo:commit_status_created",
-        "url": "/webhook/status-updated"
-      },
-      {
-        "event": "repo:commit_status_updated",
-        "url": "/webhook/status-updated"
-      }
     ]
   }
 }
