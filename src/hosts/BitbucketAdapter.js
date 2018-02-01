@@ -91,13 +91,18 @@ const BitbucketAdapter = async (config: Config) => {
         merge_strategy: 'merge_commit'
       };
       Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
-      const resp = await axios.post(
-        // prettier-ignore
-        endpoint,
-        JSON.stringify(data),
-        axiosPostConfig
-      );
-      Logger.info({ pullRequestId }, 'Merged Pull Request');
+      try {
+        const resp = await axios.post(
+          endpoint,
+          JSON.stringify(data),
+          axiosPostConfig
+        );
+        Logger.info({ pullRequestId }, 'Merged Pull Request');
+      } catch (e) {
+        Logger.error(e, 'Unable to merge pull request');
+        return false;
+      }
+      return true;
     },
 
     async getPullRequest(pullRequestId: string) {

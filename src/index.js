@@ -28,6 +28,10 @@ export default async function atlaskid(config: Config) {
 
   server.use(bodyParser.json());
   server.set('baseUrl', config.baseUrl);
+  server.set(
+    'usersAllowedToMerge',
+    config.hostConfig.usersAllowedToApprove || []
+  );
 
   const host = await hosts[config.host](config.hostConfig);
   const ci = await cis[config.ci](config.ciConfig);

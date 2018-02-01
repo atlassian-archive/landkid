@@ -31,6 +31,13 @@
             "params": {
               "permission": "write"
             }
+          },
+          {
+            "condition": "equals",
+            "target": "repository.uuid",
+            "params": {
+              "value": "6380b4e9-6ac5-4dd4-a8e0-65f09cabe4c8"
+            }
           }
         ]
       }
