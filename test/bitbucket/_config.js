@@ -1,5 +1,4 @@
-// This file should never be checked in and is only used for local testing
-
+// this is a fake config for the bitbucket tests
 const baseUrl = 'https://fake.base.url.com';
 const botUsername = 'bot_username';
 const botPassword = 'bot_password';
