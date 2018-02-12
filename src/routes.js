@@ -35,7 +35,6 @@ export default function routes(server: any, client: Client, runner: Runner) {
     wrap(async (req, res) => {
       const state = runner.getState();
       Logger.info(state, 'Requesting current state');
-
       res
         .header('Access-Control-Allow-Origin', '*')
         .json({ ...state, usersAllowedToMerge });
@@ -59,7 +58,6 @@ export default function routes(server: any, client: Client, runner: Runner) {
       const userUuid = req.query.userUuid;
       const commit = req.query.commit;
       const title = req.query.title;
-
       // obviously we need more checks than this later
       if (!pullRequestId || !userUuid || !commit || !title) {
         res.sendStatus(404);
@@ -80,7 +78,6 @@ export default function routes(server: any, client: Client, runner: Runner) {
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
         .json({ positionInQueue });
-
       runner.next();
     })
   );

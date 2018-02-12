@@ -34,6 +34,7 @@ export default class Runner {
     let isAllowedToLand = await this.client.isAllowedToLand(
       landRequest.pullRequestId
     );
+
     if (isAllowedToLand.isAllowed) {
       Logger.info({ landRequest }, 'Allowed to land, creating land build');
       const buildId = await this.client.createLandBuild(commit);
@@ -51,14 +52,14 @@ export default class Runner {
   }
 
   mergePassedBuildIfRunning(statusEvent: StatusEvent) {
-    if (!this.running) {
-      Logger.info(statusEvent, 'No build running, status event is irrelevant');
-      return;
-    }
     Logger.info(
       { statusEvent, running: this.running },
       'Status event May be relevant!'
     );
+    if (!this.running) {
+      Logger.info(statusEvent, 'No build running, status event is irrelevant');
+      return;
+    }
     if (statusEvent.buildId === this.running.buildId) {
       if (statusEvent.passed) {
         const pullRequestId = this.running.pullRequestId;

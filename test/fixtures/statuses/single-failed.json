@@ -1,0 +1,19 @@
+{
+  "pagelen": 30,
+  "values": [
+    {
+      "key": "-1576576709",
+      "description": "",
+      "url":
+        "https://bitbucket.org/repo_owner/repo_name/addon/pipelines/home#!/results/1",
+      "refname": "issue/AK-888-some-issue",
+      "state": "FAILED",
+      "created_on": "2018-02-01T00:50:34.649519+00:00",
+      "updated_on": "2018-02-01T02:30:44.972448+00:00",
+      "type": "build",
+      "name": "Pipeline #1 for issue/AK-888 some issue"
+    }
+  ],
+  "page": 1,
+  "size": 1
+}

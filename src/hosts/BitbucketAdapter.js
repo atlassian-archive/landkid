@@ -11,7 +11,7 @@ type Config = {
   usersAllowedToApprove: Array<string>
 };
 
-const BitbucketAdapter = async (config: Config) => {
+const BitbucketAdapter = (config: Config) => {
   const USERS_ALLOWED_TO_APPROVE = config.usersAllowedToApprove;
   const axiosGetConfig = {
     auth: {
@@ -66,11 +66,9 @@ const BitbucketAdapter = async (config: Config) => {
       const createdBy = pullRequest.author.username;
       const isApproved = pullRequest.participants.some(
         participant =>
-          (participant.approved &&
-            !participant.user.username !== createdBy &&
-            USERS_ALLOWED_TO_APPROVE.indexOf(participant.user.username) > -1) ||
-          (participant.approved &&
-            !participant.user.username === 'luke_batchelor')
+          participant.approved &&
+          !participant.user.username !== createdBy &&
+          USERS_ALLOWED_TO_APPROVE.indexOf(participant.user.username) > -1
       );
       const isGreen = buildStatuses.every(
         buildStatus => buildStatus.state === 'SUCCESSFUL'

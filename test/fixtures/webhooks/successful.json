@@ -1,0 +1,36 @@
+{
+  "commit_status": {
+    "description": "",
+    "repository": {
+      "type": "repository",
+      "name": "Some Repo",
+      "full_name": "repo_owner/repo_name",
+      "uuid": "{6380b4e9-6ac5-4dd4-a8e0-65f09cabe4c8}"
+    },
+    "state": "SUCCESSFUL",
+    "url":
+      "https://bitbucket.org/repo_owner/repo_name/addon/pipelines/home#!/results/3",
+    "refname": "issue/AK-888-some-issue",
+    "created_on": "2018-02-01T00:50:34.649519+00:00",
+    "key": "-1991617127",
+    "updated_on": "2018-02-01T00:50:34.649519+00:00",
+    "commit": {
+      "hash": "eb9df3f731470370e570d058d58b5edc343eed54",
+      "author": {
+        "raw": "User 1 <user@domain.com>",
+        "type": "author",
+        "user": {
+          "username": "user_1",
+          "type": "user",
+          "display_name": "User One",
+          "uuid": "{62cc1a9a-9f43-4518-b604-9c044626bf10}"
+        }
+      },
+      "date": "2018-02-12T02:20:29+00:00",
+      "message": "Foo bar\n",
+      "type": "commit"
+    },
+    "type": "build",
+    "name": "Pipeline #3 for issue/AK-888-some-issue"
+  }
+}

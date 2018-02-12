@@ -3,5 +3,6 @@ node_modules
 dist/
 coverage/
 landkid-queue.*
-config.js
+/config.js
 log.txt
+.DS_Store

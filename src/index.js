@@ -22,7 +22,7 @@ type Config = {
   baseUrl: string
 };
 
-export default async function atlaskid(config: Config) {
+export default function atlaskid(config: Config) {
   let server = express();
   let port = config.port || 8000;
 
@@ -33,8 +33,8 @@ export default async function atlaskid(config: Config) {
     config.hostConfig.usersAllowedToApprove || []
   );
 
-  const host = await hosts[config.host](config.hostConfig);
-  const ci = await cis[config.ci](config.ciConfig);
+  const host = hosts[config.host](config.hostConfig);
+  const ci = cis[config.ci](config.ciConfig);
   const persona = personas[config.persona || 'goat'];
   let client = new Client(host, ci, persona);
 
@@ -43,16 +43,5 @@ export default async function atlaskid(config: Config) {
 
   routes(server, client, runner);
 
-  return new Promise((resolve, reject) => {
-    server.on('error', err => {
-      reject(err);
-    });
-
-    server.listen(port, () => {
-      Logger.info(`Landkid server started at http://localhost:${port}`);
-      Logger.info(`BaseUrl set to ${config.baseUrl}`);
-
-      resolve();
-    });
-  });
+  return server;
 }
