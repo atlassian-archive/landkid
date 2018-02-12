@@ -1,7 +1,7 @@
 // @flow
 import axios from 'axios';
 import Logger from '../Logger';
-import { type CIAdapter, type StatusEvent, JSONValue } from '../types';
+import { type CIAdapter, type StatusEvent, type JSONValue } from '../types';
 
 type Config = {
   repoOwner: string,
@@ -10,7 +10,7 @@ type Config = {
   botPassword: string
 };
 
-const BitbucketPipelinesAdapter: CIAdapter = async (config: Config) => {
+const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
   let axiosGetConfig = {
     auth: {
       username: config.botUsername,

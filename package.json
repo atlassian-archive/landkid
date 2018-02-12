@@ -19,7 +19,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "flow": "flow status",
-    "test": "jest --coverage",
+    "test": "ava",
     "format": "prettier --write src/**/*.js",
     "build:legacy": "BABEL_ENV=legacy babel src -d dist/legacy -D",
     "build:modern": "BABEL_ENV=modern babel src -d dist/modern -D",
@@ -29,13 +29,18 @@
     "precommit": "lint-staged"
   },
   "devDependencies": {
+    "ava": "^0.25.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-register": "^6.26.0",
     "flow-bin": "^0.59.0",
     "husky": "^0.14.3",
     "jest": "^21.2.1",
     "lint-staged": "^5.0.0",
-    "prettier": "^1.8.2"
+    "nock": "^9.1.6",
+    "prettier": "^1.8.2",
+    "sinon": "^4.2.2",
+    "supertest": "^3.0.0"
   },
   "dependencies": {
     "axios": "^0.17.1",
@@ -71,5 +76,10 @@
   },
   "prettier": {
     "singleQuote": true
+  },
+  "ava": {
+    "require": [
+      "babel-register"
+    ]
   }
 }

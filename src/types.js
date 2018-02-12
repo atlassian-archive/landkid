@@ -24,8 +24,8 @@ export type CI = {
   stopLandBuild(commit: string): Promise<mixed>
 };
 
-export type HostAdapter = (config: Object) => Promise<Host>;
-export type CIAdapter = (config: Object) => Promise<CI>;
+export type HostAdapter = (config: Object) => Host;
+export type CIAdapter = (config: Object) => CI;
 
 export type Env = {
   host: Host,

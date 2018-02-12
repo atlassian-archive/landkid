@@ -24,6 +24,11 @@ let landkidConfig = Object.assign(
   localConfig
 );
 
-landkid(landkidConfig).catch(err => {
-  console.log(err);
+let server = landkid(landkidConfig);
+
+server.listen(landkidConfig.port, () => {
+  console.log(
+    `Landkid server started at http://localhost:${landkidConfig.port}`
+  );
+  console.log(`BaseUrl set to ${landkidConfig.baseUrl}`);
 });
