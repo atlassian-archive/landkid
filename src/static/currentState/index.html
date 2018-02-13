@@ -1,0 +1,71 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
+  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-size: 14px;
+      color: #333;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    pre {
+      margin-top: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row {
+      display: flex;
+      margin-top: 30px;
+    }
+
+    .row-title {
+      font-weight: bold;
+      flex: 0 0 120px;
+    }
+
+    .row-content {
+      display: flex;
+      padding-left: 10px;
+      /* border: 1px solid red; */
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Landkid - Current State
+    <a href="javascript: loadState()">&#8635;</a>
+  </h1>
+  <div class="container">
+    <div class="row">
+      <div class="row-title">Running</div>
+      <pre class="row-content" id="running">Loading...</pre>
+    </div>
+    <div class="row">
+      <div class="row-title">Current Queue</div>
+      <div class="row-content" id="current-queue">Loading...</div>
+    </div>
+    <div class="row">
+      <div class="row-title">Locked</div>
+      <div class="row-content" id="locked">Loading...</div>
+    </div>
+    <div class="row">
+      <div class="row-title">Allowed Users</div>
+      <div class="row-content" id="allowed-users">Loading...</div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/whatwg-fetch@2.0.3/fetch.js"></script>
+  <script src="/currentState/index.js"></script>
+</body>
+
+</html>
