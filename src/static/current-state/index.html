@@ -48,6 +48,10 @@
   </h1>
   <div class="container">
     <div class="row">
+      <div class="row-title">Uptime</div>
+      <pre class="row-content" id="uptime">Loading...</pre>
+    </div>
+    <div class="row">
       <div class="row-title">Running</div>
       <pre class="row-content" id="running">Loading...</pre>
     </div>
@@ -60,12 +64,17 @@
       <div class="row-content" id="locked">Loading...</div>
     </div>
     <div class="row">
+      <div class="row-title">Paused</div>
+      <div class="row-content" id="paused">Loading...</div>
+    </div>
+    <div class="row">
       <div class="row-title">Allowed Users</div>
       <div class="row-content" id="allowed-users">Loading...</div>
     </div>
   </div>
   <script src="https://unpkg.com/whatwg-fetch@2.0.3/fetch.js"></script>
-  <script src="/currentState/index.js"></script>
+  <script src="http://cdn.date-fns.org/v1.9.0/date_fns.min.js"></script>
+  <script src="/current-state/index.js"></script>
 </body>
 
 </html>

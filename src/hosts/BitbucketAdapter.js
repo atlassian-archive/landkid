@@ -66,9 +66,7 @@ const BitbucketAdapter = (config: Config) => {
       const createdBy = pullRequest.author.username;
       const isApproved = pullRequest.participants.some(
         participant =>
-          participant.approved &&
-          !participant.user.username !== createdBy &&
-          USERS_ALLOWED_TO_APPROVE.indexOf(participant.user.username) > -1
+          participant.approved && !participant.user.username !== createdBy
       );
       const isGreen = buildStatuses.every(
         buildStatus => buildStatus.state === 'SUCCESSFUL'

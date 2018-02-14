@@ -9,6 +9,7 @@ export default class Runner {
   running: ?LandRequest;
   locked: boolean;
   client: Client;
+  started: Date;
   paused: boolean;
 
   constructor(queue: Queue, client: Client) {
@@ -16,7 +17,8 @@ export default class Runner {
     this.running = null;
     this.locked = false;
     this.client = client;
-    this.paused = true;
+    this.started = new Date();
+    this.paused = false;
   }
 
   async next() {
@@ -98,6 +100,7 @@ export default class Runner {
   }
 
   enqueue(landRequest: LandRequest) {
+    if (this.paused) return;
     return this.queue.enqueue(landRequest);
   }
 
@@ -105,13 +108,18 @@ export default class Runner {
     this.queue.filter(
       (landRequest: LandRequest) => landRequest.pullRequestId !== pullRequestId
     );
+    if (this.running && this.running.pullRequestId === pullRequestId) {
+      this.running = null;
+    }
   }
 
   getState() {
     return {
       queue: this.queue.list(),
       running: Object.assign({}, this.running),
-      locked: this.locked
+      locked: this.locked,
+      started: this.started,
+      paused: this.paused
     };
   }
 }

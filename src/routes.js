@@ -69,7 +69,8 @@ export default function routes(server: any, client: Client, runner: Runner) {
         username,
         userUuid,
         commit,
-        title
+        title,
+        created_time: new Date()
       };
       const positionInQueue = runner.enqueue(landRequest);
       Logger.info({ landRequest, positionInQueue }, 'Request to land received');
@@ -112,6 +113,16 @@ export default function routes(server: any, client: Client, runner: Runner) {
         .json({ newQueue: state.queue });
     })
   );
+
+  server.post('/api/pause', (req, res) => {
+    runner.pause();
+    res.json({ paused: true });
+  });
+
+  server.post('/api/unpause', (req, res) => {
+    runner.unpause();
+    res.json({ paused: false });
+  });
 
   server.post(
     '/webhook/status-updated',

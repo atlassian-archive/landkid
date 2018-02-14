@@ -33,6 +33,14 @@ const checkingPullRequestView = () => {
   </div>`;
 };
 
+const pausedView = () => {
+  return `<div>
+    <p>Land builds are currently paused.</p>
+    <p>This might mean we are doing an upgrade.</p>
+    <p>Please try again later.</p>
+  </div>`;
+};
+
 const notAllowedToLand = reasons => {
   const isOpen = reasons.isOpen;
   const isApproved = reasons.isApproved;
@@ -152,7 +160,10 @@ const qs = getQueryStringVars();
 if (qs.state === 'OPEN') {
   getCurrentState().then(stateResp => {
     const allowedToMerge = stateResp.usersAllowedToMerge;
-    if (allowedToMerge.indexOf(qs.username) > -1) {
+    const paused = stateResp.paused;
+    if (paused) {
+      setView(pausedView());
+    } else if (allowedToMerge.indexOf(qs.username) > -1) {
       displayQueueOrLandButton(stateResp.queue, stateResp.running);
     }
   });
