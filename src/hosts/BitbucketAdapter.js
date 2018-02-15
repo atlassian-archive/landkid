@@ -83,7 +83,9 @@ const BitbucketAdapter = (config: Config) => {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
       const data = {
         close_source_branch: true,
-        message: 'Merged by Landkid after successful build rebased on Master',
+        message: `pull request #${
+          pullRequestId
+        } merged  by Landkid after a successful build rebased on Master`,
         merge_strategy: 'merge_commit'
       };
       Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
