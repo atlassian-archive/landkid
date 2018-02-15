@@ -2,7 +2,7 @@ const endpoint = window.location.origin;
 
 const landButtonView = () => {
   return `<div>
-    <p>This PR is not queued for Landing yet, click "Land" below or <a href="google.com">here</a> for more information</p>
+    <p>This PR is not queued for Landing yet, click "Land" below or <a href="/index.html">here</a> for more information</p>
     <br>
     <button type="button" class="ak-button ak-button__appearance-primary" onClick="wantToMergeClicked()">
       I want to merge
@@ -12,7 +12,7 @@ const landButtonView = () => {
 
 const isQueuedView = () => {
   return `<div>
-    <p>This PR is queued for release now. See <a href="google.com">here</a> for more information about what this means</p>
+    <p>This PR is queued for release now. See <a href="/index.html">here</a> for more information about what this means</p>
     <p>
       <button type="button" class="ak-button ak-button__appearance-default" onClick="cancelButtonClicked()">
         Cancel release
