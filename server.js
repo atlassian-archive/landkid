@@ -5,13 +5,13 @@ let fs = require('fs');
 let path = require('path');
 let landkid = require('./');
 
-if (!fs.existsSync(path.join(process.cwd(), './config.js'))) {
+if (!fs.existsSync(path.join(process.cwd(), 'config.js'))) {
   console.error('No config.js file found.');
   console.error('See the readme for information about this');
   process.exit(1);
 }
 
-let localConfig = require(path.join(process.cwd(), './config.js'));
+let localConfig = require(path.join(process.cwd(), 'config.js'));
 
 let landkidConfig = Object.assign(
   {
