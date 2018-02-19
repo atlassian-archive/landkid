@@ -44,7 +44,7 @@ WIP
 
 ### Why can master break when branch builds are green?
 
-#### Branches being behind master
+### Branches being behind master
 
 By far, the number one root cause is a branch not being up to date with latest
 master when it is merged. This could mean it is depending on code that is no
@@ -52,11 +52,13 @@ longer there, it reintroduces patterns that have been refactored, it adds code
 that fails linting rules that were changed, etc. There are tons of ways this can
 break, but all from the same root cause.
 
-#### Can't we just always rebase branch builds on master then?
+> Can't we just always rebase branch builds on master then?
 
 Short answer: no.
 
-Longer answer: The problem is threefold:
+Longer answer:
+
+The problem is threefold:
 
 1. What is to stop someone from running a branch build but not merging it for 24
    hours?
@@ -72,11 +74,16 @@ Longer answer: The problem is threefold:
    match the code that runs in your local machine. If a test passes locally but
    not in CI, it adds an extra layer of unknowns of what might have gone wrong.
 
-#### Okay, so what if we just added a check that makes sure you can only merge when you are already rebased on master?
+> Okay, so what if we just added a check that makes sure you can only merge when
+> you are already rebased on master?
 
-Sure, that would solve the problem. Except now you are moving all the
-responsibilty to keep things up to date on the devs. It would create an endless
-cycle of approvals, rebases, merge conflicts, approvals, rebases, etc.
+Sure, that would solve the problem.
+
+Except now you are moving all the responsibilty to keep things up to date on the
+devs.
+
+It would create an endless cycle of approvals, rebases, merge conflicts,
+approvals, rebases, etc.
 
 ### Simultaneous Releases
 
@@ -98,7 +105,8 @@ Imagine we have two branches both trying to perform a minor release of
 package-A. If both are merged close together then both are going to try to
 release the same version of package-A with different changes!
 
-#### So, can't we just have a check at the beginning of a master build that automatically stops if there is one currently running?
+> So, can't we just have a check at the beginning of a master build that
+> automatically stops if there is one currently running?
 
 Sure, you could. but take a look below at the next problem.
 
@@ -111,7 +119,7 @@ script might look something like this:
 ```sh
 # bumpPackagesVersionsAndPushToMaster.sh
 ./bumpPackageVersions.sh --changed="$CHANGED_PACKAGES"
-./updateChangelogs.sh --changed="CHANGED_PACKAGES"
+./updateChangelogs.sh --changed="$CHANGED_PACKAGES"
 git add packages/*/package.json
 git add packages/*/CHANGELOG.md
 git commit -m "Releasing; $CHANGED_PACKAGES"
@@ -122,7 +130,7 @@ Immediately, there is an obvious problem on the last line. What if someone has
 pushed to master whilst our build was still running? That push will fail because
 we cant make a fast-forward push!
 
-#### Surely we can just rebase on latest master before pushing then, right?
+> Surely we can just rebase on latest master before pushing then, right?
 
 Unfortunately no!
 
