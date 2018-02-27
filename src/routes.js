@@ -124,6 +124,21 @@ export default function routes(server: any, client: Client, runner: Runner) {
     res.json({ paused: false });
   });
 
+  // locking is an internal implementation detail, but we've seen at least one instance of a landkid
+  // server becoming stuck, this is an escape hatch until we find the logic error that caused it
+  // (likely a dropped request somehwhere).
+  server.post('/api/unlock', (req, res) => {
+    runner.unlock();
+    res.json({ locked: false });
+  });
+
+  // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to
+  // expose
+  server.post('/api/next', (req, res) => {
+    runner.next();
+    res.json({ message: 'Calling next()' });
+  });
+
   server.post(
     '/webhook/status-updated',
     wrap(async (req, res) => {

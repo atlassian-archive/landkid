@@ -99,6 +99,13 @@ export default class Runner {
     this.paused = false;
   }
 
+  // locking is an internal implementation detail, but we've seen at least one instance of a landkid
+  // server becoming stuck, this is an escape hatch until we find the logic error that caused it
+  // (likely a dropped request somehwhere).
+  unlock() {
+    this.locked = false;
+  }
+
   enqueue(landRequest: LandRequest) {
     if (this.paused) return;
     return this.queue.enqueue(landRequest);
