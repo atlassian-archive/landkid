@@ -11,6 +11,7 @@ export default class Runner {
   client: Client;
   started: Date;
   paused: boolean;
+  pausedReason: ?string;
 
   constructor(queue: Queue, client: Client) {
     this.queue = queue;
@@ -19,6 +20,7 @@ export default class Runner {
     this.client = client;
     this.started = new Date();
     this.paused = false;
+    this.pausedReason = null;
   }
 
   async next() {
@@ -91,12 +93,16 @@ export default class Runner {
     }
   }
 
-  pause() {
+  pause(reason: ?string) {
     this.paused = true;
+    if (reason) {
+      this.pausedReason = reason;
+    }
   }
 
   unpause() {
     this.paused = false;
+    this.pausedReason = null;
   }
 
   // locking is an internal implementation detail, but we've seen at least one instance of a landkid
@@ -126,7 +132,8 @@ export default class Runner {
       running: Object.assign({}, this.running),
       locked: this.locked,
       started: this.started,
-      paused: this.paused
+      paused: this.paused,
+      pausedReason: this.pausedReason
     };
   }
 }

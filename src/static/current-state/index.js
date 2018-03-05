@@ -29,7 +29,11 @@ function setDisplay(state) {
 
   lockedEl.textContent = window.JSON.stringify(state.locked, null, 2);
 
-  pausedEl.textContent = window.JSON.stringify(state.paused, null, 2);
+  if (state.paused && state.pausedReason) {
+    pausedEl.textContent = state.pausedReason;
+  } else {
+    pausedEl.textContent = window.JSON.stringify(state.paused, null, 2);
+  }
 
   allowedUsersEl.textContent = window.JSON.stringify(
     state.usersAllowedToMerge,

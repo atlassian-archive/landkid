@@ -5,14 +5,14 @@ const landButtonView = () => {
     <p>This PR is not queued for Landing yet, click "Land" below or <a href="/index.html" target="_blank">here</a> for more information</p>
     <br>
     <button type="button" class="ak-button ak-button__appearance-primary" onClick="wantToMergeClicked()">
-      I want to merge
+      Land!
       </button>
   </div>`;
 };
 
 const isQueuedView = () => {
   return `<div>
-    <p>This PR is queued for release now. See <a href="/index.html" target="_blank">here</a> for more information about what this means</p>
+    <p>This PR is queued for release now. See <a href="/current-state/index.html" target="_blank">here</a> to see the current queue</p>
     <p>
       <button type="button" class="ak-button ak-button__appearance-default" onClick="cancelButtonClicked()">
         Cancel release
@@ -33,10 +33,10 @@ const checkingPullRequestView = () => {
   </div>`;
 };
 
-const pausedView = () => {
+const pausedView = pausedReason => {
   return `<div>
-    <p>Land builds are currently paused.</p>
-    <p>This might mean we are doing an upgrade.</p>
+    <p>Land builds are currently paused:</p>
+    <p id="pausedReason"></p>
     <p>Please try again later.</p>
   </div>`;
 };
@@ -161,8 +161,13 @@ if (qs.state === 'OPEN') {
   getCurrentState().then(stateResp => {
     const allowedToMerge = stateResp.usersAllowedToMerge;
     const paused = stateResp.paused;
+    const pausedReason =
+      stateResp.pausedReason || 'Builds have been paused manually';
     if (paused) {
       setView(pausedView());
+      // this is a bit messy, but we don't want to render "user" generated content as DOM, so we
+      // have to separately render the text content for the reason
+      document.querySelector('#pausedReason').textContent = pausedReason;
     } else if (allowedToMerge.indexOf(qs.username) > -1) {
       displayQueueOrLandButton(stateResp.queue, stateResp.running);
     }

@@ -115,8 +115,12 @@ export default function routes(server: any, client: Client, runner: Runner) {
   );
 
   server.post('/api/pause', (req, res) => {
-    runner.pause();
-    res.json({ paused: true });
+    let pausedReason = undefined;
+    if (req && req.body && req.body.reason) {
+      pausedReason = String(req.body.reason);
+    }
+    runner.pause(pausedReason);
+    res.json({ paused: true, pausedReason });
   });
 
   server.post('/api/unpause', (req, res) => {
