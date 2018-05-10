@@ -55,32 +55,44 @@ export default class Runner {
     }
   }
 
-  mergePassedBuildIfRunning(statusEvent: StatusEvent) {
-    Logger.info(
-      { statusEvent, running: this.running },
-      'Status event May be relevant!'
-    );
-    if (!this.running) {
-      Logger.info(statusEvent, 'No build running, status event is irrelevant');
-      return;
+  onStatusUpdate = (statusEvent: StatusEvent) => {
+    let running = this.running;
+
+    if (!running) {
+      return Logger.info(
+        statusEvent,
+        'No build running, status event is irrelevant'
+      );
     }
-    if (statusEvent.buildId === this.running.buildId) {
-      if (statusEvent.passed) {
-        const pullRequestId = this.running.pullRequestId;
-        Logger.info(
-          { pullRequestId, running: this.running },
-          'Merging pull request'
-        );
-        this.client.mergePullRequest(pullRequestId);
-      } else {
-        Logger.info(
-          { running: this.running, statusEvent },
-          'Land build failed'
-        );
-      }
+
+    if (running.buildId !== statusEvent.buildId) {
+      return Logger.warn(
+        { statusEvent, running },
+        `StatusEvent buildId doesn't match currently running buildId – ${
+          statusEvent.buildId
+        } !== ${running.buildId || ''}`
+      );
+    }
+
+    Logger.info({ statusEvent, running: this.running }, 'Build status update');
+
+    this.running = { ...this.running, buildStatus: statusEvent.buildStatus };
+
+    if (statusEvent.passed) {
+      this.mergePassedBuild(this.running);
+      this.running = null;
+      this.next();
+    } else if (statusEvent.failed) {
+      Logger.error({ running: this.running, statusEvent }, 'Land build failed');
       this.running = null;
       this.next();
     }
+  };
+
+  mergePassedBuild(running: LandRequest) {
+    const pullRequestId = running.pullRequestId;
+    Logger.info({ pullRequestId, running }, 'Merging pull request');
+    this.client.mergePullRequest(pullRequestId);
   }
 
   cancelCurrentlyRunningBuild() {

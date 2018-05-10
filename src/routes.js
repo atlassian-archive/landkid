@@ -150,7 +150,7 @@ export default function routes(server: any, client: Client, runner: Runner) {
       // status event will be null if we don't care about it
       const statusEvent = onStatus(client, req.body, runner);
       if (!statusEvent) return;
-      runner.mergePassedBuildIfRunning(statusEvent);
+      runner.onStatusUpdate(statusEvent);
     })
   );
 

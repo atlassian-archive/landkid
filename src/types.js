@@ -43,7 +43,9 @@ export type Env = {
 export type StatusEvent = {
   buildUrl: string,
   buildId: string,
-  passed: boolean
+  buildStatus: string,
+  passed: boolean,
+  failed: boolean
 };
 
 export type Persona = {
