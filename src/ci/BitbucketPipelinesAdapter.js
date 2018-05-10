@@ -57,7 +57,8 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
         buildId,
         buildStatus,
         passed: buildStatus === 'SUCCESSFUL',
-        failed: buildStatus === 'FAILED'
+        failed: buildStatus === 'FAILED',
+        stopped: buildStatus === 'STOPPED'
       };
     },
 

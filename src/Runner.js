@@ -74,16 +74,23 @@ export default class Runner {
       );
     }
 
-    Logger.info({ statusEvent, running: this.running }, 'Build status update');
+    Logger.info({ statusEvent, running }, 'Build status update');
 
-    this.running = { ...this.running, buildStatus: statusEvent.buildStatus };
+    this.running = running = {
+      ...running,
+      buildStatus: statusEvent.buildStatus
+    };
 
     if (statusEvent.passed) {
-      this.mergePassedBuild(this.running);
+      this.mergePassedBuild(running);
       this.running = null;
       this.next();
     } else if (statusEvent.failed) {
-      Logger.error({ running: this.running, statusEvent }, 'Land build failed');
+      Logger.error({ running, statusEvent }, 'Land build failed');
+      this.running = null;
+      this.next();
+    } else if (statusEvent.stopped) {
+      Logger.warn({ running, statusEvent }, 'Land build has been stopped');
       this.running = null;
       this.next();
     }
