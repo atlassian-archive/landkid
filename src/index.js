@@ -29,16 +29,20 @@ type Config = {
 export default function atlaskid(config: Config, webpackConfig: any) {
   let server = express();
   let port = config.port || 8000;
-  const webpackCompiler = webpack(webpackConfig);
+  // If we are in dev mode we'll use the webpack dev server, if not we'll be using the built static
+  // files in dist/[legacy|modern]/static. Routing for this is in ./routes.js
+  if (process.env.NODE_ENV !== 'production') {
+    const webpackCompiler = webpack(webpackConfig);
 
-  server.use(
-    webpackDevMiddleware(webpackCompiler, {
-      publicPath: webpackConfig.output.publicPath,
-      stats: {
-        colors: true
-      }
-    })
-  );
+    server.use(
+      webpackDevMiddleware(webpackCompiler, {
+        publicPath: webpackConfig.output.publicPath,
+        stats: {
+          colors: true
+        }
+      })
+    );
+  }
   server.use(bodyParser.json());
   server.set('baseUrl', config.baseUrl);
   server.set(
