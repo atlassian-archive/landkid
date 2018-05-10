@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict';
 
 let fs = require('fs');
@@ -31,4 +32,14 @@ server.listen(landkidConfig.port, () => {
     `Landkid server started at http://localhost:${landkidConfig.port}`
   );
   console.log(`BaseUrl set to ${landkidConfig.baseUrl}`);
+  console.log(
+    `Addon can be installed from ${
+      landkidConfig.baseUrl
+    }/bitbucket/atlassian-connect.json`
+  );
+  console.log(
+    `Webhooks should be configured to point to ${
+      landkidConfig.baseUrl
+    }/webhook/status-updated`
+  );
 });
