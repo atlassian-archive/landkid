@@ -1,3 +1,6 @@
+require('unfetch/polyfill');
+const distanceInWords = require('date-fns/distance_in_words_to_now');
+
 var endpoint = window.location.origin;
 
 function loadState() {
@@ -16,7 +19,7 @@ function setDisplay(state) {
   var pausedEl = document.querySelector('#paused');
   var allowedUsersEl = document.querySelector('#allowed-users');
 
-  uptimeEl.textContent = window.dateFns.distanceInWordsToNow(state.started);
+  uptimeEl.textContent = distanceInWords(state.started);
 
   runningEl.textContent = window.JSON.stringify(state.running, null, 2);
 

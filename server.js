@@ -4,6 +4,8 @@
 
 let fs = require('fs');
 let path = require('path');
+
+let webpackConfig = require('./webpack.config');
 let landkid = require('./');
 
 if (!fs.existsSync(path.join(process.cwd(), 'config.js'))) {
@@ -25,7 +27,7 @@ let landkidConfig = Object.assign(
   localConfig
 );
 
-let server = landkid(landkidConfig);
+let server = landkid(landkidConfig, webpackConfig);
 
 server.listen(landkidConfig.port, () => {
   console.log(
