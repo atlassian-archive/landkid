@@ -44,11 +44,9 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
         );
         return null;
       }
-      let buildStatus = body.commit_status.state;
+      let buildStatus: any = body.commit_status.state;
       const buildUrl: string = body.commit_status.url;
       Logger.info({ buildUrl, buildStatus }, 'Received build status event');
-      // we only care if a status was FAILED, SUCCESSFUL, or STOPPED
-      if (buildStatus === 'INPROGRESS') return null;
 
       // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
       const buildUrlParts = buildUrl.split('/');
@@ -57,7 +55,9 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
       return {
         buildUrl,
         buildId,
-        passed: buildStatus === 'SUCCESSFUL'
+        buildStatus,
+        passed: buildStatus === 'SUCCESSFUL',
+        failed: buildStatus === 'FAILED'
       };
     },
 
