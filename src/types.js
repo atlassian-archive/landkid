@@ -14,7 +14,14 @@ export type Host = {
     parentCommentId: string | null,
     message: string
   ): Promise<mixed>,
-  isAllowedToLand(landRequest: LandRequest): Promise<boolean>,
+  isAllowedToLand(
+    pullRequestId: string
+  ): Promise<{
+    isOpen: boolean,
+    isApproved: boolean,
+    isGreen: boolean,
+    isAllowed: boolean
+  }>,
   mergePullRequest(pullRequestId: string): Promise<boolean>
 };
 

@@ -15,7 +15,7 @@ import Logger from './Logger';
 type Config = {
   port?: number,
   host: $Keys<typeof hosts>,
-  hostConfig: {},
+  hostConfig: Object,
   ci: $Keys<typeof cis>,
   ciConfig: {},
   persona?: $Keys<typeof personas>,

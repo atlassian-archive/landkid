@@ -1,7 +1,7 @@
 // @flow
 import type {
-  HostAdapter,
-  CIAdapter,
+  Host,
+  CI,
   JSONValue,
   LandRequest,
   Persona,
@@ -9,11 +9,11 @@ import type {
 } from './types';
 
 export default class Client {
-  hostAdaptor: HostAdapter;
-  ciAdaptor: CIAdapter;
+  hostAdaptor: Host;
+  ciAdaptor: CI;
   persona: Persona;
 
-  constructor(host: HostAdapter, ci: CIAdapter, persona: Persona) {
+  constructor(host: Host, ci: CI, persona: Persona) {
     this.hostAdaptor = host;
     this.ciAdaptor = ci;
     this.persona = persona;
