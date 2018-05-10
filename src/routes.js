@@ -35,9 +35,10 @@ export default function routes(server: any, client: Client, runner: Runner) {
     wrap(async (req, res) => {
       const state = runner.getState();
       Logger.info(state, 'Requesting current state');
-      res
-        .header('Access-Control-Allow-Origin', '*')
-        .json({ ...state, usersAllowedToMerge });
+      res.header('Access-Control-Allow-Origin', '*').json({
+        ...state,
+        usersAllowedToMerge
+      });
     })
   );
 
@@ -46,7 +47,9 @@ export default function routes(server: any, client: Client, runner: Runner) {
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
       const isAllowedToLand = await client.isAllowedToLand(pullRequestId);
-      res.header('Access-Control-Allow-Origin', '*').json({ isAllowedToLand });
+      res.header('Access-Control-Allow-Origin', '*').json({
+        isAllowedToLand
+      });
     })
   );
 
@@ -73,12 +76,20 @@ export default function routes(server: any, client: Client, runner: Runner) {
         created_time: new Date()
       };
       const positionInQueue = runner.enqueue(landRequest);
-      Logger.info({ landRequest, positionInQueue }, 'Request to land received');
+      Logger.info(
+        {
+          landRequest,
+          positionInQueue
+        },
+        'Request to land received'
+      );
 
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
-        .json({ positionInQueue });
+        .json({
+          positionInQueue
+        });
       runner.next();
     })
   );
@@ -103,14 +114,18 @@ export default function routes(server: any, client: Client, runner: Runner) {
       const state = runner.getState();
 
       Logger.info(
-        { requestedToRemove: pullRequestId },
+        {
+          requestedToRemove: pullRequestId
+        },
         'Request to remove land request'
       );
 
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
-        .json({ newQueue: state.queue });
+        .json({
+          newQueue: state.queue
+        });
     })
   );
 
@@ -120,12 +135,17 @@ export default function routes(server: any, client: Client, runner: Runner) {
       pausedReason = String(req.body.reason);
     }
     runner.pause(pausedReason);
-    res.json({ paused: true, pausedReason });
+    res.json({
+      paused: true,
+      pausedReason
+    });
   });
 
   server.post('/api/unpause', (req, res) => {
     runner.unpause();
-    res.json({ paused: false });
+    res.json({
+      paused: false
+    });
   });
 
   // locking is an internal implementation detail, but we've seen at least one instance of a landkid
@@ -133,14 +153,18 @@ export default function routes(server: any, client: Client, runner: Runner) {
   // (likely a dropped request somehwhere).
   server.post('/api/unlock', (req, res) => {
     runner.unlock();
-    res.json({ locked: false });
+    res.json({
+      locked: false
+    });
   });
 
   // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to
   // expose
   server.post('/api/next', (req, res) => {
     runner.next();
-    res.json({ message: 'Calling next()' });
+    res.json({
+      message: 'Calling next()'
+    });
   });
 
   server.post(
@@ -162,13 +186,24 @@ export default function routes(server: any, client: Client, runner: Runner) {
       .json(bitbucketAddonDescriptor);
   });
 
-  // serve static files from the 'static' directory
-  server.use(express.static(path.join(__dirname, 'static')));
+  // if we are in a production build, then serve static files from our static directories (front end
+  // ui code)
+  if (process.env.NODE_ENV === 'production') {
+    server.use(express.static(path.join(__dirname, 'static')));
+  }
 
   server.use((err, req, res, next) => {
     if (err) {
-      Logger.error({ err }, 'Error ');
-      res.status(500).send({ error: err.message, stack: err.stack });
+      Logger.error(
+        {
+          err
+        },
+        'Error '
+      );
+      res.status(500).send({
+        error: err.message,
+        stack: err.stack
+      });
     } else {
       next();
     }
