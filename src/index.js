@@ -1,11 +1,15 @@
 // @flow
 import express from 'express';
+import morgan from 'morgan';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+
 import hosts from './hosts';
 import cis from './ci';
 import personas from './personas';
 import type { Env } from './types';
 import bodyParser from 'body-parser';
-import morgan from 'morgan';
+
 import Queue from './Queue';
 import Runner from './Runner';
 import routes from './routes';
@@ -22,10 +26,19 @@ type Config = {
   baseUrl: string
 };
 
-export default function atlaskid(config: Config) {
+export default function atlaskid(config: Config, webpackConfig: any) {
   let server = express();
   let port = config.port || 8000;
+  const webpackCompiler = webpack(webpackConfig);
 
+  server.use(
+    webpackDevMiddleware(webpackCompiler, {
+      publicPath: webpackConfig.output.publicPath,
+      stats: {
+        colors: true
+      }
+    })
+  );
   server.use(bodyParser.json());
   server.set('baseUrl', config.baseUrl);
   server.set(

@@ -1,3 +1,6 @@
+require('unfetch/polyfill');
+const queryString = require('qs');
+
 const endpoint = window.location.origin;
 
 const landButtonView = () => {
@@ -78,8 +81,8 @@ function getCurrentState() {
 
 // Fetches the user, repo and id vars
 function getQueryStringVars() {
-  const queryString = window.location.search.substring(1);
-  return window.Qs.parse(queryString);
+  const qs = window.location.search.substring(1);
+  return queryString.parse(queryString);
 }
 
 function wantToMergeClicked() {
@@ -103,14 +106,14 @@ function wantToMergeClicked() {
 function landPullRequest() {
   const qs = getQueryStringVars();
 
-  const queryString = window.Qs.stringify({
+  const qsString = queryString.stringify({
     username: qs.username,
     userUuid: qs.userUuid,
     commit: qs.commit,
     title: qs.title
   });
 
-  return fetch(`${endpoint}/api/land-pr/${qs.pullRequestId}?${queryString}`, {
+  return fetch(`${endpoint}/api/land-pr/${qs.pullRequestId}?${qsString}`, {
     method: 'POST'
   })
     .then(resp => resp.json())
@@ -124,12 +127,12 @@ function cancelButtonClicked() {
   setView(cancellingView());
 
   const qs = getQueryStringVars();
-  const queryString = window.Qs.stringify({
+  const qsString = queryString.stringify({
     username: qs.username,
     userUuid: qs.userUuid
   });
 
-  return fetch(`${endpoint}/api/cancel-pr/${qs.pullRequestId}?${queryString}`, {
+  return fetch(`${endpoint}/api/cancel-pr/${qs.pullRequestId}?${qsString}`, {
     method: 'POST'
   })
     .then(resp => resp.json())
@@ -173,7 +176,11 @@ if (qs.state === 'OPEN') {
     }
   });
 } else {
-  setView(notAllowedToLand({ isOpen: false }));
+  setView(
+    notAllowedToLand({
+      isOpen: false
+    })
+  );
 }
 
 // Wrapper function so that all the other HTML can all be wraped in this
