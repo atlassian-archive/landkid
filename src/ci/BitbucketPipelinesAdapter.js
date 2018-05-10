@@ -33,20 +33,29 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
     processStatusWebhook(body: JSONValue): StatusEvent | null {
       if (
         !body ||
-        !body.commit_status ||
-        !body.commit_status.state ||
-        !body.commit_status.url ||
-        typeof body.commit_status.url !== 'string'
+        !body.data ||
+        !body.data.commit_status ||
+        !body.data.commit_status.state ||
+        !body.data.commit_status.url ||
+        typeof body.data.commit_status.url !== 'string'
       ) {
         Logger.error(
-          { statusEvent: body },
+          {
+            statusEvent: body
+          },
           'Status event receieved that does not match the shape we were expecting'
         );
         return null;
       }
-      let buildStatus: any = body.commit_status.state;
-      const buildUrl: string = body.commit_status.url;
-      Logger.info({ buildUrl, buildStatus }, 'Received build status event');
+      let buildStatus: any = body.data.commit_status.state;
+      const buildUrl: string = body.data.commit_status.url;
+      Logger.info(
+        {
+          buildUrl,
+          buildStatus
+        },
+        'Received build status event'
+      );
 
       // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
       const buildUrlParts = buildUrl.split('/');
@@ -63,7 +72,12 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
     },
 
     async createLandBuild(commit: string): Promise<string | null> {
-      Logger.info({ commit }, 'Creating land build for commit');
+      Logger.info(
+        {
+          commit
+        },
+        'Creating land build for commit'
+      );
       const data = {
         target: {
           commit: {
@@ -82,7 +96,12 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
         JSON.stringify(data),
         axiosPostConfig
       );
-      Logger.info({ buildNumber: resp.data.build_number }, 'Created build');
+      Logger.info(
+        {
+          buildNumber: resp.data.build_number
+        },
+        'Created build'
+      );
       if (
         !resp.data.build_number ||
         typeof resp.data.build_number !== 'number'

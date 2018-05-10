@@ -7,7 +7,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import hosts from './hosts';
 import cis from './ci';
 import personas from './personas';
-import type { Env } from './types';
+import type { Env, Settings } from './types';
 import bodyParser from 'body-parser';
 
 import Queue from './Queue';
@@ -23,7 +23,8 @@ type Config = {
   ci: $Keys<typeof cis>,
   ciConfig: {},
   persona?: $Keys<typeof personas>,
-  baseUrl: string
+  baseUrl: string,
+  settings: Settings
 };
 
 export default function atlaskid(config: Config, webpackConfig: any) {
@@ -53,7 +54,7 @@ export default function atlaskid(config: Config, webpackConfig: any) {
   const host = hosts[config.host](config.hostConfig);
   const ci = cis[config.ci](config.ciConfig);
   const persona = personas[config.persona || 'goat'];
-  let client = new Client(host, ci, persona);
+  let client = new Client(host, ci, persona, config.settings);
 
   let queue = new Queue();
   let runner = new Runner(queue, client);

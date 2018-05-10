@@ -29,6 +29,10 @@
           "permission": "write"
         }
       }]
+    }],
+    "webhooks": [{
+      "event": "repo:commit_status_updated",
+      "url": "/webhook/status-updated"
     }]
   }
 }

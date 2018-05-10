@@ -6,7 +6,9 @@ export type JSONValue =
   | boolean
   | number
   | Array<JSONValue>
-  | { [key: string]: JSONValue };
+  | {
+      [key: string]: JSONValue
+    };
 
 export type Host = {
   createComment(
@@ -14,15 +16,11 @@ export type Host = {
     parentCommentId: string | null,
     message: string
   ): Promise<mixed>,
-  isAllowedToLand(
+  mergePullRequest(pullRequestId: string): Promise<boolean>,
+  getPullRequest(pullRequestId: string): Promise<PullRequest>,
+  getPullRequestBuildStatuses(
     pullRequestId: string
-  ): Promise<{
-    isOpen: boolean,
-    isApproved: boolean,
-    isGreen: boolean,
-    isAllowed: boolean
-  }>,
-  mergePullRequest(pullRequestId: string): Promise<boolean>
+  ): Promise<Array<BuildStatus>>
 };
 
 export type CI = {
@@ -71,6 +69,23 @@ export type LandRequest = {
   landed?: boolean
 };
 
+export type PullRequest = {
+  pullRequestId: string,
+  title: string,
+  description: string,
+  createdOn: Date,
+  author: string,
+  state: 'OPEN' | 'MERGED' | 'DECLINED',
+  approvals: Array<string>,
+  openTasks: number
+};
+
+export type BuildStatus = {
+  state: 'SUCCESSFUL' | 'FAILED' | 'INPROGRESS',
+  createdOn: Date,
+  url: string
+};
+
 export type HostConfig = {
   BITBUCKET_USERNAME: string,
   BITBUCKET_PASSWORD: string,
@@ -85,10 +100,18 @@ export type CIConfig = {
   REPO_SLUG: string
 };
 
+export type Settings = {
+  requireApproval: boolean,
+  requireClosedTasks: boolean,
+  requireGreenBuild: boolean,
+  usersAllowedToApprove: Array<string>
+};
+
 export type Config = {
   port: number,
   host: 'bitbucket' | 'github',
   ci: 'bitbucket-pipelines' | 'circle-ci' | 'travis-ci',
   hostConfig: HostConfig,
-  ciConfig: CIConfig
+  ciConfig: CIConfig,
+  settings: Settings
 };

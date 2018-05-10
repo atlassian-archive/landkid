@@ -22,7 +22,12 @@ let landkidConfig = Object.assign(
     host: 'bitbucket',
     hostConfig: {},
     ci: 'bitbucket-pipelines',
-    ciConfig: {}
+    ciConfig: {},
+    settings: {
+      requireApproval: true,
+      requireClosedTasks: true,
+      requireGreenBuild: true
+    }
   },
   localConfig
 );
