@@ -1,5 +1,10 @@
 // @flow
-import { type HostAdapter, type JSONValue } from '../types';
+import type {
+  HostAdapter,
+  JSONValue,
+  PullRequest,
+  BuildStatus
+} from '../types';
 import axios from 'axios';
 import Logger from '../Logger';
 
@@ -60,40 +65,6 @@ const BitbucketAdapter = (config: Config) => {
       return response.data.comment_id;
     },
 
-    // This is run when a build is at the front of the queue
-    async isAllowedToLand(pullRequestId: string): Promise<any> {
-      const pullRequest = await this.getPullRequest(pullRequestId);
-      const buildStatuses = await this.getPullRequestBuildStatuses(
-        pullRequestId
-      );
-
-      const isOpen = pullRequest.state === 'OPEN';
-      const createdBy = pullRequest.author.username;
-      const isApproved = pullRequest.participants.some(
-        participant =>
-          participant.approved && participant.user.username !== createdBy
-      );
-      const isGreen = buildStatuses.every(
-        buildStatus => buildStatus.state === 'SUCCESSFUL'
-      );
-      Logger.info(
-        {
-          pullRequestId,
-          isOpen,
-          isApproved,
-          isGreen
-        },
-        'isAllowedToLand()'
-      );
-      const isAllowed = isOpen && isApproved && isGreen;
-      return {
-        isOpen,
-        isApproved,
-        isGreen,
-        isAllowed
-      };
-    },
-
     async mergePullRequest(pullRequestId: string) {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
       const data = {
@@ -129,21 +100,43 @@ const BitbucketAdapter = (config: Config) => {
       return true;
     },
 
-    async getPullRequest(pullRequestId: string) {
+    async getPullRequest(pullRequestId: string): Promise<PullRequest> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
       const resp = await axios.get(endpoint, axiosGetConfig);
-      return resp.data;
+      const data = resp.data;
+      const approvals = data.participants
+        .filter(participant => participant.approved)
+        .map(participant => participant.user.username);
+
+      return {
+        pullRequestId: pullRequestId,
+        title: data.title,
+        description: data.description,
+        createdOn: new Date(data.created_on),
+        author: data.author.username,
+        state: data.state,
+        approvals: approvals,
+        openTasks: data.task_count
+      };
     },
 
-    async getPullRequestBuildStatuses(pullRequestId: string) {
+    async getPullRequestBuildStatuses(
+      pullRequestId: string
+    ): Promise<Array<BuildStatus>> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
       const resp = await axios.get(endpoint, axiosGetConfig);
       // fairly safe to assume we'll never need to paginate these results
       const allBuildStatuses = resp.data.values;
       // need to remove build statuses that we created or rerunning would be impossible
-      return allBuildStatuses.filter(
-        buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/)
-      );
+      return allBuildStatuses
+        .filter(
+          buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/)
+        )
+        .map(status => ({
+          state: status.state,
+          createdOn: new Date(status.created_on),
+          url: status.url
+        }));
     }
   };
 };

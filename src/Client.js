@@ -5,22 +5,79 @@ import type {
   JSONValue,
   LandRequest,
   Persona,
-  StatusEvent
+  StatusEvent,
+  Settings,
+  PullRequest,
+  BuildStatus
 } from './types';
+import Logger from './Logger';
 
 export default class Client {
   hostAdaptor: Host;
   ciAdaptor: CI;
   persona: Persona;
+  serverSettings: Settings;
 
-  constructor(host: Host, ci: CI, persona: Persona) {
+  constructor(host: Host, ci: CI, persona: Persona, settings: Settings) {
     this.hostAdaptor = host;
     this.ciAdaptor = ci;
     this.persona = persona;
+    this.serverSettings = settings;
   }
 
   async isAllowedToLand(pullRequestId: string) {
-    return await this.hostAdaptor.isAllowedToLand(pullRequestId);
+    const pullRequest: PullRequest = await this.hostAdaptor.getPullRequest(
+      pullRequestId
+    );
+    const buildStatuses = await this.hostAdaptor.getPullRequestBuildStatuses(
+      pullRequestId
+    );
+
+    const isOpen = pullRequest.state === 'OPEN';
+    const createdBy = pullRequest.author;
+    const isApproved = pullRequest.approvals.some(
+      approval => approval !== createdBy
+    );
+    const isGreen = buildStatuses.every(
+      buildStatus => buildStatus.state === 'SUCCESSFUL'
+    );
+    const allTasksClosed = pullRequest.openTasks === 0;
+    Logger.info(
+      {
+        pullRequestId,
+        isOpen,
+        isApproved,
+        isGreen,
+        allTasksClosed
+      },
+      'isAllowedToLand()'
+    );
+    console.log('this.serverSettings', this.serverSettings);
+
+    let isAllowed = isOpen; // if a PR is closed, it's automatically unable to be merged
+    if (this.serverSettings.requireApproval) {
+      isAllowed = isAllowed && isApproved;
+    }
+    if (this.serverSettings.requireClosedTasks) {
+      isAllowed = isAllowed && allTasksClosed;
+    }
+    if (this.serverSettings.requireGreenBuild) {
+      isAllowed = isAllowed && isGreen;
+    }
+
+    Logger.info(
+      {
+        isAllowed
+      },
+      'isAllowed'
+    );
+    return {
+      isAllowed,
+      isOpen,
+      isApproved,
+      isGreen,
+      allTasksClosed
+    };
   }
 
   async createLandBuild(commit: string): Promise<string> {
