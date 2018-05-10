@@ -40,10 +40,15 @@ const BitbucketAdapter = (config: Config) => {
       parentCommentId: ?string,
       message: string
     ) {
-      let data = { content: message };
+      let data = {
+        content: message
+      };
 
       if (parentCommentId) {
-        data = { ...data, parent_id: String(parentCommentId) };
+        data = {
+          ...data,
+          parent_id: String(parentCommentId)
+        };
       }
 
       let response = await axios.post(
@@ -72,11 +77,21 @@ const BitbucketAdapter = (config: Config) => {
         buildStatus => buildStatus.state === 'SUCCESSFUL'
       );
       Logger.info(
-        { pullRequestId, isOpen, isApproved, isGreen },
+        {
+          pullRequestId,
+          isOpen,
+          isApproved,
+          isGreen
+        },
         'isAllowedToLand()'
       );
       const isAllowed = isOpen && isApproved && isGreen;
-      return { isOpen, isApproved, isGreen, isAllowed };
+      return {
+        isOpen,
+        isApproved,
+        isGreen,
+        isAllowed
+      };
     },
 
     async mergePullRequest(pullRequestId: string) {
@@ -88,14 +103,25 @@ const BitbucketAdapter = (config: Config) => {
         } merged  by Landkid after a successful build rebased on Master`,
         merge_strategy: 'merge_commit'
       };
-      Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
+      Logger.info(
+        {
+          pullRequestId,
+          endpoint
+        },
+        'Merging pull request'
+      );
       try {
         const resp = await axios.post(
           endpoint,
           JSON.stringify(data),
           axiosPostConfig
         );
-        Logger.info({ pullRequestId }, 'Merged Pull Request');
+        Logger.info(
+          {
+            pullRequestId
+          },
+          'Merged Pull Request'
+        );
       } catch (e) {
         Logger.error(e, 'Unable to merge pull request');
         return false;

@@ -82,10 +82,10 @@ function getCurrentState() {
 // Fetches the user, repo and id vars
 function getQueryStringVars() {
   const qs = window.location.search.substring(1);
-  return queryString.parse(queryString);
+  return queryString.parse(qs);
 }
 
-function wantToMergeClicked() {
+function wantToMergeClicked1() {
   setView(checkingPullRequestView());
 
   const qs = getQueryStringVars();
@@ -159,7 +159,6 @@ function displayQueueOrLandButton(queue, running) {
 }
 
 const qs = getQueryStringVars();
-
 if (qs.state === 'OPEN') {
   getCurrentState().then(stateResp => {
     const allowedToMerge = stateResp.usersAllowedToMerge;
@@ -189,3 +188,7 @@ function setView(innerHtml) {
     ${innerHtml}
   </div>`;
 }
+
+// I've had to just add this hack as the functions declared here aren't available globally anymore
+// I havent added the rest of the events since we're about to replace it, just FYI
+window.wantToMergeClicked = wantToMergeClicked1;
