@@ -25,8 +25,7 @@ export default class Queue {
     return null;
   }
 
-  filter(filterFn: () => boolean) {
-    //$FlowFixMe Not sure how to fix this tbh....
+  filter(filterFn: (item: LandRequest) => boolean) {
     this.queue = this.queue.filter(filterFn);
   }
 }

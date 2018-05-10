@@ -34,7 +34,7 @@ export default class Runner {
     this.locked = true;
     Logger.info({ landRequest }, 'Checking if still allowed to land...');
 
-    let commit = await landRequest.commit;
+    let commit = landRequest.commit;
     let isAllowedToLand = await this.client.isAllowedToLand(
       landRequest.pullRequestId
     );
@@ -119,7 +119,7 @@ export default class Runner {
 
   removeLandReuqestByPullRequestId(pullRequestId: string) {
     this.queue.filter(
-      (landRequest: LandRequest) => landRequest.pullRequestId !== pullRequestId
+      landRequest => landRequest.pullRequestId !== pullRequestId
     );
     if (this.running && this.running.pullRequestId === pullRequestId) {
       this.running = null;
