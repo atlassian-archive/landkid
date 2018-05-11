@@ -32,12 +32,6 @@ export type CI = {
 export type HostAdapter = (config: Object) => Host;
 export type CIAdapter = (config: Object) => CI;
 
-export type Env = {
-  host: Host,
-  ci: CI,
-  persona: Persona
-};
-
 export type StatusEvent = {
   buildUrl: string,
   buildId: string,
@@ -87,10 +81,10 @@ export type BuildStatus = {
 };
 
 export type HostConfig = {
-  BITBUCKET_USERNAME: string,
-  BITBUCKET_PASSWORD: string,
-  REPO_OWNER: string,
-  REPO_SLUG: string
+  botUsername: string,
+  botPassword: string,
+  repoOwner: string,
+  repoName: string
 };
 
 export type CIConfig = {
@@ -100,18 +94,29 @@ export type CIConfig = {
   REPO_SLUG: string
 };
 
-export type Settings = {
-  requireApproval: boolean,
+export type PullRequestSettings = {
+  requiredApprovals: number,
   requireClosedTasks: boolean,
   requireGreenBuild: boolean,
+  canApproveOwnPullRequest: boolean,
   usersAllowedToApprove: Array<string>
+};
+
+export type ApprovalChecks = {
+  isOpen: boolean,
+  isApproved: boolean,
+  isGreen: boolean,
+  allTasksClosed: boolean
 };
 
 export type Config = {
   port: number,
-  host: 'bitbucket' | 'github',
-  ci: 'bitbucket-pipelines' | 'circle-ci' | 'travis-ci',
+  baseUrl: string,
+  // host: 'bitbucket' | 'github',
+  host: 'bitbucket',
+  // ci: 'bitbucket-pipelines' | 'circle-ci' | 'travis-ci',
+  ci: 'bitbucket-pipelines',
   hostConfig: HostConfig,
   ciConfig: CIConfig,
-  settings: Settings
+  prSettings: PullRequestSettings
 };

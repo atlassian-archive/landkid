@@ -1,5 +1,5 @@
 // @flow
-import { type Env, type JSONValue } from '../types';
+import { type JSONValue } from '../types';
 import Runner from '../Runner';
 import Client from '../Client';
 

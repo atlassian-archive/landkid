@@ -3,21 +3,13 @@ import type {
   HostAdapter,
   JSONValue,
   PullRequest,
-  BuildStatus
+  BuildStatus,
+  HostConfig
 } from '../types';
 import axios from 'axios';
 import Logger from '../Logger';
 
-type Config = {
-  repoOwner: string,
-  repoName: string,
-  botUsername: string,
-  botPassword: string,
-  usersAllowedToApprove: Array<string>
-};
-
-const BitbucketAdapter = (config: Config) => {
-  const USERS_ALLOWED_TO_APPROVE = config.usersAllowedToApprove;
+const BitbucketAdapter = (config: HostConfig) => {
   const axiosGetConfig = {
     auth: {
       username: config.botUsername,

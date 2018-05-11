@@ -4,25 +4,52 @@ import type {
   CI,
   JSONValue,
   LandRequest,
-  Persona,
   StatusEvent,
-  Settings,
+  PullRequestSettings,
   PullRequest,
-  BuildStatus
+  BuildStatus,
+  ApprovalChecks
 } from './types';
 import Logger from './Logger';
+
+// Given a list of approvals, will filter out users own approvals if settings don't allow that
+function getRealApprovals(
+  approvals: Array<string>,
+  creator: string,
+  creatorCanApprove: boolean
+) {
+  if (creatorCanApprove) return approvals;
+  return approvals.filter(approval => approval !== creator);
+}
+
+// Given a set of checks, returns whether a PR passes all the required checks based on config
+function passedPullRequestChecks(
+  prSettings: PullRequestSettings,
+  approvalData: ApprovalChecks
+) {
+  let passed = true;
+  if (!approvalData.isOpen || !approvalData.isApproved) {
+    passed = false;
+  }
+  if (prSettings.requireClosedTasks) {
+    passed = passed && approvalData.allTasksClosed;
+  }
+  if (prSettings.requireGreenBuild) {
+    passed = passed && approvalData.isGreen;
+  }
+
+  return passed;
+}
 
 export default class Client {
   hostAdaptor: Host;
   ciAdaptor: CI;
-  persona: Persona;
-  serverSettings: Settings;
+  prSettings: PullRequestSettings;
 
-  constructor(host: Host, ci: CI, persona: Persona, settings: Settings) {
+  constructor(host: Host, ci: CI, settings: PullRequestSettings) {
     this.hostAdaptor = host;
     this.ciAdaptor = ci;
-    this.persona = persona;
-    this.serverSettings = settings;
+    this.prSettings = settings;
   }
 
   async isAllowedToLand(pullRequestId: string) {
@@ -32,51 +59,35 @@ export default class Client {
     const buildStatuses = await this.hostAdaptor.getPullRequestBuildStatuses(
       pullRequestId
     );
+    const author = pullRequest.author;
+    let approvals = getRealApprovals(
+      pullRequest.approvals,
+      author,
+      this.prSettings.canApproveOwnPullRequest
+    );
 
-    const isOpen = pullRequest.state === 'OPEN';
-    const createdBy = pullRequest.author;
-    const isApproved = pullRequest.approvals.some(
-      approval => approval !== createdBy
-    );
-    const isGreen = buildStatuses.every(
-      buildStatus => buildStatus.state === 'SUCCESSFUL'
-    );
-    const allTasksClosed = pullRequest.openTasks === 0;
+    const approvalChecks = {
+      isOpen: pullRequest.state === 'OPEN',
+      isGreen: buildStatuses.every(status => status.state === 'SUCCESSFUL'),
+      allTasksClosed: pullRequest.openTasks === 0,
+      isApproved: approvals.length >= this.prSettings.requiredApprovals
+    };
+
+    const isAllowed = passedPullRequestChecks(this.prSettings, approvalChecks);
+
     Logger.info(
       {
         pullRequestId,
-        isOpen,
-        isApproved,
-        isGreen,
-        allTasksClosed
+        isAllowed,
+        approvalChecks,
+        requirements: this.prSettings
       },
       'isAllowedToLand()'
     );
-    console.log('this.serverSettings', this.serverSettings);
 
-    let isAllowed = isOpen; // if a PR is closed, it's automatically unable to be merged
-    if (this.serverSettings.requireApproval) {
-      isAllowed = isAllowed && isApproved;
-    }
-    if (this.serverSettings.requireClosedTasks) {
-      isAllowed = isAllowed && allTasksClosed;
-    }
-    if (this.serverSettings.requireGreenBuild) {
-      isAllowed = isAllowed && isGreen;
-    }
-
-    Logger.info(
-      {
-        isAllowed
-      },
-      'isAllowed'
-    );
     return {
       isAllowed,
-      isOpen,
-      isApproved,
-      isGreen,
-      allTasksClosed
+      ...approvalChecks
     };
   }
 
