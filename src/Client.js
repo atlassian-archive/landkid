@@ -66,6 +66,7 @@ export default class Client {
       this.prSettings.canApproveOwnPullRequest
     );
 
+    // TODO: add extra check for isApproved against list of users allowed to approve (if configured)
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
       isGreen: buildStatuses.every(status => status.state === 'SUCCESSFUL'),
