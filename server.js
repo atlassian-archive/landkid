@@ -16,6 +16,7 @@ if (!fs.existsSync(path.join(process.cwd(), 'config.js'))) {
 
 let localConfig = require(path.join(process.cwd(), 'config.js'));
 
+// TODO: Checks on actual config passed in (could also check these defaults match the correct shape)
 let landkidConfig = Object.assign(
   {
     port: 8000,
@@ -23,10 +24,12 @@ let landkidConfig = Object.assign(
     hostConfig: {},
     ci: 'bitbucket-pipelines',
     ciConfig: {},
-    settings: {
-      requireApproval: true,
+    prSettings: {
+      requiredApprovals: 1,
+      canApproveOwnPullRequest: false,
       requireClosedTasks: true,
-      requireGreenBuild: true
+      requireGreenBuild: true,
+      usersAllowedToApprove: []
     }
   },
   localConfig
@@ -35,18 +38,13 @@ let landkidConfig = Object.assign(
 let server = landkid(landkidConfig, webpackConfig);
 
 server.listen(landkidConfig.port, () => {
-  console.log(
-    `Landkid server started at http://localhost:${landkidConfig.port}`
-  );
-  console.log(`BaseUrl set to ${landkidConfig.baseUrl}`);
-  console.log(
-    `Addon can be installed from ${
-      landkidConfig.baseUrl
-    }/bitbucket/atlassian-connect.json`
-  );
-  console.log(
-    `Webhooks should be configured to point to ${
-      landkidConfig.baseUrl
-    }/webhook/status-updated`
-  );
+  const localUrl = `http://localhost:${landkidConfig.port}`;
+  const baseUrl = landkidConfig.baseUrl;
+  const stateUrl = `${baseUrl}/current-state`;
+  const installationUrl = `${baseUrl}/bitbucket/atlassian-connect.json`;
+
+  console.log(`Local server started at ${localUrl}`);
+  console.log(`BaseUrl set to ${baseUrl}`);
+  console.log(`Addon can be installed from ${installationUrl}`);
+  console.log(`Current state can be found: ${stateUrl}`);
 });
