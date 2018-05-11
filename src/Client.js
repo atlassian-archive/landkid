@@ -69,7 +69,9 @@ export default class Client {
     // TODO: add extra check for isApproved against list of users allowed to approve (if configured)
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
-      isGreen: buildStatuses.every(status => status.state === 'SUCCESSFUL'),
+      isGreen:
+        buildStatuses.every(status => status.state === 'SUCCESSFUL') &&
+        buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
       isApproved: approvals.length >= this.prSettings.requiredApprovals
     };

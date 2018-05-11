@@ -99,7 +99,8 @@ export type PullRequestSettings = {
   requireClosedTasks: boolean,
   requireGreenBuild: boolean,
   canApproveOwnPullRequest: boolean,
-  usersAllowedToApprove: Array<string>
+  usersAllowedToApprove: Array<string>,
+  allowLandWhenAble: boolean
 };
 
 export type ApprovalChecks = {

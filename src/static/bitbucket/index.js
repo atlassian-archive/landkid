@@ -3,13 +3,24 @@ const queryString = require('qs');
 
 const endpoint = window.location.origin;
 
-const landButtonView = () => {
+function createBtn(btnText, appearance, onClickFn) {
+  return `<button type="button" class="ak-button ak-button__appearance-${
+    appearance
+  }" onClick="${onClickFn}()">
+    ${btnText}
+  </button>`;
+}
+
+const landButtonView = settings => {
+  const landWhenAbleButton = settings.allowLandWhenAble
+    ? createBtn('Land when able', 'default', 'landWhenAbleClicked')
+    : '';
   return `<div>
     <p>This PR is not queued for Landing yet, click "Land" below or <a href="/index.html" target="_blank">here</a> for more information</p>
     <br>
-    <button type="button" class="ak-button ak-button__appearance-primary" onClick="wantToMergeClicked()">
-      Land!
-      </button>
+    ${createBtn('Land!', 'primary', 'wantToMergeClicked')}
+    <span style="width: 10px; display: inline-block"></span>
+    ${landWhenAbleButton}
   </div>`;
 };
 
@@ -43,7 +54,13 @@ const pausedView = pausedReason => {
     <p>Please try again later.</p>
   </div>`;
 };
-
+const willLandWhenAbleView = () => {
+  return `<div>
+    <p>Excellent!</p>
+    <p>Your pull request has been queued to land once it is able</p>
+  </div>`;
+};
+// TODO: There are more detailed messages we could give here now
 const notAllowedToLand = reasons => {
   const isOpen = reasons.isOpen;
   const isApproved = reasons.isApproved;
@@ -73,9 +90,17 @@ const errorCreatingLandRequestView = err => {
   </div>`;
 };
 
-function getCurrentState() {
+function getCurrentStateAndSettings() {
   return fetch(`${endpoint}/api/current-state`)
     .then(resp => resp.json())
+    .then(state =>
+      fetch(`${endpoint}/api/settings`)
+        .then(resp => resp.json())
+        .then(settings => ({
+          settings,
+          state
+        }))
+    )
     .catch(err => console.error('error ', err));
 }
 
@@ -85,7 +110,7 @@ function getQueryStringVars() {
   return queryString.parse(qs);
 }
 
-function wantToMergeClicked1() {
+function wantToMergeClicked() {
   setView(checkingPullRequestView());
 
   const qs = getQueryStringVars();
@@ -103,7 +128,16 @@ function wantToMergeClicked1() {
     });
 }
 
-function landPullRequest() {
+function landWhenAbleClicked() {
+  setView(checkingPullRequestView());
+  landPullRequest({
+    whenAbleFlag: true
+  });
+}
+// reusing this function for actual landrequests and for land when able requests
+// THIS IS TERRIBLE - FIX ASAP
+function landPullRequest(opts = {}) {
+  const whenAbleFlag = opts.whenAbleFlag;
   const qs = getQueryStringVars();
 
   const qsString = queryString.stringify({
@@ -113,11 +147,23 @@ function landPullRequest() {
     title: qs.title
   });
 
-  return fetch(`${endpoint}/api/land-pr/${qs.pullRequestId}?${qsString}`, {
-    method: 'POST'
-  })
+  const endPointVerb = whenAbleFlag ? 'land-when-able' : 'land-pr';
+
+  // TODO: send actual post data, not a query string...
+  return fetch(
+    `${endpoint}/api/${endPointVerb}/${qs.pullRequestId}?${qsString}`,
+    {
+      method: 'POST'
+    }
+  )
     .then(resp => resp.json())
-    .then(() => setView(isQueuedView()))
+    .then(() => {
+      if (whenAbleFlag) {
+        setView(willLandWhenAbleView());
+        return;
+      }
+      setView(isQueuedView());
+    })
     .catch(err => {
       setView(errorCreatingLandRequestView(err));
     });
@@ -142,7 +188,7 @@ function cancelButtonClicked() {
     });
 }
 
-function displayQueueOrLandButton(queue, running) {
+function displayQueueOrLandButton(queue, running, settings) {
   const queryStringVars = getQueryStringVars();
   const pullRequestId = queryStringVars.pullRequestId;
   const isQueuedOrRunning =
@@ -154,24 +200,25 @@ function displayQueueOrLandButton(queue, running) {
   if (isQueuedOrRunning) {
     setView(isQueuedView());
   } else {
-    setView(landButtonView());
+    setView(landButtonView(settings));
   }
 }
 
 const qs = getQueryStringVars();
 if (qs.state === 'OPEN') {
-  getCurrentState().then(stateResp => {
-    const allowedToMerge = stateResp.usersAllowedToMerge;
-    const paused = stateResp.paused;
+  getCurrentStateAndSettings().then(resp => {
+    const { settings, state } = resp;
+    const allowedToMerge = settings.usersAllowedToMerge;
+    const paused = state.paused;
     const pausedReason =
-      stateResp.pausedReason || 'Builds have been paused manually';
+      state.pausedReason || 'Builds have been paused manually';
     if (paused) {
       setView(pausedView());
       // this is a bit messy, but we don't want to render "user" generated content as DOM, so we
       // have to separately render the text content for the reason
       document.querySelector('#pausedReason').textContent = pausedReason;
     } else if (allowedToMerge.indexOf(qs.username) > -1) {
-      displayQueueOrLandButton(stateResp.queue, stateResp.running);
+      displayQueueOrLandButton(state.queue, state.running, settings);
     }
   });
 } else {
@@ -191,4 +238,6 @@ function setView(innerHtml) {
 
 // I've had to just add this hack as the functions declared here aren't available globally anymore
 // I havent added the rest of the events since we're about to replace it, just FYI
-window.wantToMergeClicked = wantToMergeClicked1;
+window.wantToMergeClicked = wantToMergeClicked;
+window.landWhenAbleClicked = landWhenAbleClicked;
+window.cancelButtonClicked = cancelButtonClicked;
