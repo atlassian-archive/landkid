@@ -18,6 +18,7 @@ function wrap(fn: Function) {
 export default function routes(server: any, client: Client, runner: Runner) {
   bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
   const usersAllowedToMerge = server.settings.usersAllowedToMerge;
+  const allowLandWhenAble = server.settings.allowLandWhenAble;
 
   server.get(
     '/',
@@ -35,10 +36,19 @@ export default function routes(server: any, client: Client, runner: Runner) {
     wrap(async (req, res) => {
       const state = runner.getState();
       Logger.info(state, 'Requesting current state');
-      res.header('Access-Control-Allow-Origin', '*').json({
-        ...state,
+      res.header('Access-Control-Allow-Origin', '*').json(state);
+    })
+  );
+
+  server.get(
+    '/api/settings',
+    wrap(async (req, res) => {
+      const settings = {
+        allowLandWhenAble,
         usersAllowedToMerge
-      });
+      };
+      Logger.info(settings, 'Requesting current settings');
+      res.header('Access-Control-Allow-Origin', '*').json(settings);
     })
   );
 
@@ -67,6 +77,7 @@ export default function routes(server: any, client: Client, runner: Runner) {
         return;
       }
 
+      // TODO: This logic should live in routes
       const landRequest: LandRequest = {
         pullRequestId,
         username,
@@ -95,12 +106,49 @@ export default function routes(server: any, client: Client, runner: Runner) {
   );
 
   server.post(
+    '/api/land-when-able/:pullRequestId',
+    wrap(async (req, res) => {
+      const pullRequestId = req.params.pullRequestId;
+      const username = req.query.username;
+      const userUuid = req.query.userUuid;
+      const commit = req.query.commit;
+      const title = req.query.title;
+      // obviously we need more checks than this later
+      if (!pullRequestId || !userUuid || !commit || !title) {
+        res.sendStatus(404);
+        return;
+      }
+
+      const landRequest: LandRequest = {
+        pullRequestId,
+        username,
+        userUuid,
+        commit,
+        title
+      };
+      // const positionInQueue = runner.enqueue(landRequest);
+      Logger.info(
+        {
+          landRequest
+        },
+        'Request to land when able received'
+      );
+      runner.addToWaitingToLand(landRequest);
+      res
+        .header('Access-Control-Allow-Origin', '*')
+        .status(200)
+        .json({});
+    })
+  );
+
+  server.post(
     '/api/cancel-pr/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = String(req.params.pullRequestId);
       const userUuid = req.query.userUuid;
       const username = req.query.username;
 
+      // TODO: Move all business logic out of routes
       // do proper checks here to know if a person is allowed to cancel the build?
       if (!pullRequestId || !userUuid) {
         res.sendStatus(404);

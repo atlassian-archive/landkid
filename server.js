@@ -29,6 +29,7 @@ let landkidConfig = Object.assign(
       canApproveOwnPullRequest: false,
       requireClosedTasks: true,
       requireGreenBuild: true,
+      allowLandWhenAble: false,
       usersAllowedToApprove: []
     }
   },

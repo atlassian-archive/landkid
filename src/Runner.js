@@ -7,6 +7,9 @@ import type { LandRequest, StatusEvent } from './types';
 export default class Runner {
   queue: Queue;
   running: ?LandRequest;
+  // we'll just store the waitingToLand in a simple list for now
+  // TODO: Clean up all the state in Runner to make more sense
+  waitingToLand: Array<LandRequest>;
   locked: boolean;
   client: Client;
   started: Date;
@@ -15,12 +18,19 @@ export default class Runner {
 
   constructor(queue: Queue, client: Client) {
     this.queue = queue;
+    this.waitingToLand = [];
     this.running = null;
     this.locked = false;
     this.client = client;
     this.started = new Date();
     this.paused = false;
     this.pausedReason = null;
+
+    // call our checkWaitingLandRequests() function on an interval so that we are always clearing out waiting builds
+    const timeBetweenChecksMins = 2;
+    setInterval(() => {
+      this.checkWaitingLandRequests();
+    }, timeBetweenChecksMins * 60 * 1000);
   }
 
   async next() {
@@ -28,10 +38,12 @@ export default class Runner {
       {
         running: this.running,
         locked: this.locked,
-        queue: this.queue
+        queue: this.queue,
+        waitingToLand: this.waitingToLand
       },
       'Next() called'
     );
+
     if (this.running || this.locked) return;
     let landRequest: ?LandRequest = this.queue.dequeue();
     if (!landRequest) return;
@@ -198,10 +210,72 @@ export default class Runner {
     }
   }
 
+  addToWaitingToLand(landRequest: LandRequest) {
+    // make sure we don't already have this landRequest queued
+    if (
+      !this.waitingToLand.find(
+        req => req.pullRequestId === landRequest.pullRequestId
+      )
+    ) {
+      this.waitingToLand.push(landRequest);
+    }
+    // also check if we can immediately go into the queue
+    this.checkWaitingLandRequests();
+  }
+
+  // the name of this function is enough to show how badly thought out this state is
+  moveFromWaitingToQueue(pullRequestId: string) {
+    const landRequest = this.waitingToLand.find(
+      req => req.pullRequestId === pullRequestId
+    );
+    if (!landRequest) {
+      Logger.error(
+        {
+          waitingToLand: this.waitingToLand,
+          pullRequestId
+        },
+        'Unable to find landrequest to move to queue'
+      );
+      return;
+    }
+    Logger.info(
+      {
+        landRequest
+      },
+      'Moving landRequest from waiting to queue'
+    );
+
+    this.waitingToLand = this.waitingToLand.filter(
+      req => req.pullRequestId !== pullRequestId
+    );
+    landRequest.createdTime = new Date();
+    this.enqueue(landRequest);
+    this.next();
+  }
+
+  async checkWaitingLandRequests() {
+    Logger.info(
+      {
+        waiting: this.waitingToLand
+      },
+      'Checking for waiting landrequests ready to queue'
+    );
+
+    for (let landRequest of this.waitingToLand) {
+      const pullRequestId = landRequest.pullRequestId;
+      let isAllowedToLand = await this.client.isAllowedToLand(pullRequestId);
+
+      if (isAllowedToLand.isAllowed) {
+        this.moveFromWaitingToQueue(pullRequestId);
+      }
+    }
+  }
+
   getState() {
     return {
       queue: this.queue.list(),
       running: Object.assign({}, this.running),
+      waitingToLand: this.waitingToLand,
       locked: this.locked,
       started: this.started,
       paused: this.paused,

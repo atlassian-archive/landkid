@@ -32,12 +32,14 @@ export default function atlaskid(config: Config, webpackConfig: any) {
       })
     );
   }
+  const { usersAllowedToApprove, allowLandWhenAble } = config.prSettings;
   server.use(bodyParser.json());
+  // These are settings that we need passed into routes/ because they need to be passed to the front
+  // end.
+  // TODO: Find a nicer way to do this
   server.set('baseUrl', config.baseUrl);
-  server.set(
-    'usersAllowedToMerge',
-    config.prSettings.usersAllowedToApprove || []
-  );
+  server.set('usersAllowedToMerge', usersAllowedToApprove);
+  server.set('allowLandWhenAble', allowLandWhenAble);
 
   const host = hosts[config.host](config.hostConfig);
   const ci = cis[config.ci](config.ciConfig);
