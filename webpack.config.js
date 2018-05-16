@@ -14,7 +14,24 @@ module.exports = {
     publicPath: '/',
     filename: '[name]/bundle.js'
   },
-  mode: process.env.MODE === 'PRODUCTION' ? 'production' : 'development',
+  mode: 'development',
+  module: {
+    rules: [
+      {
+        test: /\.js/,
+        use: {
+          loader: require.resolve('babel-loader'),
+          query: { presets: [require.resolve('babel-preset-react')] }
+        }
+      }
+    ]
+  },
+  resolve: {
+    alias: {
+      react: 'preact-compat',
+      'react-dom': 'preact-compat'
+    }
+  },
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'bitbucket/index.html',

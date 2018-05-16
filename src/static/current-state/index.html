@@ -1,77 +1,58 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
   <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
   <style>
+    :root {
+      --main-text-color: #344563;
+      --secondary-text-color: #97A0AF;
+      --n0-color: #fff;
+      --n10-color: #FAFBFC;
+      --n20-color: #F4F5F7;
+      --n30-color: #EBECF0;
+      --n40-color: #DFE1E5;
+      --n300-color: #5E6C84;
+      --n400-color: #505F79;
+      --n500-color: #42526E;
+      --n600-color: #344563;
+      --n800-color: #172B4D;
+      --b50-color: #DEEBFF;
+      --b400-color: #0052CC;
+      --b500-color: #0747A6;
+      --r50-color: #FFEBE5;
+      --r300-color: #FF5630;
+      --r500-color: #BF2600;
+      --g50-color: #E3FCEF;
+      --g500-color: #006644;
+      --y50-color: #FFFAE5;
+      --p50-color: #EAE6FF;
+      --p500-color: #403294;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      color: var(--main-text-color);
       font-size: 14px;
-      color: #333;
-      padding: 20px;
+      padding: 36px;
+      max-width: 100%;
+      min-width: 480px;
+      box-sizing: border-box;
     }
 
-    h1 {
-      margin-bottom: 10px;
+    h3 {
+      font-weight: 400;
     }
 
-    pre {
-      margin-top: 0;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .row {
-      display: flex;
-      margin-top: 30px;
-    }
-
-    .row-title {
-      font-weight: bold;
-      flex: 0 0 120px;
-    }
-
-    .row-content {
-      display: flex;
-      padding-left: 10px;
-      /* border: 1px solid red; */
+    #app {
+      max-width: 880px;
+      margin: 0 auto;
     }
   </style>
 </head>
 
 <body>
-  <h1>Landkid - Current State
-    <a href="javascript: loadState()">&#8635;</a>
-  </h1>
-  <div class="container">
-    <div class="row">
-      <div class="row-title">Uptime</div>
-      <pre class="row-content" id="uptime">Loading...</pre>
-    </div>
-    <div class="row">
-      <div class="row-title">Running</div>
-      <pre class="row-content" id="running">Loading...</pre>
-    </div>
-    <div class="row">
-      <div class="row-title">Current Queue</div>
-      <div class="row-content" id="current-queue">Loading...</div>
-    </div>
-    <div class="row">
-      <div class="row-title">Locked</div>
-      <div class="row-content" id="locked">Loading...</div>
-    </div>
-    <div class="row">
-      <div class="row-title">Paused</div>
-      <div class="row-content" id="paused">Loading...</div>
-    </div>
-    <div class="row">
-      <div class="row-title">Allowed Users</div>
-      <div class="row-content" id="allowed-users">Loading...</div>
-    </div>
-  </div>
+  <div id="app">Loading...</div>
 </body>
 
 </html>
