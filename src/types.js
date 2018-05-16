@@ -37,7 +37,8 @@ export type StatusEvent = {
   buildId: string,
   buildStatus: string,
   passed: boolean,
-  failed: boolean
+  failed: boolean,
+  stopped: boolean
 };
 
 export type Persona = {
@@ -56,6 +57,8 @@ export type LandRequest = {
   pullRequestState?: 'OPEN' | 'DECLINED' | 'MERGED',
   commit: string,
   title: string,
+  createdTime: Date,
+  finishedTime?: Date,
 
   // These properties exist after a landRequest begins landing
   buildId?: string,
@@ -120,4 +123,21 @@ export type Config = {
   hostConfig: HostConfig,
   ciConfig: CIConfig,
   prSettings: PullRequestSettings
+};
+
+export type HistoryItem = {
+  statusEvent: StatusEvent,
+  build: LandRequest
+};
+
+export type RunnerState = {
+  queue: Array<LandRequest>,
+  running: LandRequest,
+  waitingToLand?: Array<LandRequest>,
+  locked: boolean,
+  started: string,
+  paused: boolean,
+  pausedReason?: string | null,
+  history: Array<HistoryItem>,
+  usersAllowedToMerge: Array<string>
 };

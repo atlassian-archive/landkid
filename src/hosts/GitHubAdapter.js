@@ -1,6 +1,7 @@
 // @flow
 import { type HostAdapter, type StatusEvent, type LandRequest } from '../types';
 
+// $FlowFixMe
 const GitHubAdapter: HostAdapter = (config: {}) => ({
   processStatusWebhook(body): StatusEvent | null {
     return null;

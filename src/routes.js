@@ -8,6 +8,7 @@ import Client from './Client';
 import onStatus from './events/onStatus';
 import Logger from './Logger';
 import bitbucketAddonDescriptor from './static/bitbucket/atlassian-connect.json';
+import History from './History';
 
 function wrap(fn: Function) {
   return (req, res, next) => {
@@ -79,12 +80,13 @@ export default function routes(server: any, client: Client, runner: Runner) {
 
       // TODO: This logic should live in routes
       const landRequest: LandRequest = {
+        buildStatus: 'QUEUED',
         pullRequestId,
         username,
         userUuid,
         commit,
         title,
-        created_time: new Date()
+        createdTime: new Date()
       };
       const positionInQueue = runner.enqueue(landRequest);
       Logger.info(
@@ -120,11 +122,13 @@ export default function routes(server: any, client: Client, runner: Runner) {
       }
 
       const landRequest: LandRequest = {
+        buildStatus: 'QUEUED',
         pullRequestId,
         username,
         userUuid,
         commit,
-        title
+        title,
+        createdTime: new Date()
       };
       // const positionInQueue = runner.enqueue(landRequest);
       Logger.info(

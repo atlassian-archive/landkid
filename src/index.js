@@ -14,6 +14,7 @@ import Runner from './Runner';
 import routes from './routes';
 import Client from './Client';
 import Logger from './Logger';
+import History from './History';
 
 export default function atlaskid(config: Config, webpackConfig: any) {
   let server = express();
@@ -44,9 +45,10 @@ export default function atlaskid(config: Config, webpackConfig: any) {
   const host = hosts[config.host](config.hostConfig);
   const ci = cis[config.ci](config.ciConfig);
   let client = new Client(host, ci, config.prSettings);
+  let history = new History();
 
   let queue = new Queue();
-  let runner = new Runner(queue, client);
+  let runner = new Runner(queue, client, history, config);
 
   routes(server, client, runner);
 
