@@ -1,11 +1,13 @@
 // @flow
 import Queue from './Queue';
 import Client from './Client';
+import History from './History';
 import Logger from './Logger';
-import type { LandRequest, StatusEvent } from './types';
+import type { LandRequest, StatusEvent, RunnerState, Config } from './types';
 
 export default class Runner {
   queue: Queue;
+  history: History;
   running: ?LandRequest;
   // we'll just store the waitingToLand in a simple list for now
   // TODO: Clean up all the state in Runner to make more sense
@@ -15,16 +17,19 @@ export default class Runner {
   started: Date;
   paused: boolean;
   pausedReason: ?string;
+  config: Config;
 
-  constructor(queue: Queue, client: Client) {
+  constructor(queue: Queue, client: Client, history: History, config: Config) {
     this.queue = queue;
     this.waitingToLand = [];
     this.running = null;
     this.locked = false;
     this.client = client;
+    this.history = history;
     this.started = new Date();
     this.paused = false;
     this.pausedReason = null;
+    this.config = config;
 
     // call our checkWaitingLandRequests() function on an interval so that we are always clearing out waiting builds
     const timeBetweenChecksMins = 2;
@@ -48,12 +53,7 @@ export default class Runner {
     let landRequest: ?LandRequest = this.queue.dequeue();
     if (!landRequest) return;
     this.locked = true;
-    Logger.info(
-      {
-        landRequest
-      },
-      'Checking if still allowed to land...'
-    );
+    Logger.info({ landRequest }, 'Checking if still allowed to land...');
 
     let commit = landRequest.commit;
     let isAllowedToLand = await this.client.isAllowedToLand(
@@ -61,12 +61,7 @@ export default class Runner {
     );
 
     if (isAllowedToLand.isAllowed) {
-      Logger.info(
-        {
-          landRequest
-        },
-        'Allowed to land, creating land build'
-      );
+      Logger.info({ landRequest }, 'Allowed to land, creating land build');
       const buildId = await this.client.createLandBuild(commit);
       this.running = {
         ...landRequest,
@@ -82,10 +77,7 @@ export default class Runner {
       );
     } else {
       Logger.info(
-        {
-          ...isAllowedToLand,
-          ...landRequest
-        },
+        { ...isAllowedToLand, ...landRequest },
         'Land request is not allowed to land'
       );
       this.locked = false;
@@ -94,62 +86,47 @@ export default class Runner {
   }
 
   onStatusUpdate = (statusEvent: StatusEvent) => {
-    let running = this.running;
-
-    if (!running) {
+    if (!this.running) {
       return Logger.info(
         statusEvent,
         'No build running, status event is irrelevant'
       );
     }
 
+    let running = this.running;
+
     if (running.buildId !== statusEvent.buildId) {
       return Logger.warn(
-        {
-          statusEvent,
-          running
-        },
+        { statusEvent, running },
         `StatusEvent buildId doesn't match currently running buildId – ${
           statusEvent.buildId
         } !== ${running.buildId || ''}`
       );
     }
 
-    Logger.info(
-      {
-        statusEvent,
-        running
-      },
-      'Build status update'
-    );
+    Logger.info({ statusEvent, running }, 'Build status update');
 
     this.running = running = {
       ...running,
       buildStatus: statusEvent.buildStatus
     };
 
+    let addToHistory = () =>
+      this.history.set(statusEvent, { ...running, finishedTime: new Date() });
+
     if (statusEvent.passed) {
       this.mergePassedBuild(running);
+      addToHistory();
       this.running = null;
       this.next();
     } else if (statusEvent.failed) {
-      Logger.error(
-        {
-          running,
-          statusEvent
-        },
-        'Land build failed'
-      );
+      Logger.error({ running, statusEvent }, 'Land build failed');
+      addToHistory();
       this.running = null;
       this.next();
     } else if (statusEvent.stopped) {
-      Logger.warn(
-        {
-          running,
-          statusEvent
-        },
-        'Land build has been stopped'
-      );
+      Logger.warn({ running, statusEvent }, 'Land build has been stopped');
+      addToHistory();
       this.running = null;
       this.next();
     }
@@ -157,14 +134,8 @@ export default class Runner {
 
   mergePassedBuild(running: LandRequest) {
     const pullRequestId = running.pullRequestId;
-    Logger.info(
-      {
-        pullRequestId,
-        running
-      },
-      'Merging pull request'
-    );
-    this.client.mergePullRequest(pullRequestId);
+    Logger.info({ pullRequestId, running }, 'Merging pull request');
+    // this.client.mergePullRequest(pullRequestId);
   }
 
   cancelCurrentlyRunningBuild() {
@@ -271,15 +242,17 @@ export default class Runner {
     }
   }
 
-  getState() {
+  getState(): RunnerState {
     return {
       queue: this.queue.list(),
       running: Object.assign({}, this.running),
       waitingToLand: this.waitingToLand,
       locked: this.locked,
-      started: this.started,
+      started: String(this.started),
       paused: this.paused,
-      pausedReason: this.pausedReason
+      pausedReason: this.pausedReason,
+      history: this.history.take(10),
+      usersAllowedToMerge: this.config.prSettings.usersAllowedToApprove
     };
   }
 }
