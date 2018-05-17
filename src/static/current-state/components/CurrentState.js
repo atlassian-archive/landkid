@@ -73,7 +73,13 @@ export function CurrentState({
   }
 
   function renderPanel() {
-    return <Panel>{pausedReason}</Panel>;
+    return (
+      <Panel>
+        <strong>Builds are currently paused</strong>
+        <br />
+        {pausedReason}
+      </Panel>
+    );
   }
 
   return <Section>{paused ? renderPanel() : renderColumns()}</Section>;
