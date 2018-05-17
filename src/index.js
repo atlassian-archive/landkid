@@ -21,7 +21,10 @@ export default function atlaskid(config: Config, webpackConfig: any) {
   let port = config.port || 8000;
   // If we are in dev mode we'll use the webpack dev server, if not we'll be using the built static
   // files in dist/[legacy|modern]/static. Routing for this is in ./routes.js
-  if (process.env.NODE_ENV !== 'production') {
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.NODE_ENV !== 'test'
+  ) {
     const webpackCompiler = webpack(webpackConfig);
 
     server.use(

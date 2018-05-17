@@ -1,8 +1,12 @@
 // @flow
-import { type HostAdapter, type StatusEvent, type LandRequest } from '../types';
+import type {
+  HostAdapter,
+  StatusEvent,
+  LandRequest,
+  HostConfig
+} from '../types';
 
-// $FlowFixMe
-const GitHubAdapter: HostAdapter = (config: {}) => ({
+const GitHubAdapter: HostAdapter = (config: HostConfig) => ({
   processStatusWebhook(body): StatusEvent | null {
     return null;
   },
@@ -16,7 +20,7 @@ const GitHubAdapter: HostAdapter = (config: {}) => ({
     };
   },
 
-  async mergePullRequest(pullRequestId: string): Promise<boolean> {
+  async mergePullRequest(pullRequestId: string): Promise < boolean > {
     return false;
   },
 
@@ -24,7 +28,7 @@ const GitHubAdapter: HostAdapter = (config: {}) => ({
     // ...
   },
 
-  async pullRequestToCommitHash(pullRequestId): Promise<string> {
+  async pullRequestToCommitHash(pullRequestId): Promise < string > {
     return '__commit__hash__';
   }
 });

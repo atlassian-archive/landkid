@@ -1,32 +1,33 @@
 // @flow
 
-export type JSONValue =
-  | null
-  | string
-  | boolean
-  | number
-  | Array<JSONValue>
-  | {
-      [key: string]: JSONValue
-    };
+export type JSONValue = |
+  null |
+  string |
+  boolean |
+  number |
+  Array < JSONValue >
+  |
+  {
+    [key: string]: JSONValue
+  };
 
 export type Host = {
   createComment(
     pullRequestId: string,
     parentCommentId: string | null,
     message: string
-  ): Promise<mixed>,
-  mergePullRequest(pullRequestId: string): Promise<boolean>,
-  getPullRequest(pullRequestId: string): Promise<PullRequest>,
+  ): Promise < mixed > ,
+  mergePullRequest(pullRequestId: string): Promise < boolean > ,
+  getPullRequest(pullRequestId: string): Promise < PullRequest > ,
   getPullRequestBuildStatuses(
     pullRequestId: string
-  ): Promise<Array<BuildStatus>>
+  ): Promise < Array < BuildStatus >>
 };
 
 export type CI = {
   processStatusWebhook(body: JSONValue): StatusEvent | null,
-  createLandBuild(commit: string): Promise<mixed>,
-  stopLandBuild(commit: string): Promise<mixed>
+  createLandBuild(commit: string): Promise < mixed > ,
+  stopLandBuild(commit: string): Promise < mixed >
 };
 
 export type HostAdapter = (config: Object) => Host;
@@ -54,16 +55,16 @@ export type LandRequest = {
   pullRequestId: string,
   username: string,
   userUuid: string,
-  pullRequestState?: 'OPEN' | 'DECLINED' | 'MERGED',
+  pullRequestState ? : 'OPEN' | 'DECLINED' | 'MERGED',
   commit: string,
   title: string,
   createdTime: Date,
-  finishedTime?: Date,
+  finishedTime ? : Date,
 
   // These properties exist after a landRequest begins landing
-  buildId?: string,
-  buildStatus?: string,
-  landed?: boolean
+  buildId ? : string,
+  buildStatus ? : string,
+  landed ? : boolean
 };
 
 export type PullRequest = {
@@ -73,7 +74,7 @@ export type PullRequest = {
   createdOn: Date,
   author: string,
   state: 'OPEN' | 'MERGED' | 'DECLINED',
-  approvals: Array<string>,
+  approvals: Array < string > ,
   openTasks: number
 };
 
@@ -102,7 +103,7 @@ export type PullRequestSettings = {
   requireClosedTasks: boolean,
   requireGreenBuild: boolean,
   canApproveOwnPullRequest: boolean,
-  usersAllowedToApprove: Array<string>,
+  usersAllowedToApprove: Array < string > ,
   allowLandWhenAble: boolean
 };
 
@@ -131,13 +132,13 @@ export type HistoryItem = {
 };
 
 export type RunnerState = {
-  queue: Array<LandRequest>,
+  queue: Array < LandRequest > ,
   running: LandRequest,
-  waitingToLand?: Array<LandRequest>,
+  waitingToLand ? : Array < LandRequest > ,
   locked: boolean,
   started: string,
   paused: boolean,
-  pausedReason?: string | null,
-  history: Array<HistoryItem>,
-  usersAllowedToMerge: Array<string>
+  pausedReason ? : string | null,
+  history: Array < HistoryItem > ,
+  usersAllowedToMerge: Array < string >
 };

@@ -27,11 +27,19 @@ test('incoming - /api/current-state - default', async t => {
   let res = await request(server).get('/api/current-state');
 
   t.is(res.status, 200);
+  // body.started should be a date string but we cant know it ahead of time
+  // we'll check that it is a string, then hack it's value
+  t.truthy(typeof res.body.started === 'string');
+  res.body.started = 'today';
+
   t.deepEqual(res.body, {
     queue: [],
+    waitingToLand: [],
     running: {},
     locked: false,
-    usersAllowedToMerge: ['user_1', 'user_2']
+    paused: false,
+    pausedReason: null,
+    started: 'today'
   });
 });
 
@@ -52,6 +60,7 @@ test('incoming - /api/is-allowed-to-land/ - PR is completely ready', async t => 
       isOpen: true,
       isApproved: true,
       isGreen: true,
+      allTasksClosed: true,
       isAllowed: true
     }
   });
@@ -74,6 +83,7 @@ test('incoming - /api/is-allowed-to-land/ - PR has red build', async t => {
       isOpen: true,
       isApproved: true,
       isGreen: false,
+      allTasksClosed: true,
       isAllowed: false
     }
   });
@@ -96,6 +106,7 @@ test('incoming - /api/is-allowed-to-land/ - Closed and merged', async t => {
       isOpen: false,
       isApproved: true,
       isGreen: true,
+      allTasksClosed: true,
       isAllowed: false
     }
   });
@@ -112,12 +123,20 @@ test('e2e - /api/land-pr/ - Approved and green', async t => {
   const createPipelines = nock('https://api.bitbucket.org')
     .post('/2.0/repositories/repo_owner/repo_name/pipelines/', {
       target: {
-        commit: { hash: '0601da78f467', type: 'commit' },
-        selector: { type: 'custom', pattern: 'landkid' },
+        commit: {
+          hash: '0601da78f467',
+          type: 'commit'
+        },
+        selector: {
+          type: 'custom',
+          pattern: 'landkid'
+        },
         type: 'pipeline_commit_target'
       }
     })
-    .reply(200, { build_number: 3 });
+    .reply(200, {
+      build_number: 3
+    });
   const mergePullRequest = nock('https://api.bitbucket.org')
     .post('/2.0/repositories/repo_owner/repo_name/pullrequests/1/merge')
     .reply(200);
@@ -129,16 +148,20 @@ test('e2e - /api/land-pr/ - Approved and green', async t => {
     .query(paramsStr);
 
   t.is(res.status, 200);
-  t.deepEqual(res.body, { positionInQueue: 0 });
+  t.deepEqual(res.body, {
+    positionInQueue: 0
+  });
 
   await waitUntil(() =>
     request(server)
       .get('/api/current-state')
-      .then(response => response.body.running !== null)
+      .then(response => response.body.running.hasOwnProperty('pullRequestId'))
   );
 
   res = await request(server).get('/api/current-state');
   t.is(res.status, 200);
+  // have to hack the `created_time` time as we can't know it
+  res.body.running.created_time = 'today';
   t.deepEqual(res.body.running, {
     pullRequestId: '1',
     username: 'user_1',
@@ -146,18 +169,21 @@ test('e2e - /api/land-pr/ - Approved and green', async t => {
     commit: '0601da78f467',
     title: 'AK-888 Some issue',
     buildId: '3',
-    buildStatus: 'PENDING'
+    buildStatus: 'PENDING',
+    created_time: 'today'
   });
 
   // make sure we called the POST endpoint to create a build
-  t.is(createPipelines.isDone(), true);
+  t.truthy(createPipelines.isDone());
 
   await request(server)
     .post('/webhook/status-updated')
     .send(mockWebhooks.successful);
 
-  // check that we hit the merge endpoint to merge the PR
-  t.is(mergePullRequest.isDone(), true);
+  // Haven't needed to pause here yet, but just in case, we'll leave this here
+  // await waitUntil(() => Promise.resolve(mergePullRequest.isDone()));
+  // Check that we hit the merge endpoint to merge the PR
+  t.truthy(mergePullRequest.isDone());
 });
 
 test('e2e - /api/land-pr/ - Approved and green - failed landkid build', async t => {
@@ -171,12 +197,20 @@ test('e2e - /api/land-pr/ - Approved and green - failed landkid build', async t 
   const createPipelines = nock('https://api.bitbucket.org')
     .post('/2.0/repositories/repo_owner/repo_name/pipelines/', {
       target: {
-        commit: { hash: '0601da78f467', type: 'commit' },
-        selector: { type: 'custom', pattern: 'landkid' },
+        commit: {
+          hash: '0601da78f467',
+          type: 'commit'
+        },
+        selector: {
+          type: 'custom',
+          pattern: 'landkid'
+        },
         type: 'pipeline_commit_target'
       }
     })
-    .reply(200, { build_number: 3 });
+    .reply(200, {
+      build_number: 3
+    });
   const mergePullRequest = nock('https://api.bitbucket.org')
     .post('/2.0/repositories/repo_owner/repo_name/pullrequests/1/merge')
     .reply(200);
@@ -188,74 +222,10 @@ test('e2e - /api/land-pr/ - Approved and green - failed landkid build', async t 
     .query(paramsStr);
 
   t.is(res.status, 200);
-  t.deepEqual(res.body, { positionInQueue: 0 });
-
-  await waitUntil(() =>
-    request(server)
-      .get('/api/current-state')
-      .then(response => response.body.running !== null)
-  );
-
-  res = await request(server).get('/api/current-state');
-  t.is(res.status, 200);
-  t.deepEqual(res.body.running, {
-    pullRequestId: '1',
-    username: 'user_1',
-    userUuid: '{62cc1a9a-9f43-4518-b604-9c044626bf10}',
-    commit: '0601da78f467',
-    title: 'AK-888 Some issue',
-    buildId: '3',
-    buildStatus: 'PENDING'
+  t.deepEqual(res.body, {
+    positionInQueue: 0
   });
 
-  // make sure we called the POST endpoint to create a build
-  t.is(createPipelines.isDone(), true);
-
-  await request(server)
-    .post('/webhook/status-updated')
-    .send(mockWebhooks.failed);
-
-  // we'll wait till the current status says we've gotten rid of the build
-  await waitUntil(() =>
-    request(server)
-      .get('/api/current-state')
-      .then(response => response.body.running.buildId === undefined)
-  );
-
-  // make sure we still haven't hit the mergePullRequest endpoint
-  t.is(mergePullRequest.isDone(), false);
-});
-
-test('incoming - /api/land-pr/ - Approved and green - failed landkid build', async t => {
-  const server = app(config);
-  nock('https://api.bitbucket.org')
-    .get('/2.0/repositories/repo_owner/repo_name/pullrequests/1')
-    .reply(200, mockPrs.prOpenApproved);
-  nock('https://api.bitbucket.org')
-    .get('/2.0/repositories/repo_owner/repo_name/pullrequests/1/statuses')
-    .reply(200, mockStatuses.singleSuccessful);
-  const createPipelines = nock('https://api.bitbucket.org')
-    .post('/2.0/repositories/repo_owner/repo_name/pipelines/', {
-      target: {
-        commit: { hash: '0601da78f467', type: 'commit' },
-        selector: { type: 'custom', pattern: 'landkid' },
-        type: 'pipeline_commit_target'
-      }
-    })
-    .reply(200, { build_number: 3 });
-  const mergePullRequest = nock('https://api.bitbucket.org')
-    .post('/2.0/repositories/repo_owner/repo_name/pullrequests/1/merge')
-    .reply(200);
-
-  const paramsStr =
-    'repoOwner=repo_owner&repoSlug=some_repo&username=user_1&state=OPEN&title=AK-888+Some+issue&pullRequestId=1&userUuid=%7B62cc1a9a-9f43-4518-b604-9c044626bf10%7D&commit=0601da78f467';
-  let res = await request(server)
-    .post(`/api/land-pr/1`)
-    .query(paramsStr);
-
-  t.is(res.status, 200);
-  t.deepEqual(res.body, { positionInQueue: 0 });
-
   await waitUntil(() =>
     request(server)
       .get('/api/current-state')
@@ -264,6 +234,8 @@ test('incoming - /api/land-pr/ - Approved and green - failed landkid build', asy
 
   res = await request(server).get('/api/current-state');
   t.is(res.status, 200);
+  res.body.running.created_time = 'today';
+
   t.deepEqual(res.body.running, {
     pullRequestId: '1',
     username: 'user_1',
@@ -271,6 +243,7 @@ test('incoming - /api/land-pr/ - Approved and green - failed landkid build', asy
     commit: '0601da78f467',
     title: 'AK-888 Some issue',
     buildId: '3',
+    created_time: 'today',
     buildStatus: 'PENDING'
   });
 

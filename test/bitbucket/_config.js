@@ -15,13 +15,20 @@ module.exports = {
     botUsername: botUsername,
     botPassword: botPassword,
     repoOwner: repoOwner,
-    repoName: repoName,
-    usersAllowedToApprove: usersAllowedToApprove
+    repoName: repoName
   },
   ciConfig: {
     botUsername: botUsername,
     botPassword: botPassword,
     repoOwner: repoOwner,
     repoName: repoName
+  },
+  prSettings: {
+    requiredApprovals: 1,
+    canApproveOwnPullRequest: true,
+    requireClosedTasks: false,
+    requireGreenBuild: true,
+    allowLandWhenAble: true,
+    usersAllowedToApprove: usersAllowedToApprove
   }
 };
