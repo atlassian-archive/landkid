@@ -135,7 +135,7 @@ export default class Runner {
   mergePassedBuild(running: LandRequest) {
     const pullRequestId = running.pullRequestId;
     Logger.info({ pullRequestId, running }, 'Merging pull request');
-    // this.client.mergePullRequest(pullRequestId);
+    this.client.mergePullRequest(pullRequestId);
   }
 
   cancelCurrentlyRunningBuild() {
