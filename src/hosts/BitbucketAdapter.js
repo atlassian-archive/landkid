@@ -1,27 +1,29 @@
 // @flow
+import axios from 'axios';
+import pRetry from 'p-retry';
 import type {
   HostAdapter,
   JSONValue,
   PullRequest,
   BuildStatus,
-  HostConfig
+  HostConfig,
 } from '../types';
-import axios from 'axios';
+
 import Logger from '../Logger';
 
 const BitbucketAdapter = (config: HostConfig) => {
   const axiosGetConfig = {
     auth: {
       username: config.botUsername,
-      password: config.botPassword
-    }
+      password: config.botPassword,
+    },
   };
 
   const axiosPostConfig = {
     ...axiosGetConfig,
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   };
 
   const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
@@ -35,23 +37,21 @@ const BitbucketAdapter = (config: HostConfig) => {
     async createComment(
       pullRequestId: string,
       parentCommentId: ?string,
-      message: string
+      message: string,
     ) {
-      let data = {
-        content: message
-      };
+      let data = { content: message };
 
       if (parentCommentId) {
         data = {
           ...data,
-          parent_id: String(parentCommentId)
+          parent_id: String(parentCommentId),
         };
       }
 
       let response = await axios.post(
         `${oldApiBaseUrl}/pullrequests/${pullRequestId}/comments/`,
         JSON.stringify(data),
-        axiosPostConfig
+        axiosPostConfig,
       );
 
       return response.data.comment_id;
@@ -59,37 +59,30 @@ const BitbucketAdapter = (config: HostConfig) => {
 
     async mergePullRequest(pullRequestId: string) {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
+      const message = `pull request #${
+        pullRequestId
+      } merged  by Landkid after a successful build rebased on Master`;
       const data = {
         close_source_branch: true,
-        message: `pull request #${
-          pullRequestId
-        } merged  by Landkid after a successful build rebased on Master`,
-        merge_strategy: 'merge_commit'
+        message: message,
+        merge_strategy: 'merge_commit',
       };
-      Logger.info(
-        {
-          pullRequestId,
-          endpoint
-        },
-        'Merging pull request'
-      );
-      try {
-        const resp = await axios.post(
-          endpoint,
-          JSON.stringify(data),
-          axiosPostConfig
+      Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
+      // This is just defining the function that we will retry
+      const attemptMerge = () =>
+        axios.post(endpoint, JSON.stringify(data), axiosPostConfig);
+      const onFailedAttempt = err =>
+        Logger.error(
+          { err, pullRequestId },
+          `Merge attempt ${err.attemptNumber} failed. ${
+            err.attemptsLeft
+          } attempts left`,
         );
-        Logger.info(
-          {
-            pullRequestId
-          },
-          'Merged Pull Request'
+      pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
+        .then(() => Logger.info({ pullRequestId }, 'Merged Pull Request'))
+        .catch(err =>
+          Logger.error({ err, pullRequestId }, 'Unable to merge pull request'),
         );
-      } catch (e) {
-        Logger.error(e, 'Unable to merge pull request');
-        return false;
-      }
-      return true;
     },
 
     async getPullRequest(pullRequestId: string): Promise<PullRequest> {
@@ -108,12 +101,12 @@ const BitbucketAdapter = (config: HostConfig) => {
         author: data.author.username,
         state: data.state,
         approvals: approvals,
-        openTasks: data.task_count
+        openTasks: data.task_count,
       };
     },
 
     async getPullRequestBuildStatuses(
-      pullRequestId: string
+      pullRequestId: string,
     ): Promise<Array<BuildStatus>> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
       const resp = await axios.get(endpoint, axiosGetConfig);
@@ -122,14 +115,14 @@ const BitbucketAdapter = (config: HostConfig) => {
       // need to remove build statuses that we created or rerunning would be impossible
       return allBuildStatuses
         .filter(
-          buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/)
+          buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/),
         )
         .map(status => ({
           state: status.state,
           createdOn: new Date(status.created_on),
-          url: status.url
+          url: status.url,
         }));
-    }
+    },
   };
 };
 
