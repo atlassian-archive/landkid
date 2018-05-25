@@ -1,33 +1,32 @@
 // @flow
 
-export type JSONValue = |
-  null |
-  string |
-  boolean |
-  number |
-  Array < JSONValue >
-  |
-  {
-    [key: string]: JSONValue
-  };
+export type JSONValue =
+  | null
+  | string
+  | boolean
+  | number
+  | Array<JSONValue>
+  | {
+      [key: string]: JSONValue,
+    };
 
 export type Host = {
   createComment(
     pullRequestId: string,
     parentCommentId: string | null,
-    message: string
-  ): Promise < mixed > ,
-  mergePullRequest(pullRequestId: string): Promise < boolean > ,
-  getPullRequest(pullRequestId: string): Promise < PullRequest > ,
+    message: string,
+  ): Promise<mixed>,
+  mergePullRequest(pullRequestId: string): Promise<boolean>,
+  getPullRequest(pullRequestId: string): Promise<PullRequest>,
   getPullRequestBuildStatuses(
-    pullRequestId: string
-  ): Promise < Array < BuildStatus >>
+    pullRequestId: string,
+  ): Promise<Array<BuildStatus>>,
 };
 
 export type CI = {
   processStatusWebhook(body: JSONValue): StatusEvent | null,
-  createLandBuild(commit: string): Promise < mixed > ,
-  stopLandBuild(commit: string): Promise < mixed >
+  createLandBuild(commit: string): Promise<mixed>,
+  stopLandBuild(commit: string): Promise<mixed>,
 };
 
 export type HostAdapter = (config: Object) => Host;
@@ -39,7 +38,7 @@ export type StatusEvent = {
   buildStatus: string,
   passed: boolean,
   failed: boolean,
-  stopped: boolean
+  stopped: boolean,
 };
 
 export type Persona = {
@@ -48,23 +47,23 @@ export type Persona = {
   removedFromQueue: string,
   notRemovedFromQueue: string,
   unknownCommand: string,
-  error: string
+  error: string,
 };
 
 export type LandRequest = {
   pullRequestId: string,
   username: string,
   userUuid: string,
-  pullRequestState ? : 'OPEN' | 'DECLINED' | 'MERGED',
+  pullRequestState?: 'OPEN' | 'DECLINED' | 'MERGED',
   commit: string,
   title: string,
   createdTime: Date,
-  finishedTime ? : Date,
+  finishedTime?: Date,
 
   // These properties exist after a landRequest begins landing
-  buildId ? : string,
-  buildStatus ? : string,
-  landed ? : boolean
+  buildId?: string,
+  buildStatus?: string,
+  landed?: boolean,
 };
 
 export type PullRequest = {
@@ -74,28 +73,29 @@ export type PullRequest = {
   createdOn: Date,
   author: string,
   state: 'OPEN' | 'MERGED' | 'DECLINED',
-  approvals: Array < string > ,
-  openTasks: number
+  approvals: Array<string>,
+  openTasks: number,
 };
 
 export type BuildStatus = {
   state: 'SUCCESSFUL' | 'FAILED' | 'INPROGRESS',
   createdOn: Date,
-  url: string
+  url: string,
 };
 
 export type HostConfig = {
   botUsername: string,
   botPassword: string,
   repoOwner: string,
-  repoName: string
+  repoName: string,
+  repoUuid?: string,
 };
 
 export type CIConfig = {
   BITBUCKET_USERNAME: string,
   BITBUCKET_PASSWORD: string,
   REPO_OWNER: string,
-  REPO_SLUG: string
+  REPO_SLUG: string,
 };
 
 export type PullRequestSettings = {
@@ -103,15 +103,15 @@ export type PullRequestSettings = {
   requireClosedTasks: boolean,
   requireGreenBuild: boolean,
   canApproveOwnPullRequest: boolean,
-  usersAllowedToApprove: Array < string > ,
-  allowLandWhenAble: boolean
+  usersAllowedToApprove: Array<string>,
+  allowLandWhenAble: boolean,
 };
 
 export type ApprovalChecks = {
   isOpen: boolean,
   isApproved: boolean,
   isGreen: boolean,
-  allTasksClosed: boolean
+  allTasksClosed: boolean,
 };
 
 export type Config = {
@@ -123,22 +123,22 @@ export type Config = {
   ci: 'bitbucket-pipelines',
   hostConfig: HostConfig,
   ciConfig: CIConfig,
-  prSettings: PullRequestSettings
+  prSettings: PullRequestSettings,
 };
 
 export type HistoryItem = {
   statusEvent: StatusEvent,
-  build: LandRequest
+  build: LandRequest,
 };
 
 export type RunnerState = {
-  queue: Array < LandRequest > ,
+  queue: Array<LandRequest>,
   running: LandRequest,
-  waitingToLand ? : Array < LandRequest > ,
+  waitingToLand?: Array<LandRequest>,
   locked: boolean,
   started: string,
   paused: boolean,
-  pausedReason ? : string | null,
-  history: Array < HistoryItem > ,
-  usersAllowedToMerge: Array < string >
+  pausedReason?: string | null,
+  history: Array<HistoryItem>,
+  usersAllowedToMerge: Array<string>,
 };
