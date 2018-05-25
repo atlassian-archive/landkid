@@ -66,6 +66,7 @@
     "load-json-file": "^4.0.0",
     "lockfile": "^1.0.3",
     "morgan": "^1.9.0",
+    "p-retry": "^2.0.0",
     "path-exists": "^3.0.0",
     "qs": "^6.5.2",
     "redis": "^2.8.0",
@@ -86,9 +87,6 @@
       "prettier --write",
       "git add"
     ]
-  },
-  "prettier": {
-    "singleQuote": true
   },
   "ava": {
     "require": [
