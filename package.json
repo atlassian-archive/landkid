@@ -14,7 +14,8 @@
   "files": [
     "dist",
     "server.js",
-    "index.js"
+    "index.js",
+    "webpack.config.js"
   ],
   "scripts": {
     "clean": "rm -rf dist",
