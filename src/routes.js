@@ -20,12 +20,23 @@ export default function routes(server: any, client: Client, runner: Runner) {
   bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
   const usersAllowedToMerge = server.settings.usersAllowedToMerge;
   const allowLandWhenAble = server.settings.allowLandWhenAble;
+  // TODO: Definitely clean up where this logic sits, it's all a hack atm
+  if (server.settings.repoUuid) {
+    bitbucketAddonDescriptor.modules.webPanels[0].conditions.push({
+      condition: 'equals',
+      target: 'repository.uuid',
+      params: {
+        value: server.settings.repoUuid,
+      },
+    });
+  }
+  const repoUuid = server.settings.repoUuid;
 
   server.get(
     '/',
     wrap((req, res) => {
       res.sendStatus(200);
-    })
+    }),
   );
 
   server.get('/healthcheck', (req, res) => {
@@ -38,19 +49,16 @@ export default function routes(server: any, client: Client, runner: Runner) {
       const state = runner.getState();
       Logger.info(state, 'Requesting current state');
       res.header('Access-Control-Allow-Origin', '*').json(state);
-    })
+    }),
   );
 
   server.get(
     '/api/settings',
     wrap(async (req, res) => {
-      const settings = {
-        allowLandWhenAble,
-        usersAllowedToMerge
-      };
+      const settings = { allowLandWhenAble, usersAllowedToMerge };
       Logger.info(settings, 'Requesting current settings');
       res.header('Access-Control-Allow-Origin', '*').json(settings);
-    })
+    }),
   );
 
   server.get(
@@ -58,10 +66,8 @@ export default function routes(server: any, client: Client, runner: Runner) {
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
       const isAllowedToLand = await client.isAllowedToLand(pullRequestId);
-      res.header('Access-Control-Allow-Origin', '*').json({
-        isAllowedToLand
-      });
-    })
+      res.header('Access-Control-Allow-Origin', '*').json({ isAllowedToLand });
+    }),
   );
 
   server.post(
@@ -86,25 +92,17 @@ export default function routes(server: any, client: Client, runner: Runner) {
         userUuid,
         commit,
         title,
-        createdTime: new Date()
+        createdTime: new Date(),
       };
       const positionInQueue = runner.enqueue(landRequest);
-      Logger.info(
-        {
-          landRequest,
-          positionInQueue
-        },
-        'Request to land received'
-      );
+      Logger.info({ landRequest, positionInQueue }, 'Request to land received');
 
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
-        .json({
-          positionInQueue
-        });
+        .json({ positionInQueue });
       runner.next();
-    })
+    }),
   );
 
   server.post(
@@ -128,21 +126,16 @@ export default function routes(server: any, client: Client, runner: Runner) {
         userUuid,
         commit,
         title,
-        createdTime: new Date()
+        createdTime: new Date(),
       };
       // const positionInQueue = runner.enqueue(landRequest);
-      Logger.info(
-        {
-          landRequest
-        },
-        'Request to land when able received'
-      );
+      Logger.info({ landRequest }, 'Request to land when able received');
       runner.addToWaitingToLand(landRequest);
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
         .json({});
-    })
+    }),
   );
 
   server.post(
@@ -166,19 +159,17 @@ export default function routes(server: any, client: Client, runner: Runner) {
       const state = runner.getState();
 
       Logger.info(
-        {
-          requestedToRemove: pullRequestId
-        },
-        'Request to remove land request'
+        { requestedToRemove: pullRequestId },
+        'Request to remove land request',
       );
 
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
         .json({
-          newQueue: state.queue
+          newQueue: state.queue,
         });
-    })
+    }),
   );
 
   server.post('/api/pause', (req, res) => {
@@ -187,17 +178,12 @@ export default function routes(server: any, client: Client, runner: Runner) {
       pausedReason = String(req.body.reason);
     }
     runner.pause(pausedReason);
-    res.json({
-      paused: true,
-      pausedReason
-    });
+    res.json({ paused: true, pausedReason });
   });
 
   server.post('/api/unpause', (req, res) => {
     runner.unpause();
-    res.json({
-      paused: false
-    });
+    res.json({ paused: false });
   });
 
   // locking is an internal implementation detail, but we've seen at least one instance of a landkid
@@ -205,18 +191,14 @@ export default function routes(server: any, client: Client, runner: Runner) {
   // (likely a dropped request somehwhere).
   server.post('/api/unlock', (req, res) => {
     runner.unlock();
-    res.json({
-      locked: false
-    });
+    res.json({ locked: false });
   });
 
   // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to
   // expose
   server.post('/api/next', (req, res) => {
     runner.next();
-    res.json({
-      message: 'Calling next()'
-    });
+    res.json({ message: 'Calling next()' });
   });
 
   server.post(
@@ -227,7 +209,7 @@ export default function routes(server: any, client: Client, runner: Runner) {
       const statusEvent = onStatus(client, req.body, runner);
       if (!statusEvent) return;
       runner.onStatusUpdate(statusEvent);
-    })
+    }),
   );
 
   // Note: since this path is here first, atlassian-connect.json will be served here, not from the
@@ -244,17 +226,13 @@ export default function routes(server: any, client: Client, runner: Runner) {
     server.use(express.static(path.join(__dirname, 'static')));
   }
 
+  // TODO: I don't think this is working as intended right now, dig into this
   server.use((err, req, res, next) => {
     if (err) {
-      Logger.error(
-        {
-          err
-        },
-        'Error '
-      );
+      Logger.error({ err }, 'Error ');
       res.status(500).send({
         error: err.message,
-        stack: err.stack
+        stack: err.stack,
       });
     } else {
       next();

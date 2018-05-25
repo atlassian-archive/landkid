@@ -31,9 +31,9 @@ export default function atlaskid(config: Config, webpackConfig: any) {
       webpackDevMiddleware(webpackCompiler, {
         publicPath: webpackConfig.output.publicPath,
         stats: {
-          colors: true
-        }
-      })
+          colors: true,
+        },
+      }),
     );
   }
   const { usersAllowedToApprove, allowLandWhenAble } = config.prSettings;
@@ -44,6 +44,9 @@ export default function atlaskid(config: Config, webpackConfig: any) {
   server.set('baseUrl', config.baseUrl);
   server.set('usersAllowedToMerge', usersAllowedToApprove);
   server.set('allowLandWhenAble', allowLandWhenAble);
+  if (config.hostConfig.repoUuid) {
+    server.set('repoUuid', config.hostConfig.repoUuid);
+  }
 
   const host = hosts[config.host](config.hostConfig);
   const ci = cis[config.ci](config.ciConfig);
