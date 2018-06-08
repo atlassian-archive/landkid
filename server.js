@@ -4,8 +4,6 @@
 
 let fs = require('fs');
 let path = require('path');
-
-let webpackConfig = require('./webpack.config');
 let landkid = require('./');
 
 if (!fs.existsSync(path.join(process.cwd(), 'config.js'))) {
@@ -30,13 +28,13 @@ let landkidConfig = Object.assign(
       requireClosedTasks: true,
       requireGreenBuild: true,
       allowLandWhenAble: false,
-      usersAllowedToApprove: []
-    }
+      usersAllowedToApprove: [],
+    },
   },
-  localConfig
+  localConfig,
 );
 
-let server = landkid(landkidConfig, webpackConfig);
+let server = landkid(landkidConfig);
 
 server.listen(landkidConfig.port, () => {
   const localUrl = `http://localhost:${landkidConfig.port}`;

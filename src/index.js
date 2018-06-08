@@ -1,8 +1,7 @@
 // @flow
 import express from 'express';
 import morgan from 'morgan';
-import webpack from 'webpack';
-import webpackDevMiddleware from 'webpack-dev-middleware';
+import findUp from 'find-up';
 
 import hosts from './hosts';
 import cis from './ci';
@@ -16,7 +15,7 @@ import Client from './Client';
 import Logger from './Logger';
 import History from './History';
 
-export default function atlaskid(config: Config, webpackConfig: any) {
+export default function atlaskid(config: Config) {
   let server = express();
   let port = config.port || 8000;
   // If we are in dev mode we'll use the webpack dev server, if not we'll be using the built static
@@ -25,6 +24,13 @@ export default function atlaskid(config: Config, webpackConfig: any) {
     process.env.NODE_ENV !== 'production' &&
     process.env.NODE_ENV !== 'test'
   ) {
+    const webpack = require('webpack');
+    const webpackDevMiddleware = require('webpack-dev-middleware');
+    const webpackConfigPath = findUp.sync('webpack.config.js', {
+      cwd: __dirname,
+    });
+    // $FlowFixMe
+    const webpackConfig = require(webpackConfigPath);
     const webpackCompiler = webpack(webpackConfig);
 
     server.use(

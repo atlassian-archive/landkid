@@ -98,8 +98,8 @@ function getCurrentStateAndSettings() {
         .then(resp => resp.json())
         .then(settings => ({
           settings,
-          state
-        }))
+          state,
+        })),
     )
     .catch(err => console.error('error ', err));
 }
@@ -131,7 +131,7 @@ function wantToMergeClicked() {
 function landWhenAbleClicked() {
   setView(checkingPullRequestView());
   landPullRequest({
-    whenAbleFlag: true
+    whenAbleFlag: true,
   });
 }
 // reusing this function for actual landrequests and for land when able requests
@@ -144,7 +144,7 @@ function landPullRequest(opts = {}) {
     username: qs.username,
     userUuid: qs.userUuid,
     commit: qs.commit,
-    title: qs.title
+    title: qs.title,
   });
 
   const endPointVerb = whenAbleFlag ? 'land-when-able' : 'land-pr';
@@ -153,8 +153,8 @@ function landPullRequest(opts = {}) {
   return fetch(
     `${endpoint}/api/${endPointVerb}/${qs.pullRequestId}?${qsString}`,
     {
-      method: 'POST'
-    }
+      method: 'POST',
+    },
   )
     .then(resp => resp.json())
     .then(() => {
@@ -175,11 +175,11 @@ function cancelButtonClicked() {
   const qs = getQueryStringVars();
   const qsString = queryString.stringify({
     username: qs.username,
-    userUuid: qs.userUuid
+    userUuid: qs.userUuid,
   });
 
   return fetch(`${endpoint}/api/cancel-pr/${qs.pullRequestId}?${qsString}`, {
-    method: 'POST'
+    method: 'POST',
   })
     .then(resp => resp.json())
     .then(() => setView(landButtonView()))
@@ -224,8 +224,8 @@ if (qs.state === 'OPEN') {
 } else {
   setView(
     notAllowedToLand({
-      isOpen: false
-    })
+      isOpen: false,
+    }),
   );
 }
 
