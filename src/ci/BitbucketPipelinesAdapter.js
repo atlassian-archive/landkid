@@ -7,22 +7,22 @@ type Config = {
   repoOwner: string,
   repoName: string,
   botUsername: string,
-  botPassword: string
+  botPassword: string,
 };
 
 const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
   let axiosGetConfig = {
     auth: {
       username: config.botUsername,
-      password: config.botPassword
-    }
+      password: config.botPassword,
+    },
   };
 
   let axiosPostConfig = {
     ...axiosGetConfig,
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   };
 
   const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
@@ -31,31 +31,25 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
 
   return {
     processStatusWebhook(body: JSONValue): StatusEvent | null {
+      // Sometimes the events are wrapped in an extra body layer. We don't know why,
+      // so we'll just guard for it here
+      const statusEvent = body && body.data ? body.data : body;
       if (
-        !body ||
-        !body.data ||
-        !body.data.commit_status ||
-        !body.data.commit_status.state ||
-        !body.data.commit_status.url ||
-        typeof body.data.commit_status.url !== 'string'
+        !statusEvent ||
+        !statusEvent.commit_status ||
+        !statusEvent.commit_status.state ||
+        !statusEvent.commit_status.url ||
+        typeof statusEvent.commit_status.url !== 'string'
       ) {
         Logger.error(
-          {
-            statusEvent: body
-          },
-          'Status event receieved that does not match the shape we were expecting'
+          { statusEvent: body },
+          'Status event receieved that does not match the shape we were expecting',
         );
         return null;
       }
-      let buildStatus: any = body.data.commit_status.state;
-      const buildUrl: string = body.data.commit_status.url;
-      Logger.info(
-        {
-          buildUrl,
-          buildStatus
-        },
-        'Received build status event'
-      );
+      let buildStatus: any = statusEvent.commit_status.state;
+      const buildUrl: string = statusEvent.commit_status.url;
+      Logger.info({ buildUrl, buildStatus }, 'Received build status event');
 
       // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
       const buildUrlParts = buildUrl.split('/');
@@ -67,47 +61,31 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
         buildStatus,
         passed: buildStatus === 'SUCCESSFUL',
         failed: buildStatus === 'FAILED',
-        stopped: buildStatus === 'STOPPED'
+        stopped: buildStatus === 'STOPPED',
       };
     },
 
     async createLandBuild(commit: string): Promise<string | null> {
-      Logger.info(
-        {
-          commit
-        },
-        'Creating land build for commit'
-      );
+      Logger.info({ commit }, 'Creating land build for commit');
       const data = {
         target: {
-          commit: {
-            hash: commit,
-            type: 'commit'
-          },
-          selector: {
-            type: 'custom',
-            pattern: 'landkid'
-          },
-          type: 'pipeline_commit_target'
-        }
+          commit: { hash: commit, type: 'commit' },
+          selector: { type: 'custom', pattern: 'landkid' },
+          type: 'pipeline_commit_target',
+        },
       };
       const resp = await axios.post(
         `${apiBaseUrl}/pipelines/`,
         JSON.stringify(data),
-        axiosPostConfig
+        axiosPostConfig,
       );
-      Logger.info(
-        {
-          buildNumber: resp.data.build_number
-        },
-        'Created build'
-      );
+      Logger.info({ buildNumber: resp.data.build_number }, 'Created build');
       if (
         !resp.data.build_number ||
         typeof resp.data.build_number !== 'number'
       ) {
         Logger.error(
-          'Response from creating build does not match the shape we expected'
+          'Response from creating build does not match the shape we expected',
         );
         return null;
       }
@@ -118,7 +96,7 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
     async stopLandBuild(buildId: string): Promise<boolean> {
       // unimplmented
       return true;
-    }
+    },
   };
 };
 
