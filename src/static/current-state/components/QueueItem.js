@@ -22,7 +22,7 @@ let queueItemStyles = css({
     boxShadow:
       'rgba(23, 43, 77, 0.32) 0px 4px 8px -2px, rgba(23, 43, 77, 0.25) 0px 0px 1px',
     color: 'inherit',
-    textDecoration: 'none'
+    textDecoration: 'none',
   },
 
   '& .queue-item__title': {
@@ -33,7 +33,7 @@ let queueItemStyles = css({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    marginBottom: '3px'
+    marginBottom: '3px',
   },
 
   '& .queue-item__status-line': {
@@ -42,7 +42,7 @@ let queueItemStyles = css({
     flexWrap: 'wrap',
     marginTop: 'auto',
     overflow: 'hidden',
-    height: '28px'
+    height: '28px',
   },
 
   '& .queue-item__status-item': {
@@ -53,8 +53,8 @@ let queueItemStyles = css({
     height: '28px',
 
     '& + .queue-item__status-item': {
-      marginLeft: '9px'
-    }
+      marginLeft: '9px',
+    },
   },
 
   '& .queue-item__status-item-title': {
@@ -62,8 +62,8 @@ let queueItemStyles = css({
     color: 'var(--n300-color)',
     fontSize: '12px',
     lineHeight: '1.33333',
-    marginRight: '6px'
-  }
+    marginRight: '6px',
+  },
 });
 
 let queueItemJoinedStyles = css({
@@ -78,8 +78,8 @@ let queueItemJoinedStyles = css({
     background: 'var(--n20-color)',
     top: '0',
     left: '50%',
-    marginLeft: '-1px'
-  }
+    marginLeft: '-1px',
+  },
 });
 
 let duration = (start: number, end: number) => {
@@ -105,12 +105,12 @@ let buildStatusToAppearance = {
   FAILED: 'removed',
   STOPPED: 'moved',
   INPROGRESS: 'inprogress',
-  PENDING: 'new'
+  PENDING: 'new',
 };
 
 export type QueueItemProps = {
   build: LandRequest,
-  statusEvent?: StatusEvent
+  statusEvent?: StatusEvent,
 };
 
 export function QueueItem(props: QueueItemProps) {
@@ -118,10 +118,11 @@ export function QueueItem(props: QueueItemProps) {
   return (
     <a
       className={`${queueItemStyles} queue-item`}
-      href={statusEvent ? statusEvent.buildUrl : '#'}
+      href={build.buildUrl ? build.buildUrl : '#'}
     >
       <div className="queue-item__title">
-        [#{build.buildId}] {build.title}
+        <a href={build.pullRequestUrl}>[PR #{build.pullRequestId}]</a>{' '}
+        {build.title}
       </div>
       <div className="queue-item__status-line">
         <StatusItem title="Status:">
@@ -147,7 +148,7 @@ export function QueueItem(props: QueueItemProps) {
             <Lozenge appearance="new">
               {duration(
                 +new Date(build.createdTime),
-                +new Date(build.finishedTime)
+                +new Date(build.finishedTime),
               )}
             </Lozenge>
           </StatusItem>

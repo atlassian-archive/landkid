@@ -29,32 +29,32 @@ let controlsStyles = css({
 
     '&.--selected': {
       background: 'var(--n20-color)',
-      color: 'var(--n500-color)'
+      color: 'var(--n500-color)',
     },
 
     '&:hover, &.--selected:hover': {
       color: 'var(--n400-color)',
       background: 'rgba(9, 30, 66, 0.08)',
-      cursor: 'pointer'
+      cursor: 'pointer',
     },
 
     '&:focus': {
       outline: 'none',
-      boxShadow: 'none'
+      boxShadow: 'none',
     },
 
     '& + button': {
-      borderLeft: '1px solid var(--n20-color)'
-    }
-  }
+      borderLeft: '1px solid var(--n20-color)',
+    },
+  },
 });
 
 export function TabsControls({
   selected,
-  selectTab
+  selectTab,
 }: {
   selected: number,
-  selectTab: (tab: number) => void
+  selectTab: (tab: number) => void,
 }) {
   return (
     <div className={controlsStyles}>
@@ -100,16 +100,16 @@ let tabStyles = css({
     background: 'var(--n20-color)',
     top: '-27px',
     left: '50%',
-    marginLeft: '-1px'
-  }
+    marginLeft: '-1px',
+  },
 });
 
 export function QueueTab({
   running,
-  queue
+  queue,
 }: {
   running: LandRequest,
-  queue: Array<LandRequest>
+  queue: Array<LandRequest>,
 }) {
   return (
     <div>
@@ -160,7 +160,7 @@ export type TabsProps = {
   allowedUsers: Array<string>,
   running: LandRequest,
   queue: Array<LandRequest>,
-  history: Array<HistoryItem>
+  history: Array<HistoryItem>,
 };
 
 export class Tabs extends React.Component<TabsProps, { selected: number }> {
