@@ -44,9 +44,9 @@ export default class Runner {
         running: this.running,
         locked: this.locked,
         queue: this.queue,
-        waitingToLand: this.waitingToLand
+        waitingToLand: this.waitingToLand,
       },
-      'Next() called'
+      'Next() called',
     );
 
     if (this.running || this.locked) return;
@@ -57,28 +57,26 @@ export default class Runner {
 
     let commit = landRequest.commit;
     let isAllowedToLand = await this.client.isAllowedToLand(
-      landRequest.pullRequestId
+      landRequest.pullRequestId,
     );
 
     if (isAllowedToLand.isAllowed) {
       Logger.info({ landRequest }, 'Allowed to land, creating land build');
       const buildId = await this.client.createLandBuild(commit);
+      const buildUrl = this.client.createBuildUrl(buildId);
+
       this.running = {
         ...landRequest,
         buildId,
-        buildStatus: 'PENDING'
+        buildUrl,
+        buildStatus: 'RUNNING',
       };
       this.locked = false;
-      Logger.info(
-        {
-          running: this.running
-        },
-        'Land build now running'
-      );
+      Logger.info({ running: this.running }, 'Land build now running');
     } else {
       Logger.info(
         { ...isAllowedToLand, ...landRequest },
-        'Land request is not allowed to land'
+        'Land request is not allowed to land',
       );
       this.locked = false;
       this.next();
@@ -87,10 +85,8 @@ export default class Runner {
 
   onStatusUpdate = (statusEvent: StatusEvent) => {
     if (!this.running) {
-      return Logger.info(
-        statusEvent,
-        'No build running, status event is irrelevant'
-      );
+      Logger.info(statusEvent, 'No build running, status event is irrelevant');
+      return;
     }
 
     let running = this.running;
@@ -100,7 +96,7 @@ export default class Runner {
         { statusEvent, running },
         `StatusEvent buildId doesn't match currently running buildId – ${
           statusEvent.buildId
-        } !== ${running.buildId || ''}`
+        } !== ${running.buildId || ''}`,
       );
     }
 
@@ -108,7 +104,7 @@ export default class Runner {
 
     this.running = running = {
       ...running,
-      buildStatus: statusEvent.buildStatus
+      buildStatus: statusEvent.buildStatus,
     };
 
     let addToHistory = () =>
@@ -174,7 +170,7 @@ export default class Runner {
 
   removeLandReuqestByPullRequestId(pullRequestId: string) {
     this.queue.filter(
-      landRequest => landRequest.pullRequestId !== pullRequestId
+      landRequest => landRequest.pullRequestId !== pullRequestId,
     );
     if (this.running && this.running.pullRequestId === pullRequestId) {
       this.running = null;
@@ -185,7 +181,7 @@ export default class Runner {
     // make sure we don't already have this landRequest queued
     if (
       !this.waitingToLand.find(
-        req => req.pullRequestId === landRequest.pullRequestId
+        req => req.pullRequestId === landRequest.pullRequestId,
       )
     ) {
       this.waitingToLand.push(landRequest);
@@ -197,27 +193,27 @@ export default class Runner {
   // the name of this function is enough to show how badly thought out this state is
   moveFromWaitingToQueue(pullRequestId: string) {
     const landRequest = this.waitingToLand.find(
-      req => req.pullRequestId === pullRequestId
+      req => req.pullRequestId === pullRequestId,
     );
     if (!landRequest) {
       Logger.error(
         {
           waitingToLand: this.waitingToLand,
-          pullRequestId
+          pullRequestId,
         },
-        'Unable to find landrequest to move to queue'
+        'Unable to find landrequest to move to queue',
       );
       return;
     }
     Logger.info(
       {
-        landRequest
+        landRequest,
       },
-      'Moving landRequest from waiting to queue'
+      'Moving landRequest from waiting to queue',
     );
 
     this.waitingToLand = this.waitingToLand.filter(
-      req => req.pullRequestId !== pullRequestId
+      req => req.pullRequestId !== pullRequestId,
     );
     landRequest.createdTime = new Date();
     this.enqueue(landRequest);
@@ -227,9 +223,9 @@ export default class Runner {
   async checkWaitingLandRequests() {
     Logger.info(
       {
-        waiting: this.waitingToLand
+        waiting: this.waitingToLand,
       },
-      'Checking for waiting landrequests ready to queue'
+      'Checking for waiting landrequests ready to queue',
     );
 
     for (let landRequest of this.waitingToLand) {
@@ -252,7 +248,7 @@ export default class Runner {
       paused: this.paused,
       pausedReason: this.pausedReason,
       history: this.history.take(10),
-      usersAllowedToMerge: this.config.prSettings.usersAllowedToApprove
+      usersAllowedToMerge: this.config.prSettings.usersAllowedToApprove,
     };
   }
 }

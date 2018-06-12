@@ -21,12 +21,14 @@ export type Host = {
   getPullRequestBuildStatuses(
     pullRequestId: string,
   ): Promise<Array<BuildStatus>>,
+  getPullRequestUrl(pullRequestId: string): string,
 };
 
 export type CI = {
   processStatusWebhook(body: JSONValue): StatusEvent | null,
   createLandBuild(commit: string): Promise<mixed>,
   stopLandBuild(commit: string): Promise<mixed>,
+  getBuildUrl(buildId: string): string,
 };
 
 export type HostAdapter = (config: Object) => Host;
@@ -52,6 +54,7 @@ export type Persona = {
 
 export type LandRequest = {
   pullRequestId: string,
+  pullRequestUrl: string,
   username: string,
   userUuid: string,
   pullRequestState?: 'OPEN' | 'DECLINED' | 'MERGED',
@@ -62,6 +65,7 @@ export type LandRequest = {
 
   // These properties exist after a landRequest begins landing
   buildId?: string,
+  buildUrl?: string,
   buildStatus?: string,
   landed?: boolean,
 };

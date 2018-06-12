@@ -97,6 +97,12 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
       // unimplmented
       return true;
     },
+
+    getBuildUrl(buildId: string): string {
+      return `https://bitbucket.org/${config.repoOwner}/${
+        config.repoName
+      }/addon/pipelines/home#!/results/${buildId}`;
+    },
   };
 };
 

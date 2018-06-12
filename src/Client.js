@@ -8,7 +8,7 @@ import type {
   PullRequestSettings,
   PullRequest,
   BuildStatus,
-  ApprovalChecks
+  ApprovalChecks,
 } from './types';
 import Logger from './Logger';
 
@@ -16,7 +16,7 @@ import Logger from './Logger';
 function getRealApprovals(
   approvals: Array<string>,
   creator: string,
-  creatorCanApprove: boolean
+  creatorCanApprove: boolean,
 ) {
   if (creatorCanApprove) return approvals;
   return approvals.filter(approval => approval !== creator);
@@ -25,7 +25,7 @@ function getRealApprovals(
 // Given a set of checks, returns whether a PR passes all the required checks based on config
 function passedPullRequestChecks(
   prSettings: PullRequestSettings,
-  approvalData: ApprovalChecks
+  approvalData: ApprovalChecks,
 ) {
   let passed = true;
   if (!approvalData.isOpen || !approvalData.isApproved) {
@@ -54,16 +54,16 @@ export default class Client {
 
   async isAllowedToLand(pullRequestId: string) {
     const pullRequest: PullRequest = await this.hostAdaptor.getPullRequest(
-      pullRequestId
+      pullRequestId,
     );
     const buildStatuses = await this.hostAdaptor.getPullRequestBuildStatuses(
-      pullRequestId
+      pullRequestId,
     );
     const author = pullRequest.author;
     let approvals = getRealApprovals(
       pullRequest.approvals,
       author,
-      this.prSettings.canApproveOwnPullRequest
+      this.prSettings.canApproveOwnPullRequest,
     );
 
     // TODO: add extra check for isApproved against list of users allowed to approve (if configured)
@@ -73,7 +73,7 @@ export default class Client {
         buildStatuses.every(status => status.state === 'SUCCESSFUL') &&
         buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
-      isApproved: approvals.length >= this.prSettings.requiredApprovals
+      isApproved: approvals.length >= this.prSettings.requiredApprovals,
     };
 
     const isAllowed = passedPullRequestChecks(this.prSettings, approvalChecks);
@@ -83,14 +83,14 @@ export default class Client {
         pullRequestId,
         isAllowed,
         approvalChecks,
-        requirements: this.prSettings
+        requirements: this.prSettings,
       },
-      'isAllowedToLand()'
+      'isAllowedToLand()',
     );
 
     return {
       isAllowed,
-      ...approvalChecks
+      ...approvalChecks,
     };
   }
 
@@ -110,15 +110,23 @@ export default class Client {
     return this.ciAdaptor.processStatusWebhook(body);
   }
 
+  createBuildUrl(buildId: string): string {
+    return this.ciAdaptor.getBuildUrl(buildId);
+  }
+
+  createPullRequestUrl(pullRequestId: string): string {
+    return this.hostAdaptor.getPullRequestUrl(pullRequestId);
+  }
+
   async createComment(
     pullRequestId: string,
     parentCommentId: string,
-    message: string
+    message: string,
   ) {
     await this.hostAdaptor.createComment(
       pullRequestId,
       parentCommentId,
-      message
+      message,
     );
   }
 }
