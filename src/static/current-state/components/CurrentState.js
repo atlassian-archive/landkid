@@ -18,18 +18,18 @@ let styles = css({
     textAlign: 'center',
 
     '&:first-child': {
-      borderLeft: 'none'
-    }
+      borderLeft: 'none',
+    },
   },
 
   '& .current-state__card-title': {
     fontWeight: '400',
-    marginBottom: '9px'
+    marginBottom: '9px',
   },
 
   '& .current-state__info': {
-    color: 'var(--secondary-text-color)'
-  }
+    color: 'var(--secondary-text-color)',
+  },
 });
 
 export function CurrentState({
@@ -38,21 +38,26 @@ export function CurrentState({
   pausedReason,
   locked,
   queueSize,
-  isRunning
+  isRunning,
 }: {
   started: string,
   paused: boolean,
   pausedReason?: string | null,
   locked: boolean,
   queueSize: number,
-  isRunning: boolean
+  isRunning: boolean,
 }) {
   function renderColumns() {
     return (
       <div className={styles}>
         <div className="current-state__card">
           <h4 className="current-state__card-title">Uptime:</h4>
-          <div class="current-state__info">{distanceInWords(started)}</div>
+          <div
+            class="current-state__info"
+            title={`Started: ${String(new Date(started))}`}
+          >
+            {distanceInWords(started)}
+          </div>
         </div>
         <div className="current-state__card">
           <h4 className="current-state__card-title">Locked:</h4>
