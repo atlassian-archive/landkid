@@ -83,11 +83,13 @@ export default function routes(server: any, client: Client, runner: Runner) {
         res.sendStatus(404);
         return;
       }
+      const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
 
       // TODO: This logic should live in routes
       const landRequest: LandRequest = {
         buildStatus: 'QUEUED',
         pullRequestId,
+        pullRequestUrl,
         username,
         userUuid,
         commit,

@@ -92,7 +92,6 @@ const BitbucketAdapter = (config: HostConfig) => {
       const approvals = data.participants
         .filter(participant => participant.approved)
         .map(participant => participant.user.username);
-
       return {
         pullRequestId: pullRequestId,
         title: data.title,
@@ -122,6 +121,12 @@ const BitbucketAdapter = (config: HostConfig) => {
           createdOn: new Date(status.created_on),
           url: status.url,
         }));
+    },
+
+    getPullRequestUrl(pullRequestId: string) {
+      return `https://bitbucket.org/${config.repoOwner}/${
+        config.repoName
+      }/pull-requests/${pullRequestId}`;
     },
   };
 };
