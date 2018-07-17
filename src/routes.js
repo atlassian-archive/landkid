@@ -121,9 +121,12 @@ export default function routes(server: any, client: Client, runner: Runner) {
         return;
       }
 
+      const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
+
       const landRequest: LandRequest = {
         buildStatus: 'QUEUED',
         pullRequestId,
+        pullRequestUrl,
         username,
         userUuid,
         commit,

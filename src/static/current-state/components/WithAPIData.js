@@ -14,14 +14,14 @@ export type WithAPIDataProps = {
   poll?: number | boolean,
   renderError?: (err: Error) => Node,
   renderLoading?: () => Node,
-  render?: (data: any) => Node
+  render?: (data: any) => Node,
 };
 
 export class WithAPIData extends React.Component<
   WithAPIDataProps,
-  { error: Error | null, data: any, poll: number }
+  { error: Error | null, data: any, poll: number },
 > {
-  interval: ?number;
+  interval: ?IntervalID;
 
   constructor(props: WithAPIDataProps) {
     super(props);
@@ -31,7 +31,7 @@ export class WithAPIData extends React.Component<
       poll:
         props.poll === true
           ? DEFAULT_POLLING_INTERVAL
-          : props.poll ? props.poll : 0
+          : props.poll ? props.poll : 0,
     };
   }
 

@@ -16,7 +16,7 @@ export type Host = {
     parentCommentId: string | null,
     message: string,
   ): Promise<mixed>,
-  mergePullRequest(pullRequestId: string): Promise<boolean>,
+  mergePullRequest(pullRequestId: string): Promise<void>,
   getPullRequest(pullRequestId: string): Promise<PullRequest>,
   getPullRequestBuildStatuses(
     pullRequestId: string,
