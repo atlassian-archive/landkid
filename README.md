@@ -1,6 +1,8 @@
 # Landkid
 
-> Your friendly neighborhood async merging robot goat.
+[![CircleCI](https://circleci.com/gh/atlassian/landkid/tree/master.svg?style=svg)](https://circleci.com/gh/atlassian/landkid/tree/master)
+
+> Your friendly neighborhood async merging robot G.O.A.T.
 
 Anyone who has worked in a large repo with many other developers, especially in
 a CI/CD environment will know the pains of merging. What might be green in a
