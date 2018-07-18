@@ -91,10 +91,6 @@ declare module 'axios' {
   declare type AxiosPromise<T> = Promise<AxiosXHR<T>>;
   declare class Axios {
     constructor<T>(config?: AxiosXHRConfigBase<T>): void;
-    $call: <T>(
-      config: AxiosXHRConfig<T> | string,
-      config?: AxiosXHRConfig<T>,
-    ) => AxiosPromise<T>;
     request<T>(config: AxiosXHRConfig<T>): AxiosPromise<T>;
     delete<T>(url: string, config?: AxiosXHRConfigBase<T>): AxiosPromise<T>;
     get<T>(url: string, config?: AxiosXHRConfigBase<T>): AxiosPromise<T>;
