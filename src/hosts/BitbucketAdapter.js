@@ -1,30 +1,29 @@
 // @flow
-import { type HostAdapter, type JSONValue } from '../types';
 import axios from 'axios';
+import pRetry from 'p-retry';
+import type {
+  HostAdapter,
+  JSONValue,
+  PullRequest,
+  BuildStatus,
+  HostConfig,
+} from '../types';
+
 import Logger from '../Logger';
 
-type Config = {
-  repoOwner: string,
-  repoName: string,
-  botUsername: string,
-  botPassword: string,
-  usersAllowedToApprove: Array<string>
-};
-
-const BitbucketAdapter = (config: Config) => {
-  const USERS_ALLOWED_TO_APPROVE = config.usersAllowedToApprove;
+const BitbucketAdapter = (config: HostConfig) => {
   const axiosGetConfig = {
     auth: {
       username: config.botUsername,
-      password: config.botPassword
-    }
+      password: config.botPassword,
+    },
   };
 
   const axiosPostConfig = {
     ...axiosGetConfig,
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   };
 
   const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
@@ -38,87 +37,97 @@ const BitbucketAdapter = (config: Config) => {
     async createComment(
       pullRequestId: string,
       parentCommentId: ?string,
-      message: string
+      message: string,
     ) {
       let data = { content: message };
 
       if (parentCommentId) {
-        data = { ...data, parent_id: String(parentCommentId) };
+        data = {
+          ...data,
+          parent_id: String(parentCommentId),
+        };
       }
 
       let response = await axios.post(
         `${oldApiBaseUrl}/pullrequests/${pullRequestId}/comments/`,
         JSON.stringify(data),
-        axiosPostConfig
+        axiosPostConfig,
       );
 
       return response.data.comment_id;
     },
 
-    // This is run when a build is at the front of the queue
-    async isAllowedToLand(pullRequestId: string): Promise<any> {
-      const pullRequest = await this.getPullRequest(pullRequestId);
-      const buildStatuses = await this.getPullRequestBuildStatuses(
-        pullRequestId
-      );
-
-      const isOpen = pullRequest.state === 'OPEN';
-      const createdBy = pullRequest.author.username;
-      const isApproved = pullRequest.participants.some(
-        participant =>
-          participant.approved && !participant.user.username !== createdBy
-      );
-      const isGreen = buildStatuses.every(
-        buildStatus => buildStatus.state === 'SUCCESSFUL'
-      );
-      Logger.info(
-        { pullRequestId, isOpen, isApproved, isGreen },
-        'isAllowedToLand()'
-      );
-      const isAllowed = isOpen && isApproved && isGreen;
-      return { isOpen, isApproved, isGreen, isAllowed };
-    },
-
     async mergePullRequest(pullRequestId: string) {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
+      const message = `pull request #${
+        pullRequestId
+      } merged  by Landkid after a successful build rebased on Master`;
       const data = {
         close_source_branch: true,
-        message: `pull request #${
-          pullRequestId
-        } merged  by Landkid after a successful build rebased on Master`,
-        merge_strategy: 'merge_commit'
+        message: message,
+        merge_strategy: 'merge_commit',
       };
       Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
-      try {
-        const resp = await axios.post(
-          endpoint,
-          JSON.stringify(data),
-          axiosPostConfig
+      // This is just defining the function that we will retry
+      const attemptMerge = () =>
+        axios.post(endpoint, JSON.stringify(data), axiosPostConfig);
+      const onFailedAttempt = err =>
+        Logger.error(
+          { err, pullRequestId },
+          `Merge attempt ${err.attemptNumber} failed. ${
+            err.attemptsLeft
+          } attempts left`,
         );
-        Logger.info({ pullRequestId }, 'Merged Pull Request');
-      } catch (e) {
-        Logger.error(e, 'Unable to merge pull request');
-        return false;
-      }
-      return true;
+      pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
+        .then(() => Logger.info({ pullRequestId }, 'Merged Pull Request'))
+        .catch(err =>
+          Logger.error({ err, pullRequestId }, 'Unable to merge pull request'),
+        );
     },
 
-    async getPullRequest(pullRequestId: string) {
+    async getPullRequest(pullRequestId: string): Promise<PullRequest> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
       const resp = await axios.get(endpoint, axiosGetConfig);
-      return resp.data;
+      const data = resp.data;
+      const approvals = data.participants
+        .filter(participant => participant.approved)
+        .map(participant => participant.user.username);
+      return {
+        pullRequestId: pullRequestId,
+        title: data.title,
+        description: data.description,
+        createdOn: new Date(data.created_on),
+        author: data.author.username,
+        state: data.state,
+        approvals: approvals,
+        openTasks: data.task_count,
+      };
     },
 
-    async getPullRequestBuildStatuses(pullRequestId: string) {
+    async getPullRequestBuildStatuses(
+      pullRequestId: string,
+    ): Promise<Array<BuildStatus>> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
       const resp = await axios.get(endpoint, axiosGetConfig);
       // fairly safe to assume we'll never need to paginate these results
       const allBuildStatuses = resp.data.values;
       // need to remove build statuses that we created or rerunning would be impossible
-      return allBuildStatuses.filter(
-        buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/)
-      );
-    }
+      return allBuildStatuses
+        .filter(
+          buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/),
+        )
+        .map(status => ({
+          state: status.state,
+          createdOn: new Date(status.created_on),
+          url: status.url,
+        }));
+    },
+
+    getPullRequestUrl(pullRequestId: string) {
+      return `https://bitbucket.org/${config.repoOwner}/${
+        config.repoName
+      }/pull-requests/${pullRequestId}`;
+    },
   };
 };
 

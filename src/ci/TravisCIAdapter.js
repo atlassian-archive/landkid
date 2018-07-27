@@ -1,14 +1,17 @@
-// @flow
-import { type CIAdapter, type StatusEvent } from '../types';
+// // @flow
+// import { type CIAdapter, type StatusEvent } from '../types';
 
-const TravisCIAdapter: CIAdapter = async (config: {}) => ({
-  processStatusWebhook(body): StatusEvent | null {
-    // ...
-  },
+// const TravisCIAdapter: CIAdapter = (config: {}) => ({
+//   processStatusWebhook(body): StatusEvent | null {
+//     return null;
+//   },
 
-  async createLandBuild(commit: string) {},
+//   async createLandBuild(commit: string) {},
+//   async stopLandBuild(commit: string) {},
 
-  async isLandBuildRunning(): Promise<boolean> {}
-});
+//   async isLandBuildRunning(): Promise<boolean> {
+//     return false;
+//   }
+// });
 
-export default TravisCIAdapter;
+// export default TravisCIAdapter;

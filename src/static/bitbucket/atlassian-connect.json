@@ -12,35 +12,27 @@
   },
   "contexts": ["account"],
   "modules": {
-    "webPanels": [
-      {
-        "weight": 100,
-        "tooltip": {
-          "value": "Packages to be released in this PR"
-        },
-        "key": "atlaskid-addon-panel",
-        "name": {
-          "value": "Release queue"
-        },
-        "url":
-          "/bitbucket/index.html?repoOwner={pullrequest.source.repository.owner.username}&repoSlug={pullrequest.source.repository.name}&pullRequestId={pullrequest.id}&username={user.username}&userUuid={user.uuid}&state={pullrequest.state}&commit={pullrequest.source.commit.hash}&title={pullrequest.title}",
-        "location": "org.bitbucket.pullrequest.overview.informationPanel",
-        "conditions": [
-          {
-            "condition": "has_permission",
-            "params": {
-              "permission": "write"
-            }
-          },
-          {
-            "condition": "equals",
-            "target": "repository.uuid",
-            "params": {
-              "value": "{6380b4e9-6ac5-4dd4-a8e0-65f09cabe4c8}"
-            }
-          }
-        ]
-      }
-    ]
+    "webPanels": [{
+      "weight": 100,
+      "tooltip": {
+        "value": "Packages to be released in this PR"
+      },
+      "key": "atlaskid-addon-panel",
+      "name": {
+        "value": "Release queue"
+      },
+      "url": "/bitbucket/index.html?repoOwner={pullrequest.source.repository.owner.username}&repoSlug={pullrequest.source.repository.name}&pullRequestId={pullrequest.id}&username={user.username}&userUuid={user.uuid}&state={pullrequest.state}&commit={pullrequest.source.commit.hash}&title={pullrequest.title}",
+      "location": "org.bitbucket.pullrequest.overview.informationPanel",
+      "conditions": [{
+        "condition": "has_permission",
+        "params": {
+          "permission": "write"
+        }
+      }]
+    }],
+    "webhooks": [{
+      "event": "repo:commit_status_updated",
+      "url": "/webhook/status-updated"
+    }]
   }
 }

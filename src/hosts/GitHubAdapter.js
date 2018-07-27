@@ -1,18 +1,36 @@
-// @flow
-import { type HostAdapter, type CommentEvent } from '../types';
+// // @flow
+// import type {
+//   HostAdapter,
+//   StatusEvent,
+//   LandRequest,
+//   HostConfig
+// } from '../types';
 
-const GitHubAdapter: HostAdapter = async (config: {}) => ({
-  processCommentWebhook(req): CommentEvent {
-    // ...
-  },
+// const GitHubAdapter: HostAdapter = (config: HostConfig) => ({
+//   processStatusWebhook(body): StatusEvent | null {
+//     return null;
+//   },
 
-  async createComment(pullRequestId, parentCommentId, message) {
-    // ...
-  },
+//   async isAllowedToLand(pullRequestId: string) {
+//     return {
+//       isOpen: false,
+//       isApproved: false,
+//       isGreen: false,
+//       isAllowed: false
+//     };
+//   },
 
-  async pullRequestToCommitHash(pullRequestId): Promise<string> {
-    // ...
-  }
-});
+//   async mergePullRequest(pullRequestId: string): Promise < boolean > {
+//     return false;
+//   },
 
-export default GitHubAdapter;
+//   async createComment(pullRequestId, parentCommentId, message) {
+//     // ...
+//   },
+
+//   async pullRequestToCommitHash(pullRequestId): Promise < string > {
+//     return '__commit__hash__';
+//   }
+// });
+
+// export default GitHubAdapter;
