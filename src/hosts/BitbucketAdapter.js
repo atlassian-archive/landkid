@@ -71,13 +71,29 @@ const BitbucketAdapter = (config: HostConfig) => {
       // This is just defining the function that we will retry
       const attemptMerge = () =>
         axios.post(endpoint, JSON.stringify(data), axiosPostConfig);
-      const onFailedAttempt = err =>
+      const onFailedAttempt = failure => {
+        const { response, attemptNumber, attemptsLeft } = failure;
+        const { status, statusText, headers, data } = response;
+        // This looks super messy, but we've had issues with bunyans default serializers removing
+        // important info from this error.
+        // https://github.com/DerekSeverson/bunyan-axios-serializer/ also doesn't solve the problem
+        // TODO: Write a custom serializer that actually reports the `data` back from a response
         Logger.error(
-          { err, pullRequestId },
-          `Merge attempt ${err.attemptNumber} failed. ${
-            err.attemptsLeft
-          } attempts left`,
+          {
+            err: failure, // This should be transformed using bunyan's std serializers
+            response: {
+              statusCode: status,
+              statusText,
+              headers,
+              data,
+            },
+            attemptNumber,
+            attemptsLeft,
+            pullRequestId,
+          },
+          'Merge attempt failed',
         );
+      };
       pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
         .then(() => Logger.info({ pullRequestId }, 'Merged Pull Request'))
         .catch(err =>
