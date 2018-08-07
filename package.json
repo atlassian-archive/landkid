@@ -1,6 +1,6 @@
 {
   "name": "landkid",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "CI Queue",
   "main": "index.js",
   "contributors": [
