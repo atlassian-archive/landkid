@@ -15,21 +15,29 @@ module.exports = {
   output: {
     path: path.resolve(outputPath),
     publicPath: '/',
-    filename: '[name]/bundle.js',
+    filename: '[name]/bundle.[chunkhash].js',
   },
   mode: 'development',
   module: {
     rules: [
       {
-        test: /\.js/,
-        use: {
-          loader: require.resolve('babel-loader'),
-          query: { presets: [require.resolve('babel-preset-react')] },
-        },
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: require.resolve('cache-loader'),
+          },
+          {
+            loader: require.resolve('ts-loader'),
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
       },
     ],
   },
   resolve: {
+    extensions: ['.js', '.json', '.ts', '.tsx'],
     alias: {
       react: 'preact-compat',
       'react-dom': 'preact-compat',
