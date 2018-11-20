@@ -7,14 +7,18 @@ import cis from './ci';
 import { Config } from './types';
 import * as bodyParser from 'body-parser';
 
+import { initializeSequelize } from './db';
+
 import Queue from './Queue';
 import Runner from './Runner';
 import routes from './routes';
 import Client from './Client';
 import History from './History';
 
-module.exports = function atlaskid(config: Config) {
-  let server = express();
+module.exports = async function atlaskid(config: Config) {
+  await initializeSequelize();
+  
+  const server = express();
   // If we are in dev mode we'll use the webpack dev server, if not we'll be using the built static
   // files in dist/[legacy|modern]/static. Routing for this is in ./routes.js
   if (
