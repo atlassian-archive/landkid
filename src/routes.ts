@@ -1,10 +1,10 @@
 import * as express from 'express';
 import * as path from 'path';
-import { LandRequest } from './types';
 import Runner from './Runner';
 import Client from './Client';
 import onStatus from './events/onStatus';
 import Logger from './Logger';
+import { LandRequestOptions } from './types';
 
 const bitbucketAddonDescriptor: any = require('./static/bitbucket/atlassian-connect.json');
 
@@ -51,7 +51,7 @@ export default function routes(
   server.get(
     '/api/current-state',
     wrap(async (req, res) => {
-      const state = runner.getState();
+      const state = await runner.getState();
       Logger.info(state, 'Requesting current state');
       res.header('Access-Control-Allow-Origin', '*').json(state);
     }),
@@ -79,7 +79,7 @@ export default function routes(
     '/api/land-pr/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
-      const username = req.query.username;
+      // const username = req.query.username;
       const userUuid = req.query.userUuid;
       const commit = req.query.commit;
       const title = req.query.title;
@@ -88,18 +88,20 @@ export default function routes(
         res.sendStatus(404);
         return;
       }
-      const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
+      // const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
 
       // TODO: This logic should live in routes
-      const landRequest: LandRequest = {
-        buildStatus: 'QUEUED',
-        pullRequestId,
-        pullRequestUrl,
-        username,
-        userUuid,
+      const landRequest: LandRequestOptions = {
+        // buildStatus: 'QUEUED',
+        prId: pullRequestId,
+        // pullRequestUrl,
+        // username,
+        triggererAaid: userUuid,
         commit,
-        title,
-        createdTime: new Date(),
+        prTitle: title,
+        // TODO: Get PR Author AAID
+        prAuthorAaid: '',
+        // createdTime: new Date(),
       };
       const positionInQueue = runner.enqueue(landRequest);
       Logger.info({ landRequest, positionInQueue }, 'Request to land received');
@@ -116,7 +118,7 @@ export default function routes(
     '/api/land-when-able/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
-      const username = req.query.username;
+      // const username = req.query.username;
       const userUuid = req.query.userUuid;
       const commit = req.query.commit;
       const title = req.query.title;
@@ -126,17 +128,19 @@ export default function routes(
         return;
       }
 
-      const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
+      // const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
 
-      const landRequest: LandRequest = {
-        buildStatus: 'QUEUED',
-        pullRequestId,
-        pullRequestUrl,
-        username,
-        userUuid,
+      const landRequest: LandRequestOptions = {
+        // buildStatus: 'QUEUED',
+        prId: pullRequestId,
+        // pullRequestUrl,
+        // username,
+        triggererAaid: userUuid,
         commit,
-        title,
-        createdTime: new Date(),
+        prTitle: title,
+        // TODO: Get PR Author AAID
+        prAuthorAaid: '',
+        // createdTime: new Date(),
       };
       // const positionInQueue = runner.enqueue(landRequest);
       Logger.info({ landRequest }, 'Request to land when able received');
@@ -151,7 +155,7 @@ export default function routes(
   server.post(
     '/api/cancel-pr/:pullRequestId',
     wrap(async (req, res) => {
-      const pullRequestId = String(req.params.pullRequestId);
+      const pullRequestId = parseInt(req.params.pullRequestId, 10);
       const userUuid = req.query.userUuid;
 
       // TODO: Move all business logic out of routes
@@ -160,12 +164,13 @@ export default function routes(
         res.sendStatus(404);
         return;
       }
-      if (runner.running && runner.running.pullRequestId === pullRequestId) {
+      const running = await runner.getRunning();
+      if (running && running.request.pullRequestId === pullRequestId) {
         runner.cancelCurrentlyRunningBuild();
       }
-      runner.removeLandReuqestByPullRequestId(pullRequestId);
+      runner.removeLandRequestByPullRequestId(pullRequestId);
 
-      const state = runner.getState();
+      // const state = runner.getState();
 
       Logger.info(
         { requestedToRemove: pullRequestId },
@@ -176,7 +181,8 @@ export default function routes(
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
         .json({
-          newQueue: state.queue,
+            newQueue: [],
+          // newQueue: state.queue,
         });
     }),
   );
@@ -193,14 +199,6 @@ export default function routes(
   server.post('/api/unpause', (req, res) => {
     runner.unpause();
     res.json({ paused: false });
-  });
-
-  // locking is an internal implementation detail, but we've seen at least one instance of a landkid
-  // server becoming stuck, this is an escape hatch until we find the logic error that caused it
-  // (likely a dropped request somehwhere).
-  server.post('/api/unlock', (req, res) => {
-    runner.unlock();
-    res.json({ locked: false });
   });
 
   // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to

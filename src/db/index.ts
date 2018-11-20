@@ -2,7 +2,7 @@ import { Model, Table, Column, Sequelize, Default, PrimaryKey, AllowNull, HasMan
 import * as path from 'path';
 
 @Table
-export class LandRequest extends Model<LandRequest> {
+export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
@@ -23,21 +23,44 @@ export class LandRequest extends Model<LandRequest> {
   @Column(Sequelize.STRING)
   readonly forCommit: string;
 
+  @AllowNull(false)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly created: Date;
+
   @HasMany(() => LandRequestStatus)
   statuses: LandRequestStatus[];
 
   @BelongsTo(() => PullRequest)
   pullRequest: PullRequest;
+
+  getStatus = async () => {
+    return await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId: this.id,
+      },
+      order: [['date', 'ASC']],
+    });
+  }
+
+  setStatus = async (state: LandRequestStatus['state'], reason?: string) => {
+    return await LandRequestStatus.create<LandRequestStatus>({
+      state,
+      reason,
+      requestId: this.id,
+    });
+  }
 }
 
 @Table
-export class LandRequestStatus extends Model<LandRequestStatus> {
+export class LandRequestStatus extends Model<LandRequestStatus> implements IStatusUpdate {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
   readonly id: string;
 
   @AllowNull(false)
+  @Default(() => new Date())
   @Column(Sequelize.DATE)
   readonly date: Date;
 
@@ -46,8 +69,8 @@ export class LandRequestStatus extends Model<LandRequestStatus> {
   readonly reason: string | null;
 
   @AllowNull(false)
-  @Column(Sequelize.ENUM({ values: ['created', 'queued', 'running', 'success', 'fail', 'aborted'] }))
-  readonly state: 'created' | 'queued' | 'running' | 'success' | 'fail' | 'aborted';
+  @Column(Sequelize.ENUM({ values: ['will-queue-when-ready', 'created', 'queued', 'running', 'success', 'fail', 'aborted'] }))
+  readonly state: IStatusUpdate['state'];
 
   @BelongsTo(() => LandRequest)
   request: LandRequest;
@@ -57,7 +80,7 @@ export class LandRequestStatus extends Model<LandRequestStatus> {
 }
 
 @Table
-export class PullRequest extends Model<PullRequest> {
+export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @PrimaryKey
   @AllowNull(false)
   @Column(Sequelize.INTEGER)
@@ -84,6 +107,7 @@ export class Permission extends Model<Permission> {
   readonly mode: 'read' | 'land' | 'admin';
 
   @AllowNull(false)
+  @Default(() => new Date())
   @Column(Sequelize.DATE)
   readonly dateAssigned: Date;
 
@@ -93,7 +117,7 @@ export class Permission extends Model<Permission> {
 };
 
 @Table
-export class PauseStateTransition extends Model<PauseStateTransition> {
+export class PauseStateTransition extends Model<PauseStateTransition> implements IPauseState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
@@ -112,6 +136,7 @@ export class PauseStateTransition extends Model<PauseStateTransition> {
   readonly reason: string;
 
   @AllowNull(false)
+  @Default(() => new Date())
   @Column(Sequelize.DATE)
   readonly date: Date;
 };

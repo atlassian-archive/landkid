@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { css } from 'emotion';
-import * as distanceInWords from 'date-fns/distance_in_words_to_now';
 import { Section } from './Section';
 import { Badge } from './Badge';
 import { Panel } from './Panel';
+import { RunnerState } from '../../../types';
 
 let styles = css({
   display: 'flex',
@@ -30,41 +30,35 @@ let styles = css({
   },
 });
 
-export type Props = {
-  started: string;
-  paused: boolean;
-  pausedReason?: string | null;
-  locked: boolean;
-  queueSize: number;
-  isRunning: boolean;
-};
+export type Props = RunnerState;
 
 export function CurrentState(props: Props) {
-  const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
+  // const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
+  const { daysSinceLastFailure, queue, pauseState } = props;
   function renderColumns() {
     return (
       <div className={styles}>
         <div className="current-state__card">
-          <h4 className="current-state__card-title">Uptime:</h4>
+          <h4 className="current-state__card-title">Days Since Last Accident:</h4>
           <div
             className="current-state__info"
-            title={`Started: ${String(new Date(started))}`}
+            title={`${daysSinceLastFailure}`}
           >
-            {distanceInWords(started)}
+            {daysSinceLastFailure} days
           </div>
         </div>
         <div className="current-state__card">
-          <h4 className="current-state__card-title">Locked:</h4>
+          <h4 className="current-state__card-title">Awesome:</h4>
           <div className="current-state__info">
-            <Badge appearance={locked ? 'important' : 'added'}>
-              {JSON.stringify(locked)}
+            <Badge appearance="added">
+              Yes
             </Badge>
           </div>
         </div>
         <div className="current-state__card">
           <h4 className="current-state__card-title">Queue Size:</h4>
           <div className="current-state__info">
-            <Badge>{queueSize + (isRunning ? 1 : 0)}</Badge>
+            <Badge>{queue.length}</Badge>
           </div>
         </div>
       </div>
@@ -76,10 +70,10 @@ export function CurrentState(props: Props) {
       <Panel>
         <strong>Builds are currently paused</strong>
         <br />
-        {pausedReason}
+        {pauseState.reason || 'No reason was provided, get used to it'}
       </Panel>
     );
   }
 
-  return <Section>{paused ? renderPanel() : renderColumns()}</Section>;
+  return <Section>{pauseState.paused ? renderPanel() : renderColumns()}</Section>;
 }

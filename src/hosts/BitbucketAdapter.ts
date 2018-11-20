@@ -1,10 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import * as pRetry from 'p-retry';
 import {
-  PullRequest,
+  BBPullRequest,
   BuildStatus,
   HostConfig,
-  PRState,
+  BBPRState,
   BuildState,
 } from '../types';
 
@@ -14,7 +14,7 @@ interface BBUser {
   username: string;
 }
 
-interface BBPullRequest {
+interface BBPullRequestResponse {
   participants: {
     approved: boolean;
     user: BBUser;
@@ -23,7 +23,7 @@ interface BBPullRequest {
   title: string;
   description: string;
   created_on: string;
-  state: PRState;
+  state: BBPRState;
   task_count: number;
 }
 
@@ -52,38 +52,12 @@ const BitbucketAdapter = (config: HostConfig) => {
   const apiBaseUrl = `https://api.bitbucket.org/2.0/repositories/${
     config.repoOwner
   }/${config.repoName}`;
-  const oldApiBaseUrl = `https://api.bitbucket.org/1.0/repositories/${
-    config.repoOwner
-  }/${config.repoName}`;
+  // const oldApiBaseUrl = `https://api.bitbucket.org/1.0/repositories/${
+  //   config.repoOwner
+  // }/${config.repoName}`;
 
   return {
-    async createComment(
-      pullRequestId: string,
-      parentCommentId: string,
-      message: string,
-    ) {
-      let data: {
-        content: string;
-        parent_id?: string;
-      } = { content: message };
-
-      if (parentCommentId) {
-        data = {
-          ...data,
-          parent_id: String(parentCommentId),
-        };
-      }
-
-      let response = await axios.post(
-        `${oldApiBaseUrl}/pullrequests/${pullRequestId}/comments/`,
-        JSON.stringify(data),
-        axiosPostConfig,
-      );
-
-      return response.data.comment_id;
-    },
-
-    async mergePullRequest(pullRequestId: string) {
+    async mergePullRequest(pullRequestId: number) {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
       const message = `pull request #${
         pullRequestId
@@ -131,15 +105,15 @@ const BitbucketAdapter = (config: HostConfig) => {
         );
     },
 
-    async getPullRequest(pullRequestId: string): Promise<PullRequest> {
+    async getPullRequest(pullRequestId: number): Promise<BBPullRequest> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
-      const resp = await axios.get<BBPullRequest>(endpoint, axiosGetConfig);
+      const resp = await axios.get<BBPullRequestResponse>(endpoint, axiosGetConfig);
       const data = resp.data;
       const approvals = data.participants
         .filter(participant => participant.approved)
         .map(participant => participant.user.username);
       return {
-        pullRequestId: pullRequestId,
+        pullRequestId,
         title: data.title,
         description: data.description,
         createdOn: new Date(data.created_on),
@@ -151,7 +125,7 @@ const BitbucketAdapter = (config: HostConfig) => {
     },
 
     async getPullRequestBuildStatuses(
-      pullRequestId: string,
+      pullRequestId: number,
     ): Promise<Array<BuildStatus>> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
       const resp = await axios.get<{ values: BBBuildStatus[] }>(
@@ -172,7 +146,7 @@ const BitbucketAdapter = (config: HostConfig) => {
         }));
     },
 
-    getPullRequestUrl(pullRequestId: string) {
+    getPullRequestUrl(pullRequestId: number) {
       return `https://bitbucket.org/${config.repoOwner}/${
         config.repoName
       }/pull-requests/${pullRequestId}`;

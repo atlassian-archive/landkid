@@ -9,11 +9,11 @@ import * as bodyParser from 'body-parser';
 
 import { initializeSequelize } from './db';
 
-import Queue from './Queue';
+import { LandRequestQueue } from './Queue';
 import Runner from './Runner';
 import routes from './routes';
 import Client from './Client';
-import History from './History';
+// import History from './History';
 
 module.exports = async function atlaskid(config: Config) {
   await initializeSequelize();
@@ -64,10 +64,10 @@ module.exports = async function atlaskid(config: Config) {
   const host = hosts[config.host](config.hostConfig);
   const ci = cis[config.ci](config.ciConfig);
   let client = new Client(host, ci, config.prSettings);
-  let history = new History();
+  // let history = new History();
 
-  let queue = new Queue();
-  let runner = new Runner(queue, client, history, config);
+  const queue = new LandRequestQueue();
+  const runner = new Runner(queue, client, config);
 
   routes(server, client, runner);
 

@@ -1,40 +1,24 @@
-import Queue from './Queue';
+import { LandRequestQueue } from './Queue';
 import Client from './Client';
-import History from './History';
+// import History from './History';
 import Logger from './Logger';
-import { LandRequest, StatusEvent, RunnerState, Config } from './types';
+import { StatusEvent, RunnerState, Config, LandRequestOptions } from './types';
+import { withLock } from './locker';
+import { LandRequest, PauseStateTransition, PullRequest, Permission } from './db';
 
 export default class Runner {
-  queue: Queue;
-  history: History;
-  running: LandRequest | null;
+  queue: LandRequestQueue;
+  // history: History;
   // we'll just store the waitingToLand in a simple list for now
   // TODO: Clean up all the state in Runner to make more sense
-  waitingToLand: Array<LandRequest>;
-  locked: boolean;
+  // waitingToLand: Array<LandRequest>;
   client: Client;
-  started: Date;
-  pauseState:
-    | {
-        paused: true;
-        pausedReason: string;
-      }
-    | {
-        paused: false;
-      };
   config: Config;
 
-  constructor(queue: Queue, client: Client, history: History, config: Config) {
+  constructor(queue: LandRequestQueue, client: Client, config: Config) {
     this.queue = queue;
-    this.waitingToLand = [];
-    this.running = null;
-    this.locked = false;
     this.client = client;
-    this.history = history;
-    this.started = new Date();
-    this.pauseState = {
-      paused: false,
-    };
+    // this.history = history;
     this.config = config;
 
     // call our checkWaitingLandRequests() function on an interval so that we are always clearing out waiting builds
@@ -44,96 +28,114 @@ export default class Runner {
     }, timeBetweenChecksMins * 60 * 1000);
   }
 
-  async next() {
-    Logger.info(
-      {
-        running: this.running,
-        locked: this.locked,
-        queue: this.queue,
-        waitingToLand: this.waitingToLand,
-      },
-      'Next() called',
-    );
-
-    if (this.running || this.locked) return;
-    let landRequest = this.queue.dequeue();
-    if (!landRequest) return;
-    this.locked = true;
-    Logger.info({ landRequest }, 'Checking if still allowed to land...');
-
-    let commit = landRequest.commit;
-    let isAllowedToLand = await this.client.isAllowedToLand(
-      landRequest.pullRequestId,
-    );
-
-    if (isAllowedToLand.isAllowed) {
-      Logger.info({ landRequest }, 'Allowed to land, creating land build');
-      const buildId = await this.client.createLandBuild(commit);
-      if (!buildId) return;
-
-      const buildUrl = this.client.createBuildUrl(buildId);
-
-      this.running = {
-        ...landRequest,
-        buildId,
-        buildUrl,
-        buildStatus: 'RUNNING',
-      };
-      this.locked = false;
-      Logger.info({ running: this.running }, 'Land build now running');
-    } else {
-      Logger.info(
-        { ...isAllowedToLand, ...landRequest },
-        'Land request is not allowed to land',
-      );
-      this.locked = false;
-      this.next();
-    }
+  async getRunning() {
+    return this.queue.maybeGetStatusForRunningRequest();
   }
 
-  onStatusUpdate = (statusEvent: StatusEvent) => {
-    if (!this.running) {
+  async next() {
+    await withLock('Runner:next', async () => {
+      const running = await this.getRunning();
+      Logger.info(
+        {
+          running: running,
+          queue: this.queue,
+        },
+        'Next() called',
+      );
+
+      if (running) return;
+
+      const landRequestInfo = await this.queue.maybeGetStatusForNextRequestInQueue();
+      if (!landRequestInfo) return;
+      const landRequest = landRequestInfo.request;
+      Logger.info({ landRequest: landRequest.get() }, 'Checking if still allowed to land...');
+  
+      const commit = landRequest.forCommit;
+      const isAllowedToLand = await this.client.isAllowedToLand(
+        landRequest.pullRequestId,
+      );
+  
+      if (isAllowedToLand.isAllowed) {
+        Logger.info({ landRequest: landRequest.get() }, 'Allowed to land, creating land build');
+        const buildId = await this.client.createLandBuild(commit);
+        if (!buildId) return;
+  
+        await landRequest.setStatus('running');
+
+        landRequest.buildId = buildId;
+        await landRequest.save();
+
+        Logger.info({ running: landRequest.get() }, 'Land build now running');
+      } else {
+        Logger.info(
+          { ...isAllowedToLand, ...landRequest.get() },
+          'Land request is not allowed to land',
+        );
+        this.next();
+      }
+    });
+  }
+
+  onStatusUpdate = async (statusEvent: StatusEvent) => {
+    const running = await this.getRunning();
+    if (!running) {
       Logger.info(statusEvent, 'No build running, status event is irrelevant');
       return;
     }
 
-    let running = this.running;
-
-    if (running.buildId !== statusEvent.buildId) {
+    if (running.request.buildId !== statusEvent.buildId) {
       return Logger.warn(
         { statusEvent, running },
         `StatusEvent buildId doesn't match currently running buildId – ${
           statusEvent.buildId
-        } !== ${running.buildId || ''}`,
+        } !== ${running.request.buildId || ''}`,
       );
     }
 
     Logger.info({ statusEvent, running }, 'Build status update');
 
-    this.running = running = {
-      ...running,
-      buildStatus: statusEvent.buildStatus,
-    };
+    // Add build status
+    // this.running = running = {
+    //   ...running,
+    //   buildStatus: statusEvent.buildStatus,
+    // };
 
-    let addToHistory = () =>
-      this.history.set(statusEvent, { ...running, finishedTime: new Date() });
+    // let addToHistory = () =>
+    //   this.history.set(statusEvent, { ...running, finishedTime: new Date() });
 
-    if (statusEvent.passed) {
-      this.mergePassedBuild(running);
-      addToHistory();
-      this.running = null;
-      this.next();
-    } else if (statusEvent.failed) {
-      Logger.error({ running, statusEvent }, 'Land build failed');
-      addToHistory();
-      this.running = null;
-      this.next();
-    } else if (statusEvent.stopped) {
-      Logger.warn({ running, statusEvent }, 'Land build has been stopped');
-      addToHistory();
-      this.running = null;
-      this.next();
+    switch (statusEvent.buildStatus) {
+      case 'SUCCESSFUL': {
+        await this.mergePassedBuild(running.request);
+        break;
+      }
+      case 'FAILED': {
+        Logger.error({ running: running.get(), statusEvent }, 'Land build failed');
+        await running.request.setStatus('fail');
+        break;
+      }
+      case 'STOPPED': {
+        Logger.warn({ running: running.get(), statusEvent }, 'Land build has been stopped');
+        await running.request.setStatus('aborted', 'Landkid pipelines build was stopped');
+        break;
+      }
     }
+
+    // if (statusEvent.) {
+    //   this.mergePassedBuild(running);
+    //   // addToHistory();
+    //   // this.running = null;
+    //   this.next();
+    // } else if (statusEvent.failed) {
+    //   Logger.error({ running, statusEvent }, 'Land build failed');
+    //   // addToHistory();
+    //   // this.running = null;
+    //   this.next();
+    // } else if (statusEvent.stopped) {
+    //   Logger.warn({ running, statusEvent }, 'Land build has been stopped');
+    //   // addToHistory();
+    //   // this.running = null;
+    //   this.next();
+    // }
   };
 
   mergePassedBuild(running: LandRequest) {
@@ -142,103 +144,135 @@ export default class Runner {
     this.client.mergePullRequest(pullRequestId);
   }
 
-  cancelCurrentlyRunningBuild() {
-    if (!this.running) return;
-    const cancelling = this.running;
-    this.running = null;
-    this.locked = false;
-    if (cancelling.buildId) {
-      this.client.stopLandBuild(cancelling.buildId);
+  async cancelCurrentlyRunningBuild() {
+    const running = await this.getRunning();
+    if (!running) return;
+
+    // TODO: Add the user
+    await running.request.setStatus('aborted', 'Cancelled by user');
+
+    if (running.request.buildId) {
+      this.client.stopLandBuild(running.request.buildId);
     }
   }
 
-  pause(reason: string) {
-    this.pauseState = {
+  async pause(reason: string) {
+    await PauseStateTransition.create<PauseStateTransition>({
       paused: true,
-      pausedReason: reason,
-    };
+      reason,
+      // TODO: Get AAID here
+      pauserAaid: '__TOTALLY_AN_AAID__'
+    });
   }
 
-  unpause() {
-    this.pauseState = {
+  async unpause() {
+    await PauseStateTransition.create<PauseStateTransition>({
       paused: false,
-    };
+      // TODO: Get AAID here
+      pauserAaid: '__TOTALLY_AN_AAID__'
+    });
   }
 
-  // locking is an internal implementation detail, but we've seen at least one instance of a landkid
-  // server becoming stuck, this is an escape hatch until we find the logic error that caused it
-  // (likely a dropped request somehwhere).
-  unlock() {
-    this.locked = false;
+  private getPauseState = async (): Promise<IPauseState> => {
+    const state = await PauseStateTransition.findOne<PauseStateTransition>({
+      order: [['date', 'DESC']],
+    });
+    if (!state) {
+      return {
+        id: '_',
+        date: new Date(0),
+        paused: false,
+        pauserAaid: '',
+        reason: null,
+      };
+    }
+    return state.get();
   }
 
-  enqueue(landRequest: LandRequest) {
-    if (this.pauseState.paused) return;
-    return this.queue.enqueue(landRequest);
+  private isPaused = async () => {
+    const state = await PauseStateTransition.findOne<PauseStateTransition>({
+      order: [['date', 'DESC']],
+    });
+    if (!state) return false;
+    return state.paused;
   }
 
-  removeLandReuqestByPullRequestId(pullRequestId: string) {
-    this.queue.filter(
-      landRequest => landRequest.pullRequestId !== pullRequestId,
-    );
-    if (this.running && this.running.pullRequestId === pullRequestId) {
-      this.running = null;
+  private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
+    const pr = await PullRequest.findOne<PullRequest>({
+      where: {
+        prId: landRequestOptions.prId,
+      },
+    }) || await PullRequest.create<PullRequest>({
+      prId: landRequestOptions.prId,
+      authorAaid: landRequestOptions.prAuthorAaid,
+      title: landRequestOptions.prTitle,
+    });
+
+    return await LandRequest.create<LandRequest>({
+      triggererAaid: landRequestOptions.triggererAaid,
+      pullRequestId: pr.id,
+      forCommit: landRequestOptions.commit,
+    });
+  }
+
+  async removeLandRequestByPullRequestId(pullRequestId: number) {
+    const requests = await LandRequest.findAll<LandRequest>({
+      where: {
+        pullRequestId,
+      },
+    });
+    for (const request of requests) {
+      // TODO: Record user who cancelled here
+      await request.setStatus('aborted', 'Cancelled by user');
     }
   }
 
-  addToWaitingToLand(landRequest: LandRequest) {
-    // make sure we don't already have this landRequest queued
-    if (
-      !this.waitingToLand.find(
-        req => req.pullRequestId === landRequest.pullRequestId,
-      )
-    ) {
-      this.waitingToLand.push(landRequest);
-    }
-    // also check if we can immediately go into the queue
+  async enqueue(landRequestOptions: LandRequestOptions) {
+    // TODO: Ensure no land request is pending for this PR
+    if (await this.isPaused()) return;
+
+    const request = await this.createRequestFromOptions(landRequestOptions);
+    await request.setStatus('queued');
+  }
+
+
+  async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
+    // TODO: Ensure no land request is pending for this PR
+    const request = await this.createRequestFromOptions(landRequestOptions);
+    await request.setStatus('will-queue-when-ready');
+
     this.checkWaitingLandRequests();
   }
 
-  // the name of this function is enough to show how badly thought out this state is
-  moveFromWaitingToQueue(pullRequestId: string) {
-    const landRequest = this.waitingToLand.find(
-      req => req.pullRequestId === pullRequestId,
-    );
-    if (!landRequest) {
-      Logger.error(
-        {
-          waitingToLand: this.waitingToLand,
-          pullRequestId,
-        },
-        'Unable to find landrequest to move to queue',
-      );
-      return;
+  async moveFromWaitingToQueue(pullRequestId: number) {
+    const requests = await LandRequest.findAll<LandRequest>({
+      where: {
+        pullRequestId,
+      },
+    });
+    for (const request of requests) {
+      const status = await request.getStatus();
+      if (status && status.state !== 'will-queue-when-ready') continue;
+
+      await request.setStatus('queued');
     }
     Logger.info(
       {
-        landRequest,
+        requests,
       },
       'Moving landRequest from waiting to queue',
     );
 
-    this.waitingToLand = this.waitingToLand.filter(
-      req => req.pullRequestId !== pullRequestId,
-    );
-    landRequest.createdTime = new Date();
-    this.enqueue(landRequest);
-    this.next();
+    // this.next();
   }
 
   async checkWaitingLandRequests() {
     Logger.info(
-      {
-        waiting: this.waitingToLand,
-      },
       'Checking for waiting landrequests ready to queue',
     );
 
-    for (let landRequest of this.waitingToLand) {
-      const pullRequestId = landRequest.pullRequestId;
+    for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
+      const pullRequestId = landRequest.request.pullRequestId;
       let isAllowedToLand = await this.client.isAllowedToLand(pullRequestId);
 
       if (isAllowedToLand.isAllowed) {
@@ -247,20 +281,34 @@ export default class Runner {
     }
   }
 
-  getState(): RunnerState {
+  private getUsersAllowedToLand = async () => {
+    return (await Permission.findAll<Permission>({
+      where: {
+        mode: {
+          $in: ['land', 'admin'],
+        },
+      },
+      order: [['dateAssigned', 'DESC']],
+      group: 'aaid',
+    })).map(p => p.aaid);
+  }
+
+  async getState(): Promise<RunnerState> {
+    const [pauseState, queue, usersAllowedToLand, waitingToQueue] = await Promise.all([
+      this.getPauseState(),
+      this.queue.getStatusesForQueuedRequests(),
+      this.getUsersAllowedToLand(),
+      this.queue.getStatusesForWaitingRequests(),
+    ]);
     return {
-      queue: this.queue.list(),
-      running: Object.assign({}, this.running),
-      waitingToLand: this.waitingToLand,
-      locked: this.locked,
-      started: String(this.started),
-      paused: this.pauseState.paused,
-      // TODO: Make frontend use pauseState instead of two props
-      pausedReason: this.pauseState.paused
-        ? this.pauseState.pausedReason
-        : null,
-      history: this.history.take(10),
-      usersAllowedToMerge: this.config.prSettings.usersAllowedToApprove,
+      daysSinceLastFailure: 0,
+      pauseState,
+      queue,
+      usersAllowedToLand,
+      waitingToQueue,
+      bitbucketBaseUrl: `https://bitbucket.org/${this.config.hostConfig.repoOwner}/${
+        this.config.hostConfig.repoName
+      }`
     };
   }
 }

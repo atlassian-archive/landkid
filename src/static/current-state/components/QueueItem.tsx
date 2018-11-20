@@ -2,8 +2,8 @@ import * as React from 'react';
 import { css } from 'emotion';
 import * as distanceInWords from 'date-fns/distance_in_words_to_now';
 import { Lozenge } from './Lozenge';
-import { BuildState, LandRequest, StatusEvent } from '../../../types';
 import { LozengeAppearance } from './types';
+import { User } from './User';
 
 let queueItemStyles = css({
   display: 'block',
@@ -99,60 +99,92 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
   </div>
 );
 
-const buildStatusToAppearance: Record<BuildState, LozengeAppearance> = {
-  DEFAULT: 'default',
-  SUCCESSFUL: 'success',
-  FAILED: 'removed',
-  STOPPED: 'moved',
-  INPROGRESS: 'inprogress',
-  PENDING: 'new',
+const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
+  'will-queue-when-ready': 'new',
+  queued: 'new',
+  running: 'inprogress',
+  success: 'success',
+  fail: 'removed',
+  aborted: 'moved',
 };
 
+const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
+  'will-queue-when-ready': 'Waiting to Land',
+  queued: 'In Queue',
+  running: 'Running',
+  success: 'Succeeded',
+  aborted: 'Aborted',
+  fail: 'Failed',
+};
+
+const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
+  'will-queue-when-ready': 'Told To Land When Ready',
+  queued: 'Told To Land',
+  running: 'Started',
+  success: 'Succeeded',
+  fail: 'Failed',
+  aborted: 'Aborted',
+};
+
+const buildUrlFromId = (base: string, id: number) => 
+  `${base}/addon/pipelines/home#!/results/${id}`;
+
+const prUrlFromId = (base: string, id: number) =>
+  `${base}/pull-requests/${id}`;
+
 export type QueueItemProps = {
-  build: LandRequest;
-  statusEvent?: StatusEvent;
+  request: ILandRequest;
+  status: IStatusUpdate | null;
+  bitbucketBaseUrl: string;
 };
 
 export function QueueItem(props: QueueItemProps) {
-  let { build } = props;
+  const { bitbucketBaseUrl, request, status } = props;
+
+  if (!status) return null;
+
   return (
     <a
       className={`${queueItemStyles} queue-item`}
-      href={build.buildUrl ? build.buildUrl : '#'}
+      href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
     >
       <div className="queue-item__title">
-        <a href={build.pullRequestUrl}>[PR #{build.pullRequestId}]</a>{' '}
-        {build.title}
+        <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>[PR #{request.pullRequestId}]</a>{' '}
+        {request.pullRequest.title}
       </div>
       <div className="queue-item__status-line">
         <StatusItem title="Status:">
           <Lozenge
             appearance={
-              buildStatusToAppearance[
-                (build.buildStatus as BuildState) || 'DEFAULT'
-              ]
+              status
+              ? landStatusToAppearance[status.state]
+              : 'new'
             }
           >
-            {build.buildStatus}
+            {landStatusToNiceString[status.state]}
           </Lozenge>
         </StatusItem>
 
         <StatusItem title="Author:">
-          <Lozenge>{build.username}</Lozenge>
+          <Lozenge>
+            <User aaid={request.pullRequest.authorAaid}>
+              {(user) => {
+                return user.username;
+              }}
+            </User>
+          </Lozenge>
         </StatusItem>
 
-        {build.finishedTime ? (
-          <StatusItem title="Finished:">
-            {distanceInWords(build.finishedTime, { addSuffix: true })}
-          </StatusItem>
-        ) : null}
+        <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
+          {distanceInWords(status.date, { addSuffix: true })}
+        </StatusItem>
 
-        {build.finishedTime ? (
+        {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
           <StatusItem title="Duration:">
             <Lozenge appearance="new">
               {duration(
-                +new Date(build.createdTime),
-                +new Date(build.finishedTime),
+                +new Date(request.created),
+                +new Date(status.date),
               )}
             </Lozenge>
           </StatusItem>

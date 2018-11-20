@@ -1,23 +1,60 @@
-// import { LandRequest } from './types';
+import { LandRequestStatus, LandRequest, PullRequest } from './db';
 
-// export default class Queue {
-//   private queue: Array<LandRequest> = [];
+export class LandRequestQueue {
+  public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
+    return (await LandRequestStatus.findAll<LandRequestStatus>({
+      where: {
+        state: 'will-queue-when-ready',
+      },
+      order: [['date', 'ASC']],
+      group: 'requestId',
+      include: [{
+        model: LandRequest,
+        include: [PullRequest]
+      }],
+    }));
+  }
 
-//   list() {
-//     return Array.from(this.queue);
-//   }
+  public getStatusesForQueuedRequests = async (): Promise<LandRequestStatus[]> => {
+    return (await LandRequestStatus.findAll<LandRequestStatus>({
+      where: {
+        state: {
+          $in: ['queued', 'running'],
+        },
+      },
+      order: [['date', 'ASC']],
+      group: 'requestId',
+      include: [{
+        model: LandRequest,
+        include: [PullRequest]
+      }],
+    }));
+  }
 
-//   enqueue(model: LandRequest) {
-//     this.queue.push(model);
-//     // we'll return the new position in the queue so we dont have to search for it after enqueueing
-//     return this.queue.length - 1;
-//   }
+  public maybeGetStatusForNextRequestInQueue = async (): Promise<LandRequestStatus | null> => {
+    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        state: 'queued',
+      },
+      order: [['date', 'ASC']],
+      include: [{
+        model: LandRequest,
+        include: [PullRequest]
+      }],
+    });
+    if (!status) return null;
 
-//   dequeue(): LandRequest | null {
-//     return this.queue.shift() || null;
-//   }
+    return status;
+  }
 
-//   filter(filterFn: (item: LandRequest) => boolean) {
-//     this.queue = this.queue.filter(filterFn);
-//   }
-// }
+  public maybeGetStatusForRunningRequest = async (): Promise<LandRequestStatus | null> => {
+    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        state: 'running',
+      },
+    });
+    if (!requestStatus) return null;
+
+    return requestStatus;
+  }
+}

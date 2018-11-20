@@ -4,7 +4,7 @@ import { Section } from './Section';
 import { Logo } from './Logo';
 import { WithAPIData } from './WithAPIData';
 import { CurrentState } from './CurrentState';
-import { LastBuild } from './LastBuild';
+import { RunningBuild } from './RunningBuild';
 import { Tabs } from './Tabs';
 
 export function App() {
@@ -18,22 +18,19 @@ export function App() {
         render={(data: RunnerState) => (
           <div>
             <CurrentState
-              started={data.started}
-              locked={data.locked}
-              paused={data.paused}
-              pausedReason={data.pausedReason}
-              queueSize={data.queue.length}
-              isRunning={!!data.running.buildId}
+              {...data}
             />
 
-            <LastBuild historyItem={data.history[0]} />
+            <RunningBuild
+              queue={data.queue}
+              bitbucketBaseUrl={data.bitbucketBaseUrl}
+            />
 
             <Tabs
+              bitbucketBaseUrl={data.bitbucketBaseUrl}
               selected={1}
-              allowedUsers={data.usersAllowedToMerge}
-              running={data.running}
+              allowedUsers={data.usersAllowedToLand}
               queue={data.queue}
-              history={data.history}
             />
           </div>
         )}

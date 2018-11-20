@@ -3,8 +3,8 @@ import {
   CI,
   StatusEvent,
   PullRequestSettings,
-  PullRequest,
   ApprovalChecks,
+  BBPullRequest,
 } from './types';
 import Logger from './Logger';
 
@@ -48,8 +48,8 @@ export default class Client {
     this.prSettings = settings;
   }
 
-  async isAllowedToLand(pullRequestId: string) {
-    const pullRequest: PullRequest = await this.hostAdaptor.getPullRequest(
+  async isAllowedToLand(pullRequestId: number) {
+    const pullRequest: BBPullRequest = await this.hostAdaptor.getPullRequest(
       pullRequestId,
     );
     const buildStatuses = await this.hostAdaptor.getPullRequestBuildStatuses(
@@ -94,11 +94,11 @@ export default class Client {
     return this.ciAdaptor.createLandBuild(commit);
   }
 
-  async stopLandBuild(buildId: string) {
+  async stopLandBuild(buildId: number) {
     return await this.ciAdaptor.stopLandBuild(buildId);
   }
 
-  async mergePullRequest(pullRequestId: string) {
+  async mergePullRequest(pullRequestId: number) {
     return await this.hostAdaptor.mergePullRequest(pullRequestId);
   }
 
@@ -106,23 +106,11 @@ export default class Client {
     return this.ciAdaptor.processStatusWebhook(body);
   }
 
-  createBuildUrl(buildId: string): string {
+  createBuildUrl(buildId: number): string {
     return this.ciAdaptor.getBuildUrl(buildId);
   }
 
-  createPullRequestUrl(pullRequestId: string): string {
+  createPullRequestUrl(pullRequestId: number): string {
     return this.hostAdaptor.getPullRequestUrl(pullRequestId);
-  }
-
-  async createComment(
-    pullRequestId: string,
-    parentCommentId: string,
-    message: string,
-  ) {
-    await this.hostAdaptor.createComment(
-      pullRequestId,
-      parentCommentId,
-      message,
-    );
   }
 }
