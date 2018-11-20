@@ -1,72 +1,62 @@
 export interface Host {
-  createComment(
-    pullRequestId: string,
-    parentCommentId: string | null,
-    message: string,
-  ): Promise<string>;
-  mergePullRequest(pullRequestId: string): Promise<void>;
-  getPullRequest(pullRequestId: string): Promise<PullRequest>;
+  mergePullRequest(pullRequestId: number): Promise<void>;
+  getPullRequest(pullRequestId: number): Promise<BBPullRequest>;
   getPullRequestBuildStatuses(
-    pullRequestId: string,
+    pullRequestId: number,
   ): Promise<Array<BuildStatus>>;
-  getPullRequestUrl(pullRequestId: string): string;
+  getPullRequestUrl(pullRequestId: number): string;
 }
 
 export interface CI {
   processStatusWebhook(body: any): StatusEvent | null;
-  createLandBuild(commit: string): Promise<string | null>;
-  stopLandBuild(commit: string): Promise<boolean>;
-  getBuildUrl(buildId: string): string;
+  createLandBuild(commit: string): Promise<number | null>;
+  stopLandBuild(commit: number): Promise<boolean>;
+  getBuildUrl(buildId: number): string;
 }
 
 export type HostAdapter = (config: Object) => Host;
 export type CIAdapter = (config: Object) => CI;
 
 export type StatusEvent = {
-  buildUrl: string;
-  buildId: string;
+  buildId: number;
   buildStatus: BuildState;
-  passed: boolean;
-  failed: boolean;
-  stopped: boolean;
 };
 
-export type Persona = {
-  helpContent: string;
-  addedToQueue: string;
-  removedFromQueue: string;
-  notRemovedFromQueue: string;
-  unknownCommand: string;
-  error: string;
-};
-
-export type PRState = 'OPEN' | 'DECLINED' | 'MERGED';
-
-export type LandRequest = {
-  pullRequestId: string;
-  pullRequestUrl: string;
-  username: string;
-  userUuid: string;
-  pullRequestState?: PRState;
+export type LandRequestOptions = {
+  prId: number;
+  prAuthorAaid: string;
+  prTitle: string;
+  triggererAaid: string;
   commit: string;
-  title: string;
-  createdTime: Date;
-  finishedTime?: Date;
-
-  // These properties exist after a landRequest begins landing
-  buildId?: string;
-  buildUrl?: string;
-  buildStatus?: string;
-  landed?: boolean;
 };
 
-export type PullRequest = {
-  pullRequestId: string;
+// export type LandRequest = {
+//   pullRequestId: string;
+//   pullRequestUrl: string;
+//   username: string;
+//   userUuid: string;
+//   pullRequestState?: PRState;
+//   commit: string;
+//   title: string;
+//   createdTime: Date;
+//   finishedTime?: Date;
+
+//   // These properties exist after a landRequest begins landing
+//   buildId?: string;
+//   buildUrl?: string;
+//   buildStatus?: string;
+//   landed?: boolean;
+// };
+
+export type BBPRState = 'OPEN' | 'DECLINED' | 'MERGED';
+
+export type BBPullRequest = {
+  pullRequestId: number;
   title: string;
   description: string;
   createdOn: Date;
   author: string;
-  state: PRState;
+  state: BBPRState;
   approvals: Array<string>;
   openTasks: number;
 };
@@ -128,19 +118,29 @@ export type Config = {
   prSettings: PullRequestSettings;
 };
 
-export type HistoryItem = {
-  statusEvent: StatusEvent;
-  build: LandRequest;
-};
+// export type HistoryItem = {
+//   statusEvent: StatusEvent;
+//   build: LandRequest;
+// };
 
 export type RunnerState = {
-  queue: Array<LandRequest>;
-  running: LandRequest;
-  waitingToLand?: Array<LandRequest>;
-  locked: boolean;
-  started: string;
-  paused: boolean;
-  pausedReason?: string | null;
-  history: Array<HistoryItem>;
-  usersAllowedToMerge: Array<string>;
+  queue: Array<IStatusUpdate>;
+  waitingToQueue: Array<IStatusUpdate>;
+  pauseState: IPauseState;
+  daysSinceLastFailure: number;
+  usersAllowedToLand: Array<string>;
+  bitbucketBaseUrl: string;
+  // locked: boolean;
+  // started: string;
+  // paused: boolean;
+  // pausedReason?: string | null;
+  // history: Array<HistoryItem>;
+  // usersAllowedToMerge: Array<string>;
 };
+
+export type HistoryItem = {
+  request: ILandRequest;
+  statusEvents: Array<IStatusUpdate>;
+}
+
+export type History = Array<HistoryItem>;

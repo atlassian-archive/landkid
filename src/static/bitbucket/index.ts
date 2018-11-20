@@ -1,5 +1,3 @@
-import { LandRequest } from '../../types';
-
 require('unfetch/polyfill');
 const queryString = require('qs');
 
@@ -208,15 +206,13 @@ function cancelButtonClicked() {
 }
 
 function displayQueueOrLandButton(
-  queue: Array<LandRequest>,
-  running: LandRequest,
+  queue: Array<ILandRequest>,
   settings: LandSettings,
 ) {
   const queryStringVars = getQueryStringVars();
-  const pullRequestId = queryStringVars.pullRequestId;
+  const pullRequestId = parseInt(queryStringVars.pullRequestId, 10);
   const isQueuedOrRunning =
-    queue.some(pr => pr.pullRequestId === pullRequestId) ||
-    running.pullRequestId === pullRequestId;
+    queue.some(pr => pr.pullRequestId === pullRequestId);
 
   console.log('Current queue: ', queue);
 
@@ -243,7 +239,7 @@ if (qs.state === 'OPEN') {
       // have to separately render the text content for the reason
       document.querySelector('#pausedReason')!.textContent = pausedReason;
     } else if (allowedToMerge.indexOf(qs.username) > -1) {
-      displayQueueOrLandButton(state.queue, state.running, settings);
+      displayQueueOrLandButton(state.queue, settings);
     }
   });
 } else {

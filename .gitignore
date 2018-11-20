@@ -7,3 +7,4 @@ landkid-queue.*
 log.txt
 .DS_Store
 .cache-loader
+db.sqlite

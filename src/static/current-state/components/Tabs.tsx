@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { css } from 'emotion';
 import { Section } from './Section';
-import { QueueItemJoined } from './QueueItem';
-import { QueueItemsList, HistoryItemsList } from './QueueItemsList';
+import { QueueItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
-import { LandRequest, HistoryItem } from '../../../types';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -102,16 +100,16 @@ let tabStyles = css({
 });
 
 export type QueueTabProps = {
-  running: LandRequest;
-  queue: Array<LandRequest>;
+  queue: IStatusUpdate[];
+  bitbucketBaseUrl: string;
 };
 
 export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
-  const { running, queue } = props;
+  const { bitbucketBaseUrl, queue } = props;
   return (
     <div>
-      {running.buildId ? <QueueItemJoined build={running} /> : null}
       <QueueItemsList
+        bitbucketBaseUrl={bitbucketBaseUrl}
         queue={queue}
         fading
         renderEmpty={() => (
@@ -124,19 +122,23 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
   );
 };
 
-export type HistoryTabProps = { history: Array<HistoryItem> };
+export type HistoryTabProps = {
+  bitbucketBaseUrl: string;
+}
+
 export function HistoryTab(props: HistoryTabProps) {
-  const { history } = props;
-  return (
-    <HistoryItemsList
-      history={history}
-      renderEmpty={() => (
-        <Tab>
-          <EmptyState>History is empty...</EmptyState>
-        </Tab>
-      )}
-    />
-  );
+  // TODO: WithAPIData
+  return <p>History here</p>;
+  // return (
+  //   <HistoryItemsList
+  //     history={history}
+  //     renderEmpty={() => (
+  //       <Tab>
+  //         <EmptyState>History is empty...</EmptyState>
+  //       </Tab>
+  //     )}
+  //   />
+  // );
 }
 
 export type SystemTabProps = { allowedUsers: Array<string> };
@@ -160,30 +162,31 @@ export const Tab: React.FunctionComponent = props => {
 export type TabsProps = {
   selected: number;
   allowedUsers: Array<string>;
-  running: LandRequest;
-  queue: Array<LandRequest>;
-  history: Array<HistoryItem>;
+  queue: IStatusUpdate[];
+  bitbucketBaseUrl: string;
 };
 
-export class Tabs extends React.Component<TabsProps, { selected: number }> {
-  onTabSelected: (selected: number) => void;
+export type TabsState = {
+  selected: number;
+};
 
-  constructor(props: TabsProps) {
-    super(props);
-    this.state = { selected: this.props.selected };
-    this.onTabSelected = selected => this.setState({ selected });
-  }
+export class Tabs extends React.Component<TabsProps, TabsState> {
+  state: TabsState = {
+    selected: 1,
+  };
+
+  private onTabSelected = (selected: number) => this.setState({ selected });
 
   render() {
     let { selected } = this.state;
-    let { allowedUsers, running, queue, history } = this.props;
+    let { allowedUsers, bitbucketBaseUrl, queue } = this.props;
 
     return (
       <Section important last>
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
         {selected === 0 ? <SystemTab allowedUsers={allowedUsers} /> : null}
-        {selected === 1 ? <QueueTab running={running} queue={queue} /> : null}
-        {selected === 2 ? <HistoryTab history={history} /> : null}
+        {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
+        {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}
       </Section>
     );
   }

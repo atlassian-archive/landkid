@@ -52,15 +52,11 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
 
       // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
       const buildUrlParts = buildUrl.split('/');
-      const buildId = buildUrlParts[buildUrlParts.length - 1];
+      const buildId = parseInt(buildUrlParts[buildUrlParts.length - 1], 10);
 
       return {
-        buildUrl,
         buildId,
         buildStatus,
-        passed: buildStatus === 'SUCCESSFUL',
-        failed: buildStatus === 'FAILED',
-        stopped: buildStatus === 'STOPPED',
       };
     },
 
@@ -89,7 +85,7 @@ const BitbucketPipelinesAdapter: CIAdapter = (config: Config) => {
         return null;
       }
       // build_number comes back as a number unfortunately
-      return `${resp.data.build_number}`;
+      return resp.data.build_number;
     },
 
     async stopLandBuild(buildId) {
