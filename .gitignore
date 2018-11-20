@@ -6,3 +6,4 @@ landkid-queue.*
 /config.js
 log.txt
 .DS_Store
+.cache-loader

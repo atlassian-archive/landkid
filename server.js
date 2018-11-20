@@ -34,16 +34,18 @@ let landkidConfig = Object.assign(
   localConfig,
 );
 
-let server = landkid(landkidConfig);
+(async () => {
+  const server = await landkid(landkidConfig);
 
-server.listen(landkidConfig.port, () => {
-  const localUrl = `http://localhost:${landkidConfig.port}`;
-  const baseUrl = landkidConfig.baseUrl;
-  const stateUrl = `${baseUrl}/current-state`;
-  const installationUrl = `${baseUrl}/bitbucket/atlassian-connect.json`;
+  server.listen(landkidConfig.port, () => {
+    const localUrl = `http://localhost:${landkidConfig.port}`;
+    const baseUrl = landkidConfig.baseUrl;
+    const stateUrl = `${baseUrl}/current-state`;
+    const installationUrl = `${baseUrl}/bitbucket/atlassian-connect.json`;
 
-  console.log(`Local server started at ${localUrl}`);
-  console.log(`BaseUrl set to ${baseUrl}`);
-  console.log(`Addon can be installed from ${installationUrl}`);
-  console.log(`Current state can be found: ${stateUrl}`);
-});
+    console.log(`Local server started at ${localUrl}`);
+    console.log(`BaseUrl set to ${baseUrl}`);
+    console.log(`Addon can be installed from ${installationUrl}`);
+    console.log(`Current state can be found: ${stateUrl}`);
+  });
+})();
