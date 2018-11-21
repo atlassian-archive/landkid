@@ -212,6 +212,7 @@ export const initializeSequelize = async () => {
   const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: path.resolve(__dirname, '../../db.sqlite'),
+    logging: false,
 
     // TS plz
     // database: '',

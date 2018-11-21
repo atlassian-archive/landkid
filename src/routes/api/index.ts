@@ -2,7 +2,7 @@ import * as express from 'express';
 
 import { wrap } from '../../middleware';
 import { Runner } from '../../Runner';
-import Logger from '../../Logger';
+import { Logger } from '../../Logger';
 import { LandRequestOptions } from '../../types';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 
@@ -29,7 +29,7 @@ export function apiRoutes(
     '/settings',
     wrap(async (req, res) => {
       const settings = { allowLandWhenAble, usersAllowedToMerge };
-      Logger.info(settings, 'Requesting current settings');
+      Logger.info('Requesting current settings', settings);
       res.header('Access-Control-Allow-Origin', '*').json(settings);
     }),
   );
@@ -71,7 +71,7 @@ export function apiRoutes(
         // createdTime: new Date(),
       };
       const positionInQueue = await runner.enqueue(landRequest);
-      Logger.info({ landRequest, positionInQueue }, 'Request to land received');
+      Logger.info('Request to land received', { landRequest, positionInQueue });
 
       res
         .header('Access-Control-Allow-Origin', '*')
@@ -108,7 +108,7 @@ export function apiRoutes(
         // createdTime: new Date(),
       };
       // const positionInQueue = runner.enqueue(landRequest);
-      Logger.info({ landRequest }, 'Request to land when able received');
+      Logger.info('Request to land when able received', { landRequest });
       await runner.addToWaitingToLand(landRequest);
       res
         .header('Access-Control-Allow-Origin', '*')
@@ -137,10 +137,9 @@ export function apiRoutes(
 
       // const state = runner.getState();
 
-      Logger.info(
-        { requestedToRemove: pullRequestId },
-        'Request to remove land request',
-      );
+      Logger.info('Request to remove land request', {
+        requestedToRemove: pullRequestId,
+      });
 
       res
         .header('Access-Control-Allow-Origin', '*')

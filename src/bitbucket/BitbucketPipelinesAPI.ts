@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Logger from '../Logger';
+import { Logger } from '../Logger';
 import { RepoConfig } from '../types';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
@@ -43,14 +43,14 @@ export class BitbucketPipelinesAPI {
       typeof statusEvent.commit_status.url !== 'string'
     ) {
       Logger.error(
-        { statusEvent: body },
         'Status event receieved that does not match the shape we were expecting',
+        { statusEvent: body },
       );
       return null;
     }
     const buildStatus = statusEvent.commit_status.state;
     const buildUrl = statusEvent.commit_status.url;
-    Logger.info({ buildUrl, buildStatus }, 'Received build status event');
+    Logger.info('Received build status event', { buildUrl, buildStatus });
 
     // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
     const buildUrlParts = buildUrl.split('/');
@@ -63,7 +63,7 @@ export class BitbucketPipelinesAPI {
   };
 
   public createLandBuild = async (commit: string) => {
-    Logger.info({ commit }, 'Creating land build for commit');
+    Logger.info('Creating land build for commit', { commit });
     const data = {
       target: {
         commit: { hash: commit, type: 'commit' },
@@ -76,7 +76,7 @@ export class BitbucketPipelinesAPI {
       JSON.stringify(data),
       this.axiosPostConfig,
     );
-    Logger.info({ buildNumber: resp.data.build_number }, 'Created build');
+    Logger.info('Created build', { buildNumber: resp.data.build_number });
     if (!resp.data.build_number || typeof resp.data.build_number !== 'number') {
       Logger.error(
         'Response from creating build does not match the shape we expected',

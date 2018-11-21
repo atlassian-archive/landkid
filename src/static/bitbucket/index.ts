@@ -211,8 +211,9 @@ function displayQueueOrLandButton(
 ) {
   const queryStringVars = getQueryStringVars();
   const pullRequestId = parseInt(queryStringVars.pullRequestId, 10);
-  const isQueuedOrRunning =
-    queue.some(pr => pr.pullRequestId === pullRequestId);
+  const isQueuedOrRunning = queue.some(
+    pr => pr.pullRequestId === pullRequestId,
+  );
 
   console.log('Current queue: ', queue);
 

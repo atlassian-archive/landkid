@@ -9,3 +9,4 @@ log.txt
 .cache-loader
 db.sqlite
 env
+.logs

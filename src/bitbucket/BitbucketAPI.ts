@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import * as pRetry from 'p-retry';
 
 import { RepoConfig } from '../types';
-import Logger from '../Logger';
+import { Logger } from '../Logger';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
@@ -36,7 +36,7 @@ export class BitbucketAPI {
       merge_strategy: 'merge_commit',
     };
 
-    Logger.info({ pullRequestId, endpoint }, 'Merging pull request');
+    Logger.info('Merging pull request', { pullRequestId, endpoint });
     // This is just defining the function that we will retry
     const attemptMerge = () =>
       axios.post(endpoint, JSON.stringify(data), this.axiosPostConfig);
@@ -47,30 +47,24 @@ export class BitbucketAPI {
       const { response, attemptNumber, attemptsLeft } = failure;
       const { status, statusText, headers, data } =
         response || ({} as Record<string, undefined>);
-      // This looks super messy, but we've had issues with bunyans default serializers removing
-      // important info from this error.
-      // https://github.com/DerekSeverson/bunyan-axios-serializer/ also doesn't solve the problem
-      // TODO: Write a custom serializer that actually reports the `data` back from a response
-      Logger.error(
-        {
-          err: failure, // This should be transformed using bunyan's std serializers
-          response: {
-            statusCode: status,
-            statusText,
-            headers,
-            data,
-          },
-          attemptNumber,
-          attemptsLeft,
-          pullRequestId,
+
+      Logger.error('Merge attempt failed', {
+        err: failure,
+        response: {
+          statusCode: status,
+          statusText,
+          headers,
+          data,
         },
-        'Merge attempt failed',
-      );
+        attemptNumber,
+        attemptsLeft,
+        pullRequestId,
+      });
     };
     await pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
-      .then(() => Logger.info({ pullRequestId }, 'Merged Pull Request'))
+      .then(() => Logger.info('Merged Pull Request', { pullRequestId }))
       .catch(err => {
-        Logger.error({ err, pullRequestId }, 'Unable to merge pull request');
+        Logger.error('Unable to merge pull request', { err, pullRequestId });
         throw err;
       });
   };

@@ -6,7 +6,7 @@ const client = createClient();
 const redlock = new RedLock([client]);
 
 export const withLock = async <T>(resource: string, fn: () => Promise<T>) => {
-  const lock = await redlock.lock(resource, 60000)
+  const lock = await redlock.lock(resource, 60000);
   let result: T;
   try {
     result = await fn();
@@ -15,4 +15,4 @@ export const withLock = async <T>(resource: string, fn: () => Promise<T>) => {
   }
   await lock.unlock();
   return result!;
-}
+};
