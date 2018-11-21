@@ -6,6 +6,7 @@ export class LandRequestQueue {
   > => {
     return await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
+        isLatest: true,
         state: 'will-queue-when-ready',
       },
       order: [['date', 'ASC']],
@@ -24,6 +25,7 @@ export class LandRequestQueue {
   > => {
     return await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
+        isLatest: true,
         state: {
           $in: ['queued', 'running'],
         },
@@ -42,6 +44,7 @@ export class LandRequestQueue {
   public maybeGetStatusForNextRequestInQueue = async (): Promise<LandRequestStatus | null> => {
     const status = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
+        isLatest: true,
         state: 'queued',
       },
       order: [['date', 'ASC']],
@@ -60,6 +63,7 @@ export class LandRequestQueue {
   public maybeGetStatusForRunningRequest = async (): Promise<LandRequestStatus | null> => {
     const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
+        isLatest: true,
         state: 'running',
       },
       include: [
