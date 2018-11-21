@@ -33,6 +33,7 @@
 * [x] Clean up serving of ac.json
 * [ ] Allow refresh on bb addon
 * [ ] Remove cancel release
+* [x] Fix binary file and files arr in package.json
 
 
 ## Someone

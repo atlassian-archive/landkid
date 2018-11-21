@@ -10,13 +10,10 @@
   ],
   "license": "MIT",
   "bin": {
-    "landkid": "server.js"
+    "landkid": "dist/index.js"
   },
   "files": [
-    "dist",
-    "server.js",
-    "index.js",
-    "webpack.config.js"
+    "dist"
   ],
   "scripts": {
     "clean": "rimraf dist",
@@ -26,7 +23,7 @@
     "build:server": "tsc",
     "build:ui": "cross-env OUTPUT_PATH=dist/static webpack --mode=production",
     "start": "cross-env NODE_ENV=production node ./dist",
-    "dev": "tsc && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./dist --watch dist --watch config.js --delay 1\"",
+    "dev": "yarn build:server && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./dist --watch dist --watch config.js --delay 1\"",
     "prePublishOnly": "yarn build",
     "precommit": "lint-staged",
     "postinstall": "node tools/hax.js"
