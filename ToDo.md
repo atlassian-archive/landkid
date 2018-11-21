@@ -1,25 +1,26 @@
 # TO Do
 
-* Remove abstractions
+## Sam
+
 * Auth
   * bb addon auth
     * verify loaded in bb and not external
-  * User login on front end
+      * verify QSH to read AAID
+  * User login on front end (oAuth 2.0)
     * Admin panel
   * Pauser aaid
-  * UsersAllowedToLand
-* User permissions
-  * frontend backend
-* History
-* AllowedToLand check is broken
+  * User permissions
+    * frontend backend
+* Remove abstractions
 * Server entry point - borked
   * webpack dev server
   * passing in config
   * scripts for dev + prod
+
+## Dummy
+
+* History
+* AllowedToLand check is broken
 * Productionised config
-
-
-**Later**
-
 * addon frontend in react
-* add polling
+* add websockets :D :D :D
