@@ -30,7 +30,7 @@ export function routes(
       .header('Access-Control-Allow-Origin', '*')
       .json(bitbucketAddonDescriptor);
   });
-  router.use('/api', apiRoutes(server, runner, client));
+  router.use('/api', apiRoutes(runner, client));
   router.use('/bitbucket', bitbucketRoutes(runner, client));
 
   if (process.env.NODE_ENV === 'production') {

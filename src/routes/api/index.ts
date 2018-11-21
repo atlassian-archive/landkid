@@ -7,11 +7,7 @@ import { Logger } from '../../lib/Logger';
 import { LandRequestOptions } from '../../types';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 
-export function apiRoutes(
-  server: express.Application,
-  runner: Runner,
-  client: BitbucketClient,
-) {
+export function apiRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
 
   router.get(
