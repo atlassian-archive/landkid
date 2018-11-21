@@ -29,7 +29,11 @@
 * [ ] addon frontend in react
 * [ ] add websockets :D :D :D
 * [ ] Move the static files routes
-* [ ] Clean up serving of ac.json
+* [x] Clean up serving of ac.json
 * [ ] Allow refresh on bb addon
 * [ ] Remove cancel release
 
+
+## Someone
+
+* [ ] Ensure deploy ain't broken
