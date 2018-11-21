@@ -7,11 +7,11 @@ import * as bodyParser from 'body-parser';
 
 import { initializeSequelize } from './db';
 
-import { LandRequestQueue } from './Queue';
-import { Runner } from './Runner';
-import { routes } from './routes';
 import { BitbucketClient } from './bitbucket/BitbucketClient';
-import { Logger } from './Logger';
+import { Logger } from './lib/Logger';
+import { LandRequestQueue } from './lib/Queue';
+import { Runner } from './lib/Runner';
+import { routes } from './routes';
 // import History from './History';
 
 module.exports = async function atlaskid(config: Config) {

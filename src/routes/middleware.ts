@@ -1,6 +1,6 @@
 import * as express from 'express';
 import * as jwtTools from 'atlassian-jwt';
-import { Installation } from './db';
+import { Installation } from '../db';
 
 export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
   return async (req, res, next) => {

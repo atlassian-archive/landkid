@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import * as pRetry from 'p-retry';
 
 import { RepoConfig } from '../types';
-import { Logger } from '../Logger';
+import { Logger } from '../lib/Logger';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 

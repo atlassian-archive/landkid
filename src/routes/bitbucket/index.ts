@@ -1,8 +1,8 @@
 import * as express from 'express';
 
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
-import { Runner } from '../../Runner';
-import { authenticateProxyCall } from '../../middleware';
+import { Runner } from '../../lib/Runner';
+import { authenticateProxyCall } from '../middleware';
 import { proxyRoutes } from './proxy';
 import { webhookRoutes } from './webhook';
 import { lifecycleRoutes } from './lifecycle';

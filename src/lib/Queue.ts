@@ -1,4 +1,4 @@
-import { LandRequestStatus, LandRequest, PullRequest } from './db';
+import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async (): Promise<
