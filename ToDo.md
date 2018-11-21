@@ -15,9 +15,11 @@
 * [x] Remove abstractions
 * [x] Server entry point - borked
   * [x] webpack dev server
-  * [ ] passing in config
+  * [x] passing in config
   * [x] scripts for dev + prod
 * [ ] validate secret from bb on installation
+* [ ] Linting
+* [ ] CI
 
 ## Luke
 

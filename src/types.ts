@@ -19,7 +19,6 @@ export type PullRequestSettings = {
   requireClosedTasks: boolean;
   requireGreenBuild: boolean;
   canApproveOwnPullRequest: boolean;
-  usersAllowedToApprove: Array<string>;
   allowLandWhenAble: boolean;
 };
 
@@ -33,6 +32,7 @@ export type ApprovalChecks = {
 export type Config = {
   port: number;
   baseUrl: string;
+  landkidAdmins: string[];
   repoConfig: RepoConfig;
   prSettings: PullRequestSettings;
 };

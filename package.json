@@ -25,8 +25,8 @@
     "build": "yarn run clean && yarn build:server && yarn build:ui",
     "build:server": "tsc",
     "build:ui": "cross-env OUTPUT_PATH=dist/static webpack --mode=production",
-    "start": "cross-env NODE_ENV=production node server.js",
-    "dev": "tsc && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./server.js --watch dist --watch config.js --delay 1\"",
+    "start": "cross-env NODE_ENV=production node ./dist",
+    "dev": "tsc && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./dist --watch dist --watch config.js --delay 1\"",
     "prePublishOnly": "yarn build",
     "precommit": "lint-staged"
   },

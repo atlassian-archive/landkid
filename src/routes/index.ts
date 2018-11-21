@@ -1,5 +1,7 @@
 import * as express from 'express';
 import * as path from 'path';
+
+import { config } from '../lib/Config';
 import { Runner } from '../lib/Runner';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
 import { Logger } from '../lib/Logger';
@@ -15,8 +17,8 @@ export function routes(
   const router = express();
 
   const bitbucketAddonDescriptor = makeDescriptor(
-    server.settings.baseUrl,
-    server.settings.repoUuid,
+    config.baseUrl,
+    config.repoConfig.repoUuid,
   );
 
   router.get('/healthcheck', (req, res) => {
