@@ -9,7 +9,7 @@ export type Props = {
 
 const findRunning = (updates: IStatusUpdate[]) => {
   return updates.find(update => update.state === 'running') || null;
-}
+};
 
 export const RunningBuild: React.FunctionComponent<Props> = props => {
   const running = findRunning(props.queue);

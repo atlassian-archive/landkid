@@ -124,7 +124,7 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
 
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
-}
+};
 
 export function HistoryTab(props: HistoryTabProps) {
   // TODO: WithAPIData
@@ -185,8 +185,12 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       <Section important last>
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
         {selected === 0 ? <SystemTab allowedUsers={allowedUsers} /> : null}
-        {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
-        {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}
+        {selected === 1 ? (
+          <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} />
+        ) : null}
+        {selected === 2 ? (
+          <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} />
+        ) : null}
       </Section>
     );
   }
