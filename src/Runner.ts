@@ -4,7 +4,13 @@ import Client from './Client';
 import Logger from './Logger';
 import { StatusEvent, RunnerState, Config, LandRequestOptions } from './types';
 import { withLock } from './locker';
-import { LandRequest, PauseStateTransition, PullRequest, Permission, LandRequestStatus } from './db';
+import {
+  LandRequest,
+  PauseStateTransition,
+  PullRequest,
+  Permission,
+  LandRequestStatus,
+} from './db';
 
 export default class Runner {
   queue: LandRequestQueue;
@@ -48,18 +54,24 @@ export default class Runner {
       const landRequestInfo = await this.queue.maybeGetStatusForNextRequestInQueue();
       if (!landRequestInfo) return;
       const landRequest = landRequestInfo.request;
-      Logger.info({ landRequest: landRequest.get() }, 'Checking if still allowed to land...');
-  
+      Logger.info(
+        { landRequest: landRequest.get() },
+        'Checking if still allowed to land...',
+      );
+
       const commit = landRequest.forCommit;
       const isAllowedToLand = await this.client.isAllowedToLand(
         landRequest.pullRequestId,
       );
-  
+
       if (isAllowedToLand.isAllowed) {
-        Logger.info({ landRequest: landRequest.get() }, 'Allowed to land, creating land build');
+        Logger.info(
+          { landRequest: landRequest.get() },
+          'Allowed to land, creating land build',
+        );
         const buildId = await this.client.createLandBuild(commit);
         if (!buildId) return;
-  
+
         await landRequest.setStatus('running');
 
         landRequest.buildId = buildId;
@@ -105,17 +117,32 @@ export default class Runner {
 
     switch (statusEvent.buildStatus) {
       case 'SUCCESSFUL': {
-        await this.mergePassedBuild(running.request);
+        try {
+          await this.mergePassedBuild(running.request);
+          await running.request.setStatus('success');
+        } catch (err) {
+          console.error(err);
+          await running.request.setStatus('fail');
+        }
         break;
       }
       case 'FAILED': {
-        Logger.error({ running: running.get(), statusEvent }, 'Land build failed');
+        Logger.error(
+          { running: running.get(), statusEvent },
+          'Land build failed',
+        );
         await running.request.setStatus('fail');
         break;
       }
       case 'STOPPED': {
-        Logger.warn({ running: running.get(), statusEvent }, 'Land build has been stopped');
-        await running.request.setStatus('aborted', 'Landkid pipelines build was stopped');
+        Logger.warn(
+          { running: running.get(), statusEvent },
+          'Land build has been stopped',
+        );
+        await running.request.setStatus(
+          'aborted',
+          'Landkid pipelines build was stopped',
+        );
         break;
       }
     }
@@ -141,6 +168,7 @@ export default class Runner {
   mergePassedBuild(running: LandRequest) {
     const pullRequestId = running.pullRequestId;
     Logger.info({ pullRequestId, running }, 'Merging pull request');
+    // TODO: Handle merge failure
     this.client.mergePullRequest(pullRequestId);
   }
 
@@ -161,7 +189,7 @@ export default class Runner {
       paused: true,
       reason,
       // TODO: Get AAID here
-      pauserAaid: '__TOTALLY_AN_AAID__'
+      pauserAaid: '__TOTALLY_AN_AAID__',
     });
   }
 
@@ -169,7 +197,7 @@ export default class Runner {
     await PauseStateTransition.create<PauseStateTransition>({
       paused: false,
       // TODO: Get AAID here
-      pauserAaid: '__TOTALLY_AN_AAID__'
+      pauserAaid: '__TOTALLY_AN_AAID__',
     });
   }
 
@@ -187,7 +215,7 @@ export default class Runner {
       };
     }
     return state.get();
-  }
+  };
 
   private isPaused = async () => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
@@ -195,22 +223,26 @@ export default class Runner {
     });
     if (!state) return false;
     return state.paused;
-  }
+  };
 
-  private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
-    const pr = await PullRequest.findOne<PullRequest>({
-      where: {
+  private async createRequestFromOptions(
+    landRequestOptions: LandRequestOptions,
+  ) {
+    const pr =
+      (await PullRequest.findOne<PullRequest>({
+        where: {
+          prId: landRequestOptions.prId,
+        },
+      })) ||
+      (await PullRequest.create<PullRequest>({
         prId: landRequestOptions.prId,
-      },
-    }) || await PullRequest.create<PullRequest>({
-      prId: landRequestOptions.prId,
-      authorAaid: landRequestOptions.prAuthorAaid,
-      title: landRequestOptions.prTitle,
-    });
+        authorAaid: landRequestOptions.prAuthorAaid,
+        title: landRequestOptions.prTitle,
+      }));
 
     return await LandRequest.create<LandRequest>({
       triggererAaid: landRequestOptions.triggererAaid,
-      pullRequestId: pr.id,
+      pullRequestId: pr.prId,
       forCommit: landRequestOptions.commit,
     });
   }
@@ -234,7 +266,6 @@ export default class Runner {
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
   }
-
 
   async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
     // TODO: Ensure no land request is pending for this PR
@@ -267,9 +298,7 @@ export default class Runner {
   }
 
   async checkWaitingLandRequests() {
-    Logger.info(
-      'Checking for waiting landrequests ready to queue',
-    );
+    Logger.info('Checking for waiting landrequests ready to queue');
 
     for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
       const pullRequestId = landRequest.request.pullRequestId;
@@ -291,7 +320,7 @@ export default class Runner {
       order: [['dateAssigned', 'DESC']],
       group: 'aaid',
     })).map(p => p.aaid);
-  }
+  };
 
   private getDatesSinceLastFailures = async (): Promise<number> => {
     const lastFailure = await LandRequestStatus.findOne<LandRequestStatus>({
@@ -303,11 +332,19 @@ export default class Runner {
       order: [['date', 'DESC']],
     });
     if (!lastFailure) return -1;
-    return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
-  }
+    return Math.floor(
+      (Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24),
+    );
+  };
 
   async getState(): Promise<RunnerState> {
-    const [daysSinceLastFailure, pauseState, queue, usersAllowedToLand, waitingToQueue] = await Promise.all([
+    const [
+      daysSinceLastFailure,
+      pauseState,
+      queue,
+      usersAllowedToLand,
+      waitingToQueue,
+    ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
@@ -320,9 +357,9 @@ export default class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
-      bitbucketBaseUrl: `https://bitbucket.org/${this.config.hostConfig.repoOwner}/${
-        this.config.hostConfig.repoName
-      }`
+      bitbucketBaseUrl: `https://bitbucket.org/${
+        this.config.hostConfig.repoOwner
+      }/${this.config.hostConfig.repoName}`,
     };
   }
 }

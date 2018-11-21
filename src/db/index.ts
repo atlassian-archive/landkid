@@ -1,4 +1,15 @@
-import { Model, Table, Column, Sequelize, Default, PrimaryKey, AllowNull, HasMany, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import {
+  Model,
+  Table,
+  Column,
+  Sequelize,
+  Default,
+  PrimaryKey,
+  AllowNull,
+  HasMany,
+  ForeignKey,
+  BelongsTo,
+} from 'sequelize-typescript';
 import * as path from 'path';
 
 @Table
@@ -9,6 +20,8 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   readonly id: string;
 
   @ForeignKey(() => PullRequest)
+  @AllowNull(false)
+  @Column(Sequelize.INTEGER)
   readonly pullRequestId: number;
 
   @AllowNull(false)
@@ -41,7 +54,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       },
       order: [['date', 'ASC']],
     });
-  }
+  };
 
   setStatus = async (state: LandRequestStatus['state'], reason?: string) => {
     return await LandRequestStatus.create<LandRequestStatus>({
@@ -49,11 +62,12 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       reason,
       requestId: this.id,
     });
-  }
+  };
 }
 
 @Table
-export class LandRequestStatus extends Model<LandRequestStatus> implements IStatusUpdate {
+export class LandRequestStatus extends Model<LandRequestStatus>
+  implements IStatusUpdate {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
@@ -69,7 +83,19 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
   readonly reason: string | null;
 
   @AllowNull(false)
-  @Column(Sequelize.ENUM({ values: ['will-queue-when-ready', 'created', 'queued', 'running', 'success', 'fail', 'aborted'] }))
+  @Column(
+    Sequelize.ENUM({
+      values: [
+        'will-queue-when-ready',
+        'created',
+        'queued',
+        'running',
+        'success',
+        'fail',
+        'aborted',
+      ],
+    }),
+  )
   readonly state: IStatusUpdate['state'];
 
   @BelongsTo(() => LandRequest)
@@ -114,10 +140,11 @@ export class Permission extends Model<Permission> {
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly assignedByAaid: string;
-};
+}
 
 @Table
-export class PauseStateTransition extends Model<PauseStateTransition> implements IPauseState {
+export class PauseStateTransition extends Model<PauseStateTransition>
+  implements IPauseState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
@@ -139,7 +166,7 @@ export class PauseStateTransition extends Model<PauseStateTransition> implements
   @Default(() => new Date())
   @Column(Sequelize.DATE)
   readonly date: Date;
-};
+}
 
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize({

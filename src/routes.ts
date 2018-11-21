@@ -52,7 +52,7 @@ export default function routes(
     '/api/current-state',
     wrap(async (req, res) => {
       const state = await runner.getState();
-      Logger.info(state, 'Requesting current state');
+      Logger.info('Requesting current state');
       res.header('Access-Control-Allow-Origin', '*').json(state);
     }),
   );
@@ -103,7 +103,7 @@ export default function routes(
         prAuthorAaid: '',
         // createdTime: new Date(),
       };
-      const positionInQueue = runner.enqueue(landRequest);
+      const positionInQueue = await runner.enqueue(landRequest);
       Logger.info({ landRequest, positionInQueue }, 'Request to land received');
 
       res
@@ -144,7 +144,7 @@ export default function routes(
       };
       // const positionInQueue = runner.enqueue(landRequest);
       Logger.info({ landRequest }, 'Request to land when able received');
-      runner.addToWaitingToLand(landRequest);
+      await runner.addToWaitingToLand(landRequest);
       res
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
@@ -181,7 +181,7 @@ export default function routes(
         .header('Access-Control-Allow-Origin', '*')
         .status(200)
         .json({
-            newQueue: [],
+          newQueue: [],
           // newQueue: state.queue,
         });
     }),
