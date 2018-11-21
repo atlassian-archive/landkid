@@ -1,8 +1,8 @@
 import { LandRequestQueue } from './Queue';
-import Client from './Client';
+import { BitbucketClient } from './bitbucket/BitbucketClient';
 // import History from './History';
 import Logger from './Logger';
-import { StatusEvent, RunnerState, Config, LandRequestOptions } from './types';
+import { RunnerState, Config, LandRequestOptions } from './types';
 import { withLock } from './locker';
 import {
   LandRequest,
@@ -12,21 +12,12 @@ import {
   LandRequestStatus,
 } from './db';
 
-export default class Runner {
-  queue: LandRequestQueue;
-  // history: History;
-  // we'll just store the waitingToLand in a simple list for now
-  // TODO: Clean up all the state in Runner to make more sense
-  // waitingToLand: Array<LandRequest>;
-  client: Client;
-  config: Config;
-
-  constructor(queue: LandRequestQueue, client: Client, config: Config) {
-    this.queue = queue;
-    this.client = client;
-    // this.history = history;
-    this.config = config;
-
+export class Runner {
+  constructor(
+    private queue: LandRequestQueue,
+    private client: BitbucketClient,
+    private config: Config,
+  ) {
     // call our checkWaitingLandRequests() function on an interval so that we are always clearing out waiting builds
     const timeBetweenChecksMins = 2;
     setInterval(() => {
@@ -88,7 +79,7 @@ export default class Runner {
     });
   }
 
-  onStatusUpdate = async (statusEvent: StatusEvent) => {
+  onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
     if (!running) {
       Logger.info(statusEvent, 'No build running, status event is irrelevant');
@@ -358,8 +349,8 @@ export default class Runner {
       usersAllowedToLand,
       waitingToQueue,
       bitbucketBaseUrl: `https://bitbucket.org/${
-        this.config.hostConfig.repoOwner
-      }/${this.config.hostConfig.repoName}`,
+        this.config.repoConfig.repoOwner
+      }/${this.config.repoConfig.repoName}`,
     };
   }
 }

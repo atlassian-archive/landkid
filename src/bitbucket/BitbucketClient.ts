@@ -1,12 +1,7 @@
-import {
-  Host,
-  CI,
-  StatusEvent,
-  PullRequestSettings,
-  ApprovalChecks,
-  BBPullRequest,
-} from './types';
-import Logger from './Logger';
+import { PullRequestSettings, ApprovalChecks, Config } from '../types';
+import Logger from '../Logger';
+import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
+import { BitbucketAPI } from './BitBucketAPI';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(
@@ -37,29 +32,24 @@ function passedPullRequestChecks(
   return passed;
 }
 
-export default class Client {
-  hostAdaptor: Host;
-  ciAdaptor: CI;
-  prSettings: PullRequestSettings;
+export class BitbucketClient {
+  private bitbucket = new BitbucketAPI(this.config.repoConfig);
+  private pipelines = new BitbucketPipelinesAPI(this.config.repoConfig);
 
-  constructor(host: Host, ci: CI, settings: PullRequestSettings) {
-    this.hostAdaptor = host;
-    this.ciAdaptor = ci;
-    this.prSettings = settings;
-  }
+  constructor(private config: Config) {}
 
   async isAllowedToLand(pullRequestId: number) {
-    const pullRequest: BBPullRequest = await this.hostAdaptor.getPullRequest(
+    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(
       pullRequestId,
     );
-    const buildStatuses = await this.hostAdaptor.getPullRequestBuildStatuses(
+    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(
       pullRequestId,
     );
     const author = pullRequest.author;
     let approvals = getRealApprovals(
       pullRequest.approvals,
       author,
-      this.prSettings.canApproveOwnPullRequest,
+      this.config.prSettings.canApproveOwnPullRequest,
     );
 
     // TODO: add extra check for isApproved against list of users allowed to approve (if configured)
@@ -69,17 +59,20 @@ export default class Client {
         buildStatuses.every(status => status.state === 'SUCCESSFUL') &&
         buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
-      isApproved: approvals.length >= this.prSettings.requiredApprovals,
+      isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
 
-    const isAllowed = passedPullRequestChecks(this.prSettings, approvalChecks);
+    const isAllowed = passedPullRequestChecks(
+      this.config.prSettings,
+      approvalChecks,
+    );
 
     Logger.info(
       {
         pullRequestId,
         isAllowed,
         approvalChecks,
-        requirements: this.prSettings,
+        requirements: this.config.prSettings,
       },
       'isAllowedToLand()',
     );
@@ -91,26 +84,18 @@ export default class Client {
   }
 
   createLandBuild(commit: string) {
-    return this.ciAdaptor.createLandBuild(commit);
+    return this.pipelines.createLandBuild(commit);
   }
 
   async stopLandBuild(buildId: number) {
-    return await this.ciAdaptor.stopLandBuild(buildId);
+    return await this.pipelines.stopLandBuild(buildId);
   }
 
   async mergePullRequest(pullRequestId: number) {
-    return await this.hostAdaptor.mergePullRequest(pullRequestId);
+    return await this.bitbucket.mergePullRequest(pullRequestId);
   }
 
-  processStatusWebhook(body: any): StatusEvent | null {
-    return this.ciAdaptor.processStatusWebhook(body);
-  }
-
-  createBuildUrl(buildId: number): string {
-    return this.ciAdaptor.getBuildUrl(buildId);
-  }
-
-  createPullRequestUrl(pullRequestId: number): string {
-    return this.hostAdaptor.getPullRequestUrl(pullRequestId);
+  processStatusWebhook(body: any): BB.BuildStatusEvent | null {
+    return this.pipelines.processStatusWebhook(body);
   }
 }

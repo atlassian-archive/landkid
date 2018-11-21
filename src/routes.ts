@@ -1,8 +1,7 @@
 import * as express from 'express';
 import * as path from 'path';
-import Runner from './Runner';
-import Client from './Client';
-import onStatus from './events/onStatus';
+import { Runner } from './Runner';
+import { BitbucketClient } from './bitbucket/BitbucketClient';
 import Logger from './Logger';
 import { LandRequestOptions } from './types';
 
@@ -20,7 +19,7 @@ function wrap(fn: express.RequestHandler): express.RequestHandler {
 
 export default function routes(
   server: express.Application,
-  client: Client,
+  client: BitbucketClient,
   runner: Runner,
 ) {
   bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
@@ -88,7 +87,6 @@ export default function routes(
         res.sendStatus(404);
         return;
       }
-      // const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
 
       // TODO: This logic should live in routes
       const landRequest: LandRequestOptions = {
@@ -127,8 +125,6 @@ export default function routes(
         res.sendStatus(404);
         return;
       }
-
-      // const pullRequestUrl = client.createPullRequestUrl(pullRequestId);
 
       const landRequest: LandRequestOptions = {
         // buildStatus: 'QUEUED',
@@ -213,7 +209,7 @@ export default function routes(
     wrap(async (req, res) => {
       res.status(200).send({});
       // status event will be null if we don't care about it
-      const statusEvent = onStatus(client, req.body);
+      const statusEvent = client.processStatusWebhook(req.body);
       if (!statusEvent) return;
       runner.onStatusUpdate(statusEvent);
     }),
