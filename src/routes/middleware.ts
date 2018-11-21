@@ -14,7 +14,7 @@ export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
 
 export const verifyWebhook = () => {};
 
-export const authenticateProxyCall: express.RequestHandler = wrap(
+export const authenticateIncomingBBCall: express.RequestHandler = wrap(
   async (req, res, next) => {
     const install = await Installation.findOne<Installation>();
     if (!install) {

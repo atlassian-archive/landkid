@@ -2,10 +2,12 @@ import * as express from 'express';
 
 import { Runner } from '../../../lib/Runner';
 import { BitbucketClient } from '../../../bitbucket/BitbucketClient';
-import { wrap } from '../../middleware';
+import { wrap, authenticateIncomingBBCall } from '../../middleware';
 
 export function webhookRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
+
+  router.use(authenticateIncomingBBCall);
 
   router.post(
     '/status-updated',

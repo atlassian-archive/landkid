@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { authenticateProxyCall, wrap } from '../../middleware';
+import { authenticateIncomingBBCall, wrap } from '../../middleware';
 import { Installation } from '../../../db';
 
 export function lifecycleRoutes() {
@@ -40,7 +40,7 @@ export function lifecycleRoutes() {
 
   router.post(
     '/uninstalled',
-    authenticateProxyCall,
+    authenticateIncomingBBCall,
     wrap(async (req, res) => {
       await Installation.destroy({
         where: {
