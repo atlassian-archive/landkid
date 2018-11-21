@@ -1,54 +1,23 @@
 import * as express from 'express';
-import * as path from 'path';
-import { Runner } from './Runner';
-import { BitbucketClient } from './bitbucket/BitbucketClient';
-import Logger from './Logger';
-import { LandRequestOptions } from './types';
 
-const bitbucketAddonDescriptor: any = require('./static/bitbucket/atlassian-connect.json');
+import { wrap } from '../../middleware';
+import { Runner } from '../../Runner';
+import Logger from '../../Logger';
+import { LandRequestOptions } from '../../types';
+import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 
-function wrap(fn: express.RequestHandler): express.RequestHandler {
-  return async (req, res, next) => {
-    try {
-      await Promise.resolve(fn(req, res, next));
-    } catch (err) {
-      next(err);
-    }
-  };
-}
-
-export default function routes(
+export function apiRoutes(
   server: express.Application,
-  client: BitbucketClient,
   runner: Runner,
+  client: BitbucketClient,
 ) {
-  bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
+  const router = express();
+
   const usersAllowedToMerge = server.settings.usersAllowedToMerge;
   const allowLandWhenAble = server.settings.allowLandWhenAble;
-  // TODO: Definitely clean up where this logic sits, it's all a hack atm
-  if (server.settings.repoUuid) {
-    bitbucketAddonDescriptor.modules.webPanels[0].conditions.push({
-      condition: 'equals',
-      target: 'repository.uuid',
-      params: {
-        value: server.settings.repoUuid,
-      },
-    });
-  }
 
-  server.get(
-    '/',
-    wrap((req, res) => {
-      res.sendStatus(200);
-    }),
-  );
-
-  server.get('/healthcheck', (req, res) => {
-    res.sendStatus(200);
-  });
-
-  server.get(
-    '/api/current-state',
+  router.get(
+    '/current-state',
     wrap(async (req, res) => {
       const state = await runner.getState();
       Logger.info('Requesting current state');
@@ -56,8 +25,8 @@ export default function routes(
     }),
   );
 
-  server.get(
-    '/api/settings',
+  router.get(
+    '/settings',
     wrap(async (req, res) => {
       const settings = { allowLandWhenAble, usersAllowedToMerge };
       Logger.info(settings, 'Requesting current settings');
@@ -65,8 +34,8 @@ export default function routes(
     }),
   );
 
-  server.get(
-    '/api/is-allowed-to-land/:pullRequestId',
+  router.get(
+    '/is-allowed-to-land/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
       const isAllowedToLand = await client.isAllowedToLand(pullRequestId);
@@ -74,8 +43,8 @@ export default function routes(
     }),
   );
 
-  server.post(
-    '/api/land-pr/:pullRequestId',
+  router.post(
+    '/land-pr/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
       // const username = req.query.username;
@@ -112,8 +81,8 @@ export default function routes(
     }),
   );
 
-  server.post(
-    '/api/land-when-able/:pullRequestId',
+  router.post(
+    '/land-when-able/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = req.params.pullRequestId;
       // const username = req.query.username;
@@ -148,8 +117,8 @@ export default function routes(
     }),
   );
 
-  server.post(
-    '/api/cancel-pr/:pullRequestId',
+  router.post(
+    '/cancel-pr/:pullRequestId',
     wrap(async (req, res) => {
       const pullRequestId = parseInt(req.params.pullRequestId, 10);
       const userUuid = req.query.userUuid;
@@ -183,7 +152,7 @@ export default function routes(
     }),
   );
 
-  server.post('/api/pause', (req, res) => {
+  router.post('/pause', (req, res) => {
     let pausedReason = 'Paused via API';
     if (req && req.body && req.body.reason) {
       pausedReason = String(req.body.reason);
@@ -192,53 +161,17 @@ export default function routes(
     res.json({ paused: true, pausedReason });
   });
 
-  server.post('/api/unpause', (req, res) => {
+  router.post('/unpause', (req, res) => {
     runner.unpause();
     res.json({ paused: false });
   });
 
   // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to
   // expose
-  server.post('/api/next', (req, res) => {
+  router.post('/next', (req, res) => {
     runner.next();
     res.json({ message: 'Calling next()' });
   });
 
-  server.post(
-    '/webhook/status-updated',
-    wrap(async (req, res) => {
-      res.status(200).send({});
-      // status event will be null if we don't care about it
-      const statusEvent = client.processStatusWebhook(req.body);
-      if (!statusEvent) return;
-      runner.onStatusUpdate(statusEvent);
-    }),
-  );
-
-  // Note: since this path is here first, atlassian-connect.json will be served here, not from the
-  // the express.static call below (we need to send the modified descriptor)
-  server.get('/bitbucket/atlassian-connect.json', (req, res) => {
-    res
-      .header('Access-Control-Allow-Origin', '*')
-      .json(bitbucketAddonDescriptor);
-  });
-
-  // if we are in a production build, then serve static files from our static directories (front end
-  // ui code)
-  if (process.env.NODE_ENV === 'production') {
-    server.use(express.static(path.join(__dirname, 'static')));
-  }
-
-  // TODO: I don't think this is working as intended right now, dig into this
-  server.use(((err, _, res, next) => {
-    if (err) {
-      Logger.error({ err }, 'Error ');
-      res.status(500).send({
-        error: err.message,
-        stack: err.stack,
-      });
-    } else {
-      next();
-    }
-  }) as express.ErrorRequestHandler);
+  return router;
 }

@@ -9,7 +9,7 @@ import { initializeSequelize } from './db';
 
 import { LandRequestQueue } from './Queue';
 import { Runner } from './Runner';
-import routes from './routes';
+import { routes } from './routes';
 import { BitbucketClient } from './bitbucket/BitbucketClient';
 // import History from './History';
 
@@ -65,7 +65,12 @@ module.exports = async function atlaskid(config: Config) {
   const queue = new LandRequestQueue();
   const runner = new Runner(queue, client, config);
 
-  routes(server, client, runner);
+  try {
+    routes(server, client, runner);
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
 
   return server;
 };

@@ -1,8 +1,8 @@
 {
   "name": "Atlaskid",
   "description": "Addon to display a 'release queue' panel in PRs",
-  "baseUrl": "https://lbatch.ngrok.io/",
-  "key": "atlaskid-addon",
+  "baseUrl": "https://sattard.au.ngrok.io/",
+  "key": "atlaskid-addon-foo",
   "vendor": {
     "name": "Luke Batchelor"
   },
@@ -10,8 +10,23 @@
   "authentication": {
     "type": "jwt"
   },
-  "contexts": ["account"],
+  "contexts": ["personal"],
+  "lifecycle": {
+    "installed": "/bitbucket/lifecycle/installed",
+    "uninstalled": "/bitbucket/lifecycle/uninstalled"
+  },
   "modules": {
+    "proxy": {
+      "/can-land": {
+        "destination": "/api/bitbucket/proxy/can-land?aaid={user.account_id}&pullRequestId={pullrequest.id}"
+      },
+      "/land": {
+        "destination": "/api/bitbucket/proxy/land?aaid={user.account_id}&pullRequestId={pullrequest.id}"
+      },
+      "/land-when-able": {
+        "destination": "/api/bitbucket/proxy/land-when-able?aaid={user.account_id}&pullRequestId={pullrequest.id}"
+      }
+    },
     "webPanels": [{
       "weight": 100,
       "tooltip": {
@@ -32,7 +47,7 @@
     }],
     "webhooks": [{
       "event": "repo:commit_status_updated",
-      "url": "/webhook/status-updated"
+      "url": "/bitbucket/webhook/status-updated"
     }]
   }
 }

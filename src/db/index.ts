@@ -13,6 +13,21 @@ import {
 import * as path from 'path';
 
 @Table
+export class Installation extends Model<Installation> {
+  @PrimaryKey
+  @Column(Sequelize.STRING)
+  readonly id: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  clientKey: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  sharedSecret: string;
+}
+
+@Table
 export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
@@ -205,6 +220,7 @@ export const initializeSequelize = async () => {
   } as any);
 
   sequelize.addModels([
+    Installation,
     PauseStateTransition,
     Permission,
     PullRequest,
