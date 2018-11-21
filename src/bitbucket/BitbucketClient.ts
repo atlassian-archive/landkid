@@ -1,7 +1,7 @@
 import { PullRequestSettings, ApprovalChecks, Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
-import { BitbucketAPI } from './BitBucketAPI';
+import { BitbucketAPI } from './BitbucketAPI';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(
