@@ -35,6 +35,9 @@ export type Props = RunnerState;
 export function CurrentState(props: Props) {
   // const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
   const { daysSinceLastFailure, queue, pauseState } = props;
+  const fancyDaysSinceLastFailure = daysSinceLastFailure === -1
+    ? '∞'
+    : daysSinceLastFailure;
   function renderColumns() {
     return (
       <div className={styles}>
@@ -42,9 +45,9 @@ export function CurrentState(props: Props) {
           <h4 className="current-state__card-title">Days Since Last Accident:</h4>
           <div
             className="current-state__info"
-            title={`${daysSinceLastFailure}`}
+            title={`${fancyDaysSinceLastFailure}`}
           >
-            {daysSinceLastFailure} days
+            {fancyDaysSinceLastFailure} days
           </div>
         </div>
         <div className="current-state__card">

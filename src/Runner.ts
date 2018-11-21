@@ -4,7 +4,7 @@ import Client from './Client';
 import Logger from './Logger';
 import { StatusEvent, RunnerState, Config, LandRequestOptions } from './types';
 import { withLock } from './locker';
-import { LandRequest, PauseStateTransition, PullRequest, Permission } from './db';
+import { LandRequest, PauseStateTransition, PullRequest, Permission, LandRequestStatus } from './db';
 
 export default class Runner {
   queue: LandRequestQueue;
@@ -293,15 +293,29 @@ export default class Runner {
     })).map(p => p.aaid);
   }
 
+  private getDatesSinceLastFailures = async (): Promise<number> => {
+    const lastFailure = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        state: {
+          $in: ['fail', 'aborted'],
+        },
+      },
+      order: [['date', 'DESC']],
+    });
+    if (!lastFailure) return -1;
+    return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
   async getState(): Promise<RunnerState> {
-    const [pauseState, queue, usersAllowedToLand, waitingToQueue] = await Promise.all([
+    const [daysSinceLastFailure, pauseState, queue, usersAllowedToLand, waitingToQueue] = await Promise.all([
+      this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
       this.getUsersAllowedToLand(),
       this.queue.getStatusesForWaitingRequests(),
     ]);
     return {
-      daysSinceLastFailure: 0,
+      daysSinceLastFailure,
       pauseState,
       queue,
       usersAllowedToLand,
