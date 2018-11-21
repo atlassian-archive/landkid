@@ -2,22 +2,20 @@ import * as express from 'express';
 // import * as morgan from 'morgan';
 import * as findUp from 'find-up';
 
-import hosts from './hosts';
-import cis from './ci';
 import { Config } from './types';
 import * as bodyParser from 'body-parser';
 
 import { initializeSequelize } from './db';
 
 import { LandRequestQueue } from './Queue';
-import Runner from './Runner';
+import { Runner } from './Runner';
 import routes from './routes';
-import Client from './Client';
+import { BitbucketClient } from './bitbucket/BitbucketClient';
 // import History from './History';
 
 module.exports = async function atlaskid(config: Config) {
   await initializeSequelize();
-  
+
   const server = express();
   // If we are in dev mode we'll use the webpack dev server, if not we'll be using the built static
   // files in dist/[legacy|modern]/static. Routing for this is in ./routes.js
@@ -57,13 +55,11 @@ module.exports = async function atlaskid(config: Config) {
   server.set('baseUrl', config.baseUrl);
   server.set('usersAllowedToMerge', usersAllowedToApprove);
   server.set('allowLandWhenAble', allowLandWhenAble);
-  if (config.hostConfig.repoUuid) {
-    server.set('repoUuid', config.hostConfig.repoUuid);
+  if (config.repoConfig.repoUuid) {
+    server.set('repoUuid', config.repoConfig.repoUuid);
   }
 
-  const host = hosts[config.host](config.hostConfig);
-  const ci = cis[config.ci](config.ciConfig);
-  let client = new Client(host, ci, config.prSettings);
+  const client = new BitbucketClient(config);
   // let history = new History();
 
   const queue = new LandRequestQueue();
