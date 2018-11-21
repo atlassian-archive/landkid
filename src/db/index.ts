@@ -51,16 +51,36 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
     return await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         requestId: this.id,
+        isLatest: true,
       },
       order: [['date', 'ASC']],
     });
   };
 
   setStatus = async (state: LandRequestStatus['state'], reason?: string) => {
-    return await LandRequestStatus.create<LandRequestStatus>({
-      state,
-      reason,
-      requestId: this.id,
+    await this.sequelize.transaction(async t => {
+      // First we'll check if there is an old status for this LandRequest
+      await LandRequestStatus.update(
+        {
+          isLatest: false,
+        },
+        {
+          where: {
+            requestId: this.id,
+          },
+          transaction: t,
+        },
+      );
+
+      await LandRequestStatus.create<LandRequestStatus>(
+        {
+          state,
+          reason,
+          requestId: this.id,
+          isLatest: true,
+        },
+        { transaction: t },
+      );
     });
   };
 }
@@ -97,6 +117,11 @@ export class LandRequestStatus extends Model<LandRequestStatus>
     }),
   )
   readonly state: IStatusUpdate['state'];
+
+  @AllowNull(false)
+  @Default(true)
+  @Column(Sequelize.BOOLEAN)
+  isLatest: boolean;
 
   @BelongsTo(() => LandRequest)
   request: LandRequest;

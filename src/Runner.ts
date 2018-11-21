@@ -109,10 +109,11 @@ export class Runner {
     switch (statusEvent.buildStatus) {
       case 'SUCCESSFUL': {
         try {
-          await this.mergePassedBuild(running.request);
+          const pullRequestId = running.request.pullRequestId;
+          Logger.info({ pullRequestId, running }, 'Merging pull request');
+          await this.client.mergePullRequest(pullRequestId);
           await running.request.setStatus('success');
         } catch (err) {
-          console.error(err);
           await running.request.setStatus('fail');
         }
         break;
@@ -137,31 +138,7 @@ export class Runner {
         break;
       }
     }
-
-    // if (statusEvent.) {
-    //   this.mergePassedBuild(running);
-    //   // addToHistory();
-    //   // this.running = null;
-    //   this.next();
-    // } else if (statusEvent.failed) {
-    //   Logger.error({ running, statusEvent }, 'Land build failed');
-    //   // addToHistory();
-    //   // this.running = null;
-    //   this.next();
-    // } else if (statusEvent.stopped) {
-    //   Logger.warn({ running, statusEvent }, 'Land build has been stopped');
-    //   // addToHistory();
-    //   // this.running = null;
-    //   this.next();
-    // }
   };
-
-  mergePassedBuild(running: LandRequest) {
-    const pullRequestId = running.pullRequestId;
-    Logger.info({ pullRequestId, running }, 'Merging pull request');
-    // TODO: Handle merge failure
-    this.client.mergePullRequest(pullRequestId);
-  }
 
   async cancelCurrentlyRunningBuild() {
     const running = await this.getRunning();
