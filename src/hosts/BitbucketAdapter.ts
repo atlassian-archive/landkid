@@ -98,16 +98,20 @@ const BitbucketAdapter = (config: HostConfig) => {
           'Merge attempt failed',
         );
       };
-      pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
+      await pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
         .then(() => Logger.info({ pullRequestId }, 'Merged Pull Request'))
-        .catch(err =>
-          Logger.error({ err, pullRequestId }, 'Unable to merge pull request'),
-        );
+        .catch(err => {
+          Logger.error({ err, pullRequestId }, 'Unable to merge pull request');
+          throw err;
+        });
     },
 
     async getPullRequest(pullRequestId: number): Promise<BBPullRequest> {
       const endpoint = `${apiBaseUrl}/pullrequests/${pullRequestId}`;
-      const resp = await axios.get<BBPullRequestResponse>(endpoint, axiosGetConfig);
+      const resp = await axios.get<BBPullRequestResponse>(
+        endpoint,
+        axiosGetConfig,
+      );
       const data = resp.data;
       const approvals = data.participants
         .filter(participant => participant.approved)

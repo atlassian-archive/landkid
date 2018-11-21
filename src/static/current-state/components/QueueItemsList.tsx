@@ -27,13 +27,20 @@ export const QueueItemsList: React.FunctionComponent<
   QueueItemsListProps
 > = props => {
   const { queue, fading, renderEmpty } = props;
-  if (!queue.length) {
+  const filteredQueue = queue.filter(item => item.state !== 'running');
+  if (!filteredQueue.length) {
     return renderEmpty ? renderEmpty() : <EmptyState>Empty...</EmptyState>;
   }
 
   return (
     <div className={fading ? fadingStyles : ''}>
-      {queue.map(item => <QueueItemJoined bitbucketBaseUrl={props.bitbucketBaseUrl} request={item.request} status={item} />)}
+      {filteredQueue.map(item => (
+        <QueueItemJoined
+          bitbucketBaseUrl={props.bitbucketBaseUrl}
+          request={item.request}
+          status={item}
+        />
+      ))}
     </div>
   );
 };
