@@ -1,6 +1,7 @@
 import * as express from 'express';
 
 import { wrap } from '../middleware';
+import { config } from '../../lib/Config';
 import { Runner } from '../../lib/Runner';
 import { Logger } from '../../lib/Logger';
 import { LandRequestOptions } from '../../types';
@@ -12,9 +13,6 @@ export function apiRoutes(
   client: BitbucketClient,
 ) {
   const router = express();
-
-  const usersAllowedToMerge = server.settings.usersAllowedToMerge;
-  const allowLandWhenAble = server.settings.allowLandWhenAble;
 
   router.get(
     '/current-state',
@@ -28,9 +26,8 @@ export function apiRoutes(
   router.get(
     '/settings',
     wrap(async (req, res) => {
-      const settings = { allowLandWhenAble, usersAllowedToMerge };
-      Logger.info('Requesting current settings', settings);
-      res.header('Access-Control-Allow-Origin', '*').json(settings);
+      Logger.info('Requesting current settings', config.prSettings);
+      res.header('Access-Control-Allow-Origin', '*').json(config.prSettings);
     }),
   );
 
