@@ -1,16 +1,16 @@
 import { LandRequestQueue } from './Queue';
-import { BitbucketClient } from './bitbucket/BitbucketClient';
+import { BitbucketClient } from '../bitbucket/BitbucketClient';
 // import History from './History';
 import { Logger } from './Logger';
-import { RunnerState, Config, LandRequestOptions } from './types';
-import { withLock } from './locker';
+import { RunnerState, Config, LandRequestOptions } from '../types';
+import { withLock } from './utils/locker';
 import {
   LandRequest,
   PauseStateTransition,
   PullRequest,
   Permission,
   LandRequestStatus,
-} from './db';
+} from '../db';
 
 export class Runner {
   constructor(

@@ -1,8 +1,8 @@
 import * as express from 'express';
 
-import { wrap } from '../../middleware';
-import { Runner } from '../../Runner';
-import { Logger } from '../../Logger';
+import { wrap } from '../middleware';
+import { Runner } from '../../lib/Runner';
+import { Logger } from '../../lib/Logger';
 import { LandRequestOptions } from '../../types';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 

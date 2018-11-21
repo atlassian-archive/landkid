@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { authenticateProxyCall, wrap } from '../../../middleware';
+import { authenticateProxyCall, wrap } from '../../middleware';
 import { Installation } from '../../../db';
 
 export function lifecycleRoutes() {

@@ -1,8 +1,8 @@
 import * as express from 'express';
 import * as path from 'path';
-import { Runner } from '../Runner';
+import { Runner } from '../lib/Runner';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
-import { Logger } from '../Logger';
+import { Logger } from '../lib/Logger';
 import { apiRoutes } from './api';
 import { bitbucketRoutes } from './bitbucket';
 import { makeDescriptor } from '../bitbucket/descriptor';

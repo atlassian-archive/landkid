@@ -1,8 +1,8 @@
 import * as express from 'express';
 
-import { Runner } from '../../../Runner';
+import { Runner } from '../../../lib/Runner';
 import { BitbucketClient } from '../../../bitbucket/BitbucketClient';
-import { wrap } from '../../../middleware';
+import { wrap } from '../../middleware';
 
 export function webhookRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();

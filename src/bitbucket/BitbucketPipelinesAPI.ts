@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Logger } from '../Logger';
+import { Logger } from '../lib/Logger';
 import { RepoConfig } from '../types';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
