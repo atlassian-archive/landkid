@@ -4,7 +4,7 @@ type UserInfo = {
   displayName: string;
   username: string;
   aaid: string;
-}
+};
 
 export type Props = {
   aaid: string;
@@ -14,10 +14,10 @@ export type Props = {
 
 export type State = {
   info?: UserInfo;
-}
+};
 
 export class User extends React.Component<Props, State> {
-  state: State = {}
+  state: State = {};
 
   // TODO: Fetch info for AAID in memoized / cached way
 

@@ -99,7 +99,10 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
   </div>
 );
 
-const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
+const landStatusToAppearance: Record<
+  IStatusUpdate['state'],
+  LozengeAppearance
+> = {
   'will-queue-when-ready': 'new',
   queued: 'new',
   running: 'inprogress',
@@ -126,11 +129,10 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   aborted: 'Aborted',
 };
 
-const buildUrlFromId = (base: string, id: number) => 
+const buildUrlFromId = (base: string, id: number) =>
   `${base}/addon/pipelines/home#!/results/${id}`;
 
-const prUrlFromId = (base: string, id: number) =>
-  `${base}/pull-requests/${id}`;
+const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
 export type QueueItemProps = {
   request: ILandRequest;
@@ -146,20 +148,22 @@ export function QueueItem(props: QueueItemProps) {
   return (
     <a
       className={`${queueItemStyles} queue-item`}
-      href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
+      href={
+        request.buildId
+          ? buildUrlFromId(bitbucketBaseUrl, request.buildId)
+          : '#'
+      }
     >
       <div className="queue-item__title">
-        <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>[PR #{request.pullRequestId}]</a>{' '}
+        <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
+          [PR #{request.pullRequestId}]
+        </a>{' '}
         {request.pullRequest.title}
       </div>
       <div className="queue-item__status-line">
         <StatusItem title="Status:">
           <Lozenge
-            appearance={
-              status
-              ? landStatusToAppearance[status.state]
-              : 'new'
-            }
+            appearance={status ? landStatusToAppearance[status.state] : 'new'}
           >
             {landStatusToNiceString[status.state]}
           </Lozenge>
@@ -168,7 +172,7 @@ export function QueueItem(props: QueueItemProps) {
         <StatusItem title="Author:">
           <Lozenge>
             <User aaid={request.pullRequest.authorAaid}>
-              {(user) => {
+              {user => {
                 return user.username;
               }}
             </User>
@@ -182,10 +186,7 @@ export function QueueItem(props: QueueItemProps) {
         {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
           <StatusItem title="Duration:">
             <Lozenge appearance="new">
-              {duration(
-                +new Date(request.created),
-                +new Date(status.date),
-              )}
+              {duration(+new Date(request.created), +new Date(status.date))}
             </Lozenge>
           </StatusItem>
         ) : null}

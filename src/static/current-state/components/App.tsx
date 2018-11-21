@@ -17,9 +17,7 @@ export function App() {
         renderLoading={() => <Section>Loading...</Section>}
         render={(data: RunnerState) => (
           <div>
-            <CurrentState
-              {...data}
-            />
+            <CurrentState {...data} />
 
             <RunningBuild
               queue={data.queue}

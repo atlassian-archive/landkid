@@ -21,7 +21,7 @@
     "clean": "rm -rf dist",
     "flow": "flow status",
     "test": "ava",
-    "format": "prettier --write src/**/*.js",
+    "format": "prettier --write src/**/*.ts src/**/*.tsx",
     "build:front-end": "OUTPUT_PATH=dist/static webpack --mode=production",
     "build:ac-json": "cp ./src/static/bitbucket/atlassian-connect.json dist/static/bitbucket",
     "build:server": "tsc",
@@ -95,6 +95,14 @@
   },
   "lint-staged": {
     "*.js": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.ts": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.tsx": [
       "prettier --write",
       "git add"
     ]
