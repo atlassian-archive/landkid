@@ -12,6 +12,7 @@
   * [ ] User permissions
     * [ ] frontend checks
     * [ ] backend checks
+  * [ ] Clean up and require auth for /api endpoints
 * [x] Remove abstractions
 * [x] Server entry point - borked
   * [x] webpack dev server

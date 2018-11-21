@@ -33,13 +33,10 @@ export function routes(
   router.use('/api', apiRoutes(server, runner, client));
   router.use('/bitbucket', bitbucketRoutes(runner, client));
 
-  // if we are in a production build, then serve static files from our static directories (front end
-  // ui code)
   if (process.env.NODE_ENV === 'production') {
-    router.use(express.static(path.join(__dirname, 'static')));
+    router.use(express.static(path.join(__dirname, '..', 'static')));
   }
 
-  // TODO: I don't think this is working as intended right now, dig into this
   router.use(((err, _, res, next) => {
     if (err) {
       Logger.error('Unhandled Express Error', { err });
