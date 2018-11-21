@@ -13,10 +13,10 @@
     * [ ] frontend checks
     * [ ] backend checks
 * [x] Remove abstractions
-* [ ] Server entry point - borked
-  * [ ] webpack dev server
+* [x] Server entry point - borked
+  * [x] webpack dev server
   * [ ] passing in config
-  * [ ] scripts for dev + prod
+  * [x] scripts for dev + prod
 * [ ] validate secret from bb on installation
 
 ## Luke

@@ -2,11 +2,10 @@ import * as express from 'express';
 import * as path from 'path';
 import { Runner } from '../Runner';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
-import Logger from '../Logger';
+import { Logger } from '../Logger';
 import { apiRoutes } from './api';
 import { bitbucketRoutes } from './bitbucket';
-
-const bitbucketAddonDescriptor: any = require('../static/bitbucket/atlassian-connect.json');
+import { makeDescriptor } from '../bitbucket/descriptor';
 
 export function routes(
   server: express.Application,
@@ -15,19 +14,10 @@ export function routes(
 ) {
   const router = express();
 
-  // TODO: Clean up addon descriptor generation
-  bitbucketAddonDescriptor.baseUrl = server.settings.baseUrl;
-  bitbucketAddonDescriptor.modules.webPanels[0].conditions.push({
-    condition: 'equals',
-    target: 'repository.uuid',
-    params: {
-      value: server.settings.repoUuid,
-    },
-  });
-
-  router.get('/', (req, res) => {
-    res.sendStatus(200);
-  });
+  const bitbucketAddonDescriptor = makeDescriptor(
+    server.settings.baseUrl,
+    server.settings.repoUuid,
+  );
 
   router.get('/healthcheck', (req, res) => {
     res.sendStatus(200);
@@ -50,7 +40,7 @@ export function routes(
   // TODO: I don't think this is working as intended right now, dig into this
   router.use(((err, _, res, next) => {
     if (err) {
-      Logger.error({ err }, 'Error ');
+      Logger.error('Unhandled Express Error', { err });
       res.status(500).send({
         error: err.message,
         stack: err.stack,

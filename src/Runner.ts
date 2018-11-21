@@ -1,7 +1,7 @@
 import { LandRequestQueue } from './Queue';
 import { BitbucketClient } from './bitbucket/BitbucketClient';
 // import History from './History';
-import Logger from './Logger';
+import { Logger } from './Logger';
 import { RunnerState, Config, LandRequestOptions } from './types';
 import { withLock } from './locker';
 import {
@@ -32,23 +32,19 @@ export class Runner {
   async next() {
     await withLock('Runner:next', async () => {
       const running = await this.getRunning();
-      Logger.info(
-        {
-          running: running,
-          queue: this.queue,
-        },
-        'Next() called',
-      );
+      Logger.info('Next() called', {
+        running: running,
+        queue: this.queue,
+      });
 
       if (running) return;
 
       const landRequestInfo = await this.queue.maybeGetStatusForNextRequestInQueue();
       if (!landRequestInfo) return;
       const landRequest = landRequestInfo.request;
-      Logger.info(
-        { landRequest: landRequest.get() },
-        'Checking if still allowed to land...',
-      );
+      Logger.info('Checking if still allowed to land...', {
+        landRequest: landRequest.get(),
+      });
 
       const commit = landRequest.forCommit;
       const isAllowedToLand = await this.client.isAllowedToLand(
@@ -56,10 +52,9 @@ export class Runner {
       );
 
       if (isAllowedToLand.isAllowed) {
-        Logger.info(
-          { landRequest: landRequest.get() },
-          'Allowed to land, creating land build',
-        );
+        Logger.info('Allowed to land, creating land build', {
+          landRequest: landRequest.get(),
+        });
         const buildId = await this.client.createLandBuild(commit);
         if (!buildId) return;
 
@@ -68,7 +63,7 @@ export class Runner {
         landRequest.buildId = buildId;
         await landRequest.save();
 
-        Logger.info({ running: landRequest.get() }, 'Land build now running');
+        Logger.info('Land build now running', { running: landRequest.get() });
       } else {
         Logger.info(
           { ...isAllowedToLand, ...landRequest.get() },
@@ -82,20 +77,20 @@ export class Runner {
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
     if (!running) {
-      Logger.info(statusEvent, 'No build running, status event is irrelevant');
+      Logger.info('No build running, status event is irrelevant', statusEvent);
       return;
     }
 
     if (running.request.buildId !== statusEvent.buildId) {
       return Logger.warn(
-        { statusEvent, running },
         `StatusEvent buildId doesn't match currently running buildId – ${
           statusEvent.buildId
         } !== ${running.request.buildId || ''}`,
+        { statusEvent, running },
       );
     }
 
-    Logger.info({ statusEvent, running }, 'Build status update');
+    Logger.info('Build status update', { statusEvent, running });
 
     // Add build status
     // this.running = running = {
@@ -110,7 +105,7 @@ export class Runner {
       case 'SUCCESSFUL': {
         try {
           const pullRequestId = running.request.pullRequestId;
-          Logger.info({ pullRequestId, running }, 'Merging pull request');
+          Logger.info('Merging pull request', { pullRequestId, running });
           await this.client.mergePullRequest(pullRequestId);
           await running.request.setStatus('success');
         } catch (err) {
@@ -119,18 +114,18 @@ export class Runner {
         break;
       }
       case 'FAILED': {
-        Logger.error(
-          { running: running.get(), statusEvent },
-          'Land build failed',
-        );
+        Logger.error('Land build failed', {
+          running: running.get(),
+          statusEvent,
+        });
         await running.request.setStatus('fail');
         break;
       }
       case 'STOPPED': {
-        Logger.warn(
-          { running: running.get(), statusEvent },
-          'Land build has been stopped',
-        );
+        Logger.warn('Land build has been stopped', {
+          running: running.get(),
+          statusEvent,
+        });
         await running.request.setStatus(
           'aborted',
           'Landkid pipelines build was stopped',
@@ -227,8 +222,9 @@ export class Runner {
     }
   }
 
-  async enqueue(landRequestOptions: LandRequestOptions) {
+  async enqueue(landRequestOptions: LandRequestOptions): Promise<void> {
     // TODO: Ensure no land request is pending for this PR
+    // TODO: Return the position in queue
     if (await this.isPaused()) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
@@ -255,12 +251,7 @@ export class Runner {
 
       await request.setStatus('queued');
     }
-    Logger.info(
-      {
-        requests,
-      },
-      'Moving landRequest from waiting to queue',
-    );
+    Logger.info('Moving landRequests from waiting to queue', { requests });
 
     // this.next();
   }

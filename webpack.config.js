@@ -18,6 +18,19 @@ module.exports = {
     filename: '[name]/bundle.[chunkhash].js',
   },
   mode: 'development',
+  devServer: {
+    compress: true,
+    historyApiFallback: true,
+    // hot: true,
+    port: 3000,
+    publicPath: '/',
+    stats: 'errors-only',
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/bitbucket': 'http://localhost:8080',
+      '/ac': 'http://localhost:8080',
+    },
+  },
   module: {
     rules: [
       {
@@ -25,6 +38,14 @@ module.exports = {
         use: [
           {
             loader: require.resolve('cache-loader'),
+            options: {
+              cacheDirectory: path.resolve(
+                __dirname,
+                'node_modules',
+                '.build-cache',
+                'ts',
+              ),
+            },
           },
           {
             loader: require.resolve('ts-loader'),

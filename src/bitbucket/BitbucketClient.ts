@@ -1,5 +1,5 @@
 import { PullRequestSettings, ApprovalChecks, Config } from '../types';
-import Logger from '../Logger';
+import { Logger } from '../Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitBucketAPI';
 
@@ -67,15 +67,12 @@ export class BitbucketClient {
       approvalChecks,
     );
 
-    Logger.info(
-      {
-        pullRequestId,
-        isAllowed,
-        approvalChecks,
-        requirements: this.config.prSettings,
-      },
-      'isAllowedToLand()',
-    );
+    Logger.info('isAllowedToLand()', {
+      pullRequestId,
+      isAllowed,
+      approvalChecks,
+      requirements: this.config.prSettings,
+    });
 
     return {
       isAllowed,

@@ -1,15 +1,38 @@
-import * as bunyan from 'bunyan';
+import * as winston from 'winston';
 import * as path from 'path';
 
-const LOG_PATH = path.resolve(process.cwd(), 'landkid.log');
+process.stdout.isTTY = true;
 
-const Logger = bunyan.createLogger({
-  name: 'Landkid',
-  // standard serializers for things like Error, req and res
-  serializers: bunyan.stdSerializers,
-  // adds the source of the log (file and line number) (note: Do not use in production)
-  // src: true,
-  streams: [{ path: LOG_PATH }, { stream: process.stdout }],
+const LOG_DIR = path.resolve(process.cwd(), '.logs');
+
+export const Logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.File({
+      filename: path.resolve(LOG_DIR, 'landkid.error.log'),
+      level: 'error',
+    }),
+    new winston.transports.File({
+      filename: path.resolve(LOG_DIR, 'landkid.log'),
+    }),
+  ],
 });
 
-export default Logger;
+if (process.env.NODE_ENV !== 'production') {
+  Logger.add(
+    new winston.transports.Console({
+      // format: winston.format.simple(),
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
+    }),
+  );
+} else {
+  Logger.add(
+    new winston.transports.Console({
+      format: winston.format.json(),
+    }),
+  );
+}
