@@ -57,7 +57,6 @@ async function main() {
   server.use(passport.session());
 
   const client = new BitbucketClient(config);
-
   const queue = new LandRequestQueue();
   const runner = new Runner(queue, client, config);
 
