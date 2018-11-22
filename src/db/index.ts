@@ -11,6 +11,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import * as path from 'path';
+import { config } from '../lib/Config';
 
 @Table
 export class Installation extends Model<Installation> {
@@ -207,16 +208,14 @@ export class PauseStateTransition extends Model<PauseStateTransition>
 }
 
 export const initializeSequelize = async () => {
-  const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: path.resolve(__dirname, '../../db.sqlite'),
-    logging: false,
-
-    // TS plz
-    // database: '',
-    // name: '',
-    // url: '',
-  } as any);
+  const sequelize = new Sequelize(
+    config.sequelize ||
+      ({
+        dialect: 'sqlite',
+        storage: path.resolve(__dirname, '../../db.sqlite'),
+        logging: false,
+      } as any),
+  );
 
   sequelize.addModels([
     Installation,

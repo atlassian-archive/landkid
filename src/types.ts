@@ -50,6 +50,7 @@ export type Config = {
   repoConfig: RepoConfig;
   prSettings: PullRequestSettings;
   deployment: DeploymentConfig;
+  sequelize?: any;
 };
 
 export type RunnerState = {
