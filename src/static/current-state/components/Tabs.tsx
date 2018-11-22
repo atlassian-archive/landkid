@@ -134,7 +134,7 @@ export function HistoryTab(props: HistoryTabProps) {
     <WithAPIData<HistoryItem[]>
       poll={false}
       renderLoading={() => <Section>Loading...</Section>}
-      endpoint="history"
+      endpoint="api/history"
       render={history => (
         <HistoryItemsList
           bitbucketBaseUrl={props.bitbucketBaseUrl}

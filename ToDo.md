@@ -39,6 +39,8 @@
 * [ ] Better error messages from config
 * [ ] Validate commit hasnt changed before merge
 * [ ] Logout
+* [ ] Don't require passing in repo-uuid
+* [ ] Don't require hacking ac.json to personal
 
 
 ## Someone

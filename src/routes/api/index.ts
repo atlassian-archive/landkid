@@ -25,6 +25,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     '/history',
     wrap(async (req, res) => {
       const history = await runner.getHistory();
+      console.log(history);
       Logger.info('Requesting current history');
       res.header('Access-Control-Allow-Origin', '*').json(history);
     }),
@@ -34,7 +35,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     '/settings',
     wrap(async (req, res) => {
       Logger.info('Requesting current settings', config.prSettings);
-      res.header('Access-Control-Allow-Origin', '*').json(config.prSettings);
+      // TODO: Remove this
+      const settings = {
+        prSettings: config.prSettings,
+        usersAllowedToMerge: ['luke_batchelor'],
+      };
+      res.header('Access-Control-Allow-Origin', '*').json(settings);
     }),
   );
 
