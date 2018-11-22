@@ -24,7 +24,6 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     requireAuth('read'),
     wrap(async (req, res) => {
       const history = await runner.getHistory();
-      console.log(history);
       Logger.info('Requesting current history');
       res.header('Access-Control-Allow-Origin', '*').json(history);
     }),

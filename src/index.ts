@@ -61,7 +61,7 @@ async function main() {
   const history = new LandRequestHistory();
   const runner = new Runner(queue, history, client, config);
 
-  routes(server, client, runner);
+  await routes(server, client, runner);
 
   server.listen(config.port, () => {
     Logger.info('LandKid is running', { port: config.port });

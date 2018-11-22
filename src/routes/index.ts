@@ -10,17 +10,21 @@ import { bitbucketRoutes } from './bitbucket';
 import { makeDescriptor } from '../bitbucket/descriptor';
 import { authRoutes } from './auth';
 
-export function routes(
+export async function routes(
   server: express.Application,
   client: BitbucketClient,
   runner: Runner,
 ) {
   const router = express();
 
-  const bitbucketAddonDescriptor = makeDescriptor(
-    config.baseUrl,
-    config.repoConfig.repoUuid,
-  );
+  let repoUuid = config.repoConfig.uuid;
+  if (!repoUuid) {
+    Logger.info('==== Fetching repository uuid from Bitbucket ====');
+    Logger.info('You can skip this step by putting uuid config.repoConfig');
+    repoUuid = await client.getRepoUuid();
+  }
+
+  const bitbucketAddonDescriptor = makeDescriptor(config.baseUrl, repoUuid);
 
   router.get('/healthcheck', (req, res) => {
     res.sendStatus(200);
