@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
+import * as connectRedis from 'connect-redis';
 import * as express from 'express';
+import * as expressSession from 'express-session';
 import * as expressWinston from 'express-winston';
-// import * as morgan from 'morgan';
+import * as passport from 'passport';
+import * as session from 'express-session';
 
 import * as bodyParser from 'body-parser';
 
@@ -14,7 +17,10 @@ import { Logger } from './lib/Logger';
 import { LandRequestQueue } from './lib/Queue';
 import { Runner } from './lib/Runner';
 import { routes } from './routes';
+import { initializePassport } from './auth/bitbucket';
 // import History from './History';
+
+const RedisStore = connectRedis(session);
 
 async function main() {
   if (!hasConfig) {
@@ -24,6 +30,7 @@ async function main() {
   }
 
   await initializeSequelize();
+  initializePassport();
 
   const server = express();
 
@@ -35,9 +42,21 @@ async function main() {
     }),
   );
   server.use(bodyParser.json());
+  server.use(
+    expressSession({
+      name: 'landkid.sid',
+      secret: config.deployment.secret,
+      saveUninitialized: true,
+      store: new RedisStore({
+        host: config.deployment.redis.endpoint,
+        port: config.deployment.redis.port,
+      }),
+    }),
+  );
+  server.use(passport.initialize());
+  server.use(passport.session());
 
   const client = new BitbucketClient(config);
-  // let history = new History();
 
   const queue = new LandRequestQueue();
   const runner = new Runner(queue, client, config);

@@ -29,12 +29,21 @@ export type ApprovalChecks = {
   allTasksClosed: boolean;
 };
 
+export type DeploymentConfig = {
+  secret: string;
+  redis: {
+    endpoint: string;
+    port: number;
+  };
+};
+
 export type Config = {
   port: number;
   baseUrl: string;
   landkidAdmins: string[];
   repoConfig: RepoConfig;
   prSettings: PullRequestSettings;
+  deployment: DeploymentConfig;
 };
 
 export type RunnerState = {

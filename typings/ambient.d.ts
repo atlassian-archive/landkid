@@ -31,8 +31,35 @@ declare interface IPauseState {
 declare interface IStatusUpdate {
   id: string;
   date: Date;
-  state: 'will-queue-when-ready' | 'queued' | 'running' | 'success' | 'fail' | 'aborted';
+  state:
+    | 'will-queue-when-ready'
+    | 'queued'
+    | 'running'
+    | 'success'
+    | 'fail'
+    | 'aborted';
   reason: string | null;
   requestId: string;
   request: ILandRequest;
+}
+
+declare interface ISessionUser {
+  aaid: string;
+  username: string;
+  displayName: string;
+}
+
+declare type IPermissionMode = 'read' | 'land' | 'admin';
+
+declare interface IPermission {
+  aaid: string;
+  dateAssigned: Date;
+  mode: IPermissionMode;
+  assignedByAaid: string;
+}
+
+declare namespace Express {
+  interface Request {
+    user?: ISessionUser;
+  }
 }

@@ -27,9 +27,11 @@ module.exports = {
     stats: 'errors-only',
     proxy: {
       '/api': 'http://localhost:8080',
+      '/auth': 'http://localhost:8080',
       '/bitbucket': 'http://localhost:8080',
       '/ac': 'http://localhost:8080',
     },
+    public: require('./config').baseUrl.replace('https://', ''),
   },
   module: {
     rules: [

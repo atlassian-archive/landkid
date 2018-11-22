@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as jwtTools from 'atlassian-jwt';
 import { Installation } from '../db';
+import { permissionService } from '../lib/PermissionService';
 
 export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
   return async (req, res, next) => {
@@ -12,7 +13,28 @@ export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
   };
 };
 
-export const verifyWebhook = () => {};
+const modeHierarchy: IPermissionMode[] = ['read', 'land', 'admin'];
+
+export const requireAuth = (
+  mode: IPermissionMode = 'read',
+): express.RequestHandler =>
+  wrap(async (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'This endpoint requires authentication',
+      });
+    }
+
+    const userMode = await permissionService.getPermissionForUser(req.user);
+
+    if (modeHierarchy.indexOf(userMode) < modeHierarchy.indexOf(mode)) {
+      return res.status(403).json({
+        error: 'You are not powerful enough to use this endpoint, sorry...',
+      });
+    }
+
+    next();
+  });
 
 export const authenticateIncomingBBCall: express.RequestHandler = wrap(
   async (req, res, next) => {
