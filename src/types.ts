@@ -11,7 +11,7 @@ export type RepoConfig = {
   botPassword: string;
   repoOwner: string;
   repoName: string;
-  repoUuid: string;
+  uuid?: string;
 };
 
 export type PullRequestSettings = {

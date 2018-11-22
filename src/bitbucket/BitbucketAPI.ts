@@ -125,4 +125,20 @@ export class BitbucketAPI {
       displayName: resp.data.display_name,
     };
   };
+
+  getRepository = async (): Promise<BB.Repository> => {
+    const endpoint = this.apiBaseUrl;
+    const { data } = await axios.get<BB.RepositoryResponse>(
+      endpoint,
+      this.axiosGetConfig,
+    );
+
+    return {
+      repoOwner: data.owner.username,
+      repoName: data.slug,
+      uuid: data.uuid,
+      fullName: data.full_name,
+      url: data.links.html.href,
+    };
+  };
 }

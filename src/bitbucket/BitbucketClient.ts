@@ -1,4 +1,4 @@
-import { Config } from '../types';
+import { PullRequestSettings, ApprovalChecks, Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
@@ -53,7 +53,7 @@ export class BitbucketClient {
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
       errors.push(
-        'Pull Request needs all tasks completed (you might need to open and re-close them!)',
+        'Pull Request needs all tasks completed (you might need to open and reclose them!)',
       );
     }
 
@@ -68,7 +68,6 @@ export class BitbucketClient {
     if (!approvalChecks.isOpen) {
       errors.push('PR is already closed!');
     }
-
     return {
       ...approvalChecks,
       errors,
@@ -89,5 +88,11 @@ export class BitbucketClient {
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {
     return this.pipelines.processStatusWebhook(body);
+  }
+
+  async getRepoUuid(): Promise<string> {
+    const repo = await this.bitbucket.getRepository();
+
+    return repo.uuid;
   }
 }

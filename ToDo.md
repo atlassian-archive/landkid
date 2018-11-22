@@ -43,9 +43,9 @@
 * [ ] Validate commit hasnt changed before merge
 * [ ] Logout
 * [ ] Remove UUIDs from config
-  * [ ] Don't require passing in repo-uuid
+  * [x] Don't require passing in repo-uuid
   * [ ] Don't require admins to be AAID
-* [ ] Don't require hacking ac.json to personal
+* [-] Don't require hacking ac.json to personal
 
 
 ## Someone

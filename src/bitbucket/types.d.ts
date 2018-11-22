@@ -43,6 +43,29 @@ declare namespace BB {
     openTasks: number;
   };
 
+  type RepositoryResponse = {
+    uuid: string;
+    full_name: string;
+    description: string;
+    slug: string;
+    links: {
+      html: {
+        href: string;
+      };
+    };
+    owner: {
+      username: string;
+    };
+  };
+
+  type Repository = {
+    uuid: string;
+    repoOwner: string;
+    repoName: string;
+    fullName: string;
+    url: string;
+  };
+
   type BuildState =
     | 'SUCCESSFUL'
     | 'FAILED'
