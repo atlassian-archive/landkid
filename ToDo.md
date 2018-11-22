@@ -18,6 +18,7 @@
   * [x] webpack dev server
   * [x] passing in config
   * [x] scripts for dev + prod
+* [ ] AAID to User Info endpoint
 * [ ] validate secret from bb on installation
 * [ ] Linting
 * [ ] CI
@@ -41,7 +42,9 @@
 * [ ] Better error messages from config
 * [ ] Validate commit hasnt changed before merge
 * [ ] Logout
-* [ ] Don't require passing in repo-uuid
+* [ ] Remove UUIDs from config
+  * [ ] Don't require passing in repo-uuid
+  * [ ] Don't require admins to be AAID
 * [ ] Don't require hacking ac.json to personal
 
 
