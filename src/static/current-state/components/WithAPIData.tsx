@@ -54,6 +54,17 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
     }
   }
 
+  componentWillReceiveProps(newProps: any) {
+    if (newProps.endpoint !== this.props.endpoint) {
+      this.setState(
+        {
+          data: null,
+        },
+        this.fetchData,
+      );
+    }
+  }
+
   render() {
     let { error, data } = this.state;
     let { renderError, render, renderLoading } = this.props;

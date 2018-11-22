@@ -43,30 +43,3 @@ export const QueueItemsList: React.FunctionComponent<
     </div>
   );
 };
-
-export type HistoryItemsListProps = {
-  history: Array<HistoryItem>;
-  renderEmpty?: () => JSX.Element;
-  bitbucketBaseUrl: string;
-};
-
-export const HistoryItemsList: React.FunctionComponent<
-  HistoryItemsListProps
-> = props => {
-  const { history, renderEmpty } = props;
-  if (!history.length) {
-    return renderEmpty ? renderEmpty() : <EmptyState>Empty...</EmptyState>;
-  }
-
-  return (
-    <div>
-      {history.map(item => (
-        <QueueItemJoined
-          bitbucketBaseUrl={props.bitbucketBaseUrl}
-          request={item.request}
-          status={item.statusEvents.find(status => status.isLatest) || null}
-        />
-      ))}
-    </div>
-  );
-};

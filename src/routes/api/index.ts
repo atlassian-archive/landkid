@@ -23,7 +23,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     '/history',
     requireAuth('read'),
     wrap(async (req, res) => {
-      const history = await runner.getHistory();
+      const page = parseInt(req.query.page || '0', 10);
+      const history = await runner.getHistory(page);
       Logger.info('Requesting current history');
       res.header('Access-Control-Allow-Origin', '*').json(history);
     }),

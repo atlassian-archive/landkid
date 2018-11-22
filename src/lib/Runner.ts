@@ -302,8 +302,8 @@ export class Runner {
     );
   };
 
-  async getHistory() {
-    return this.history.getHistory();
+  async getHistory(page: number) {
+    return this.history.getHistory(page);
   }
 
   async getState(): Promise<RunnerState> {
