@@ -8,6 +8,7 @@ declare namespace BB {
 
   type User = {
     username: string;
+    account_id: string;
   };
 
   type PullRequestResponse = {
@@ -36,6 +37,7 @@ declare namespace BB {
     description: string;
     createdOn: Date;
     author: string;
+    authorAaid: string;
     state: PRState;
     approvals: Array<string>;
     openTasks: number;

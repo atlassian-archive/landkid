@@ -1,7 +1,6 @@
 declare interface Window {
-  wantToMergeClicked: () => void;
+  landClicked: () => void;
   landWhenAbleClicked: () => void;
-  cancelButtonClicked: () => void;
 }
 
 declare interface ILandRequest {
@@ -68,4 +67,10 @@ declare namespace Express {
 declare interface HistoryItem {
   request: ILandRequest;
   statusEvents: Array<IStatusUpdate>;
+}
+
+declare interface ICanLand {
+  canLand: boolean;
+  canLandWhenAble: boolean;
+  errors: string[];
 }

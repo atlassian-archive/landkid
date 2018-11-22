@@ -1,7 +1,36 @@
-require('unfetch/polyfill');
 const queryString = require('qs');
 
 const endpoint = window.location.origin;
+
+interface BBRequest<T> {
+  (
+    opts: {
+      url: string;
+      type?: string;
+      success: (resp: T) => void;
+      error: (err: any) => void;
+    },
+  ): void;
+}
+
+const AP = (window as any).AP as {
+  require: (name: 'proxyRequest', fn: <T>(req: BBRequest<T>) => void) => void;
+};
+
+function proxy<T>(url: string, type: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const { repoId, pullRequestId } = getQueryStringVars();
+
+    AP.require('proxyRequest', req => {
+      req({
+        url: `${url}/${repoId}/${pullRequestId}`,
+        type,
+        success: resp => resolve(resp as any),
+        error: err => reject(err),
+      });
+    });
+  });
+}
 
 function createBtn(btnText: string, appearance: string, onClickFn: string) {
   return `<button type="button" class="ak-button ak-button__appearance-${
@@ -16,14 +45,14 @@ interface LandSettings {
   usersAllowedToMerge: Array<string>;
 }
 
-const landButtonView = (settings: LandSettings) => {
-  const landWhenAbleButton = settings.allowLandWhenAble
+const landButtonView = (settings: ICanLand) => {
+  const landWhenAbleButton = settings.canLandWhenAble
     ? createBtn('Land when able', 'default', 'landWhenAbleClicked')
     : '';
   return `<div>
     <p>This PR is not queued for Landing yet, click "Land" below or <a href="/index.html" target="_blank">here</a> for more information</p>
     <br>
-    ${createBtn('Land!', 'primary', 'wantToMergeClicked')}
+    ${createBtn('Land!', 'primary', 'landClicked')}
     <span style="width: 10px; display: inline-block"></span>
     ${landWhenAbleButton}
   </div>`;
@@ -32,17 +61,6 @@ const landButtonView = (settings: LandSettings) => {
 const isQueuedView = () => {
   return `<div>
     <p>This PR is queued for release now. See <a href="/current-state/index.html" target="_blank">here</a> to see the current queue</p>
-    <p>
-      <button type="button" class="ak-button ak-button__appearance-default" onClick="cancelButtonClicked()">
-        Cancel release
-      </button>
-    </p>
-  </div>`;
-};
-
-const cancellingView = () => {
-  return `<div>
-    <p>Cancelling...</p>
   </div>`;
 };
 
@@ -52,10 +70,10 @@ const checkingPullRequestView = () => {
   </div>`;
 };
 
-const pausedView = () => {
+const notAllowedView = () => {
   return `<div>
-    <p>Land builds are currently paused:</p>
-    <p id="pausedReason"></p>
+    <p>You can not land this PR for the following reasons:</p>
+    <ul id="errors"></ul>
     <p>Please try again later.</p>
   </div>`;
 };
@@ -66,34 +84,34 @@ const willLandWhenAbleView = () => {
   </div>`;
 };
 // TODO: There are more detailed messages we could give here now
-const notAllowedToLand = (reasons: {
-  isOpen?: boolean;
-  isApproved?: boolean;
-  isGreen?: boolean;
-  allTasksClosed?: boolean;
-}) => {
-  const isOpen = reasons.isOpen;
-  const isApproved = reasons.isApproved;
-  const isGreen = reasons.isGreen;
-  const allTasksClosed = reasons.allTasksClosed;
+// const notAllowedToLand = (reasons: {
+//   isOpen?: boolean;
+//   isApproved?: boolean;
+//   isGreen?: boolean;
+//   allTasksClosed?: boolean;
+// }) => {
+//   const isOpen = reasons.isOpen;
+//   const isApproved = reasons.isApproved;
+//   const isGreen = reasons.isGreen;
+//   const allTasksClosed = reasons.allTasksClosed;
 
-  if (!isOpen) {
-    return `<div><p>PR is already closed!</p></div>`;
-  }
-  if (!isApproved) {
-    return `<div><p>Pull request needs to be approved</p></div>`;
-  }
-  if (!isGreen) {
-    return `<div><p>Pull Request needs a green build</p></div>`;
-  }
-  if (!allTasksClosed) {
-    return `<div><p>Pull Request needs all tasks completed (you might need to open and re-close them!)</p></div>`;
-  }
-  console.error(reasons);
-  return `<div>
-    <p>Error finding reason, please check console</p>
-  </div>`;
-};
+//   if (!isOpen) {
+//     return `<div><p>PR is already closed!</p></div>`;
+//   }
+//   if (!isApproved) {
+//     return `<div><p>Pull request needs to be approved</p></div>`;
+//   }
+//   if (!isGreen) {
+//     return `<div><p>Pull Request needs a green build</p></div>`;
+//   }
+//   if (!allTasksClosed) {
+//     return `<div><p>Pull Request needs all tasks completed (you might need to open and re-close them!)</p></div>`;
+//   }
+//   console.error(reasons);
+//   return `<div>
+//     <p>Error finding reason, please check console</p>
+//   </div>`;
+// };
 
 const errorCreatingLandRequestView = (err: { reason?: string }) => {
   console.error(err);
@@ -104,37 +122,25 @@ const errorCreatingLandRequestView = (err: { reason?: string }) => {
   </div>`;
 };
 
-function getCurrentStateAndSettings() {
-  return fetch(`${endpoint}/api/current-state`)
-    .then(resp => resp.json())
-    .then(state =>
-      fetch(`${endpoint}/api/settings`)
-        .then(resp => resp.json())
-        .then(settings => ({
-          settings,
-          state,
-        })),
-    )
-    .catch(err => console.error('error ', err));
+function getCanLand() {
+  return proxy<ICanLand>('/can-land', 'POST');
 }
 
-// Fetches the user, repo and id vars
+// gets the user, repo and id vars
 function getQueryStringVars() {
   const qs = window.location.search.substring(1);
   return queryString.parse(qs);
 }
 
-function wantToMergeClicked() {
+function landDependingOn(key: keyof ICanLand) {
   setView(checkingPullRequestView());
 
-  const qs = getQueryStringVars();
-  fetch(`${endpoint}/api/is-allowed-to-land/${qs.pullRequestId}`)
-    .then(resp => resp.json())
-    .then(data => {
-      if (data.isAllowedToLand.isAllowed) {
+  getCanLand()
+    .then(canLand => {
+      if (canLand[key]) {
         return landPullRequest();
       } else {
-        setView(notAllowedToLand(data.isAllowedToLand));
+        displayNotAllowed(canLand);
       }
     })
     .catch(err => {
@@ -142,35 +148,21 @@ function wantToMergeClicked() {
     });
 }
 
+function landClicked() {
+  return landDependingOn('canLand');
+}
+
 function landWhenAbleClicked() {
-  setView(checkingPullRequestView());
-  landPullRequest({
-    whenAbleFlag: true,
-  });
+  return landDependingOn('canLandWhenAble');
 }
 // reusing this function for actual landrequests and for land when able requests
 // THIS IS TERRIBLE - FIX ASAP
 function landPullRequest(opts: { whenAbleFlag?: boolean } = {}) {
   const whenAbleFlag = opts.whenAbleFlag;
-  const qs = getQueryStringVars();
 
-  const qsString = queryString.stringify({
-    username: qs.username,
-    userUuid: qs.userUuid,
-    commit: qs.commit,
-    title: qs.title,
-  });
+  const endPoint = whenAbleFlag ? '/land-when-able' : '/land';
 
-  const endPointVerb = whenAbleFlag ? 'land-when-able' : 'land-pr';
-
-  // TODO: send actual post data, not a query string...
-  return fetch(
-    `${endpoint}/api/${endPointVerb}/${qs.pullRequestId}?${qsString}`,
-    {
-      method: 'POST',
-    },
-  )
-    .then(resp => resp.json())
+  return proxy(endPoint, 'POST')
     .then(() => {
       if (whenAbleFlag) {
         setView(willLandWhenAbleView());
@@ -183,72 +175,33 @@ function landPullRequest(opts: { whenAbleFlag?: boolean } = {}) {
     });
 }
 
-function cancelButtonClicked() {
-  setView(cancellingView());
+function displayNotAllowed(canLand: ICanLand) {
+  setView(notAllowedView());
 
-  const qs = getQueryStringVars();
-  const qsString = queryString.stringify({
-    username: qs.username,
-    userUuid: qs.userUuid,
-  });
-
-  return fetch(`${endpoint}/api/cancel-pr/${qs.pullRequestId}?${qsString}`, {
-    method: 'POST',
-  })
-    .then(() => getCurrentStateAndSettings())
-    .then(stateAndSettings => {
-      if (!stateAndSettings) throw new Error('Failed to fetch settings');
-      setView(landButtonView(stateAndSettings.settings));
-    })
-    .catch(err => {
-      setView(errorCreatingLandRequestView(err));
-    });
+  for (const error of canLand.errors) {
+    const li = document.createElement('li');
+    li.innerText = error;
+    document.querySelector('#errors')!.appendChild(li);
+  }
 }
 
-function displayQueueOrLandButton(
-  queue: Array<ILandRequest>,
-  settings: LandSettings,
-) {
-  const queryStringVars = getQueryStringVars();
-  const pullRequestId = parseInt(queryStringVars.pullRequestId, 10);
-  const isQueuedOrRunning = queue.some(
-    pr => pr.pullRequestId === pullRequestId,
-  );
-
-  console.log('Current queue: ', queue);
-
-  if (isQueuedOrRunning) {
-    setView(isQueuedView());
-  } else {
-    setView(landButtonView(settings));
-  }
+function displayLandButton(canLand: ICanLand) {
+  setView(landButtonView(canLand));
 }
 
 const qs = getQueryStringVars();
 if (qs.state === 'OPEN') {
-  getCurrentStateAndSettings().then(resp => {
-    if (!resp) return;
-
-    const { settings, state } = resp;
-    const allowedToMerge = settings.usersAllowedToMerge;
-    const paused = state.paused;
-    const pausedReason =
-      state.pausedReason || 'Builds have been paused manually';
-    if (paused) {
-      setView(pausedView());
-      // this is a bit messy, but we don't want to render "user" generated content as DOM, so we
-      // have to separately render the text content for the reason
-      document.querySelector('#pausedReason')!.textContent = pausedReason;
-    } else if (allowedToMerge.indexOf(qs.username) > -1) {
-      displayQueueOrLandButton(state.queue, settings);
+  getCanLand().then(canLand => {
+    if (!canLand.canLand) {
+      displayNotAllowed(canLand);
+    } else {
+      displayLandButton(canLand);
     }
   });
 } else {
-  setView(
-    notAllowedToLand({
-      isOpen: false,
-    }),
-  );
+  setView(notAllowedView());
+  document.querySelector('#errors')!.innerHTML =
+    '<li>This PR is closed :(</li>';
 }
 
 // Wrapper function so that all the other HTML can all be wraped in this
@@ -260,6 +213,5 @@ function setView(innerHtml: string) {
 
 // I've had to just add this hack as the functions declared here aren't available globally anymore
 // I havent added the rest of the events since we're about to replace it, just FYI
-window.wantToMergeClicked = wantToMergeClicked;
+window.landClicked = landClicked;
 window.landWhenAbleClicked = landWhenAbleClicked;
-window.cancelButtonClicked = cancelButtonClicked;

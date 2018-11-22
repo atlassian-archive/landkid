@@ -15,6 +15,11 @@ export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
 
 const modeHierarchy: IPermissionMode[] = ['read', 'land', 'admin'];
 
+export const permission = (userMode: IPermissionMode) => ({
+  isAtLeast: (mode: IPermissionMode) =>
+    modeHierarchy.indexOf(userMode) >= modeHierarchy.indexOf(mode),
+});
+
 export const requireAuth = (
   mode: IPermissionMode = 'read',
 ): express.RequestHandler =>
@@ -25,9 +30,11 @@ export const requireAuth = (
       });
     }
 
-    const userMode = await permissionService.getPermissionForUser(req.user);
+    const userMode = await permissionService.getPermissionForUser(
+      req.user.aaid,
+    );
 
-    if (modeHierarchy.indexOf(userMode) < modeHierarchy.indexOf(mode)) {
+    if (!permission(userMode).isAtLeast(mode)) {
       return res.status(403).json({
         error: 'You are not powerful enough to use this endpoint, sorry...',
       });
