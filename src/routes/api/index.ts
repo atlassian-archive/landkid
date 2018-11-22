@@ -34,12 +34,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     if (req && req.body && req.body.reason) {
       pausedReason = String(req.body.reason);
     }
-    runner.pause(pausedReason);
+    runner.pause(pausedReason, req.user!);
     res.json({ paused: true, pausedReason });
   });
 
   router.post('/unpause', requireAuth('admin'), (req, res) => {
-    runner.unpause();
+    runner.unpause(req.user!);
     res.json({ paused: false });
   });
 
