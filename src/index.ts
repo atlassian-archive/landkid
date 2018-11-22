@@ -18,7 +18,7 @@ import { LandRequestQueue } from './lib/Queue';
 import { Runner } from './lib/Runner';
 import { routes } from './routes';
 import { initializePassport } from './auth/bitbucket';
-// import History from './History';
+import { LandRequestHistory } from './lib/History';
 
 const RedisStore = connectRedis(session);
 
@@ -58,7 +58,8 @@ async function main() {
 
   const client = new BitbucketClient(config);
   const queue = new LandRequestQueue();
-  const runner = new Runner(queue, client, config);
+  const history = new LandRequestHistory();
+  const runner = new Runner(queue, history, client, config);
 
   routes(server, client, runner);
 

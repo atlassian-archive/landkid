@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { css } from 'emotion';
 import { Section } from './Section';
-import { QueueItemsList } from './QueueItemsList';
+import { QueueItemsList, HistoryItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
+import { WithAPIData } from './WithAPIData';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -128,17 +129,25 @@ export type HistoryTabProps = {
 
 export function HistoryTab(props: HistoryTabProps) {
   // TODO: WithAPIData
-  return <p>History here</p>;
-  // return (
-  //   <HistoryItemsList
-  //     history={history}
-  //     renderEmpty={() => (
-  //       <Tab>
-  //         <EmptyState>History is empty...</EmptyState>
-  //       </Tab>
-  //     )}
-  //   />
-  // );
+  // return <p>History here</p>;
+  return (
+    <WithAPIData<HistoryItem[]>
+      poll={false}
+      renderLoading={() => <Section>Loading...</Section>}
+      endpoint="history"
+      render={history => (
+        <HistoryItemsList
+          bitbucketBaseUrl={props.bitbucketBaseUrl}
+          history={history}
+          renderEmpty={() => (
+            <Tab>
+              <EmptyState>History is empty...</EmptyState>
+            </Tab>
+          )}
+        />
+      )}
+    />
+  );
 }
 
 export type SystemTabProps = { allowedUsers: Array<string> };

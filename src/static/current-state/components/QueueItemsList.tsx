@@ -2,7 +2,6 @@ import * as React from 'react';
 import { css } from 'emotion';
 import { QueueItemJoined } from './QueueItem';
 import { EmptyState } from './EmptyState';
-import { HistoryItem } from '../../../types';
 
 let fadingStyles = css({
   '& .queue-item-joined:nth-child(1) .queue-item': {
@@ -59,14 +58,13 @@ export const HistoryItemsList: React.FunctionComponent<
     return renderEmpty ? renderEmpty() : <EmptyState>Empty...</EmptyState>;
   }
 
-  // TODO: Use latest status event, not just the index 0
   return (
     <div>
       {history.map(item => (
         <QueueItemJoined
           bitbucketBaseUrl={props.bitbucketBaseUrl}
           request={item.request}
-          status={item.statusEvents[0]}
+          status={item.statusEvents.find(status => status.isLatest) || null}
         />
       ))}
     </div>

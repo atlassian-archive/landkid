@@ -1,6 +1,6 @@
 import { LandRequestQueue } from './Queue';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
-// import History from './History';
+import { LandRequestHistory } from './History';
 import { Logger } from './Logger';
 import { RunnerState, Config, LandRequestOptions } from '../types';
 import { withLock } from './utils/locker';
@@ -15,6 +15,7 @@ import {
 export class Runner {
   constructor(
     private queue: LandRequestQueue,
+    private history: LandRequestHistory,
     private client: BitbucketClient,
     private config: Config,
   ) {
@@ -295,6 +296,10 @@ export class Runner {
       (Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24),
     );
   };
+
+  async getHistory() {
+    return this.history.getHistory();
+  }
 
   async getState(): Promise<RunnerState> {
     const [
