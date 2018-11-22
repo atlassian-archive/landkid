@@ -22,6 +22,15 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
 
   // TODO: Remove and merge into is-allowed-to-land
   router.get(
+    '/history',
+    wrap(async (req, res) => {
+      const history = await runner.getHistory();
+      Logger.info('Requesting current history');
+      res.header('Access-Control-Allow-Origin', '*').json(history);
+    }),
+  );
+
+  router.get(
     '/settings',
     wrap(async (req, res) => {
       Logger.info('Requesting current settings', config.prSettings);

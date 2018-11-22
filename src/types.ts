@@ -54,10 +54,3 @@ export type RunnerState = {
   usersAllowedToLand: Array<string>;
   bitbucketBaseUrl: string;
 };
-
-export type HistoryItem = {
-  request: ILandRequest;
-  statusEvents: Array<IStatusUpdate>;
-};
-
-export type History = Array<HistoryItem>;

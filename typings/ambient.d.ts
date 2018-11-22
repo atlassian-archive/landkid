@@ -40,6 +40,7 @@ declare interface IStatusUpdate {
     | 'aborted';
   reason: string | null;
   requestId: string;
+  isLatest: boolean;
   request: ILandRequest;
 }
 
@@ -62,4 +63,9 @@ declare namespace Express {
   interface Request {
     user?: ISessionUser;
   }
+}
+
+declare interface HistoryItem {
+  request: ILandRequest;
+  statusEvents: Array<IStatusUpdate>;
 }

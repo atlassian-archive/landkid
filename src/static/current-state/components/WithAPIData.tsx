@@ -6,12 +6,12 @@ function defaultLoading() {
   return <div>Loading...</div>;
 }
 
-export type Props = {
+export type Props<D> = {
   endpoint: string;
   poll?: number | boolean;
   renderError?: (err: Error) => React.ReactNode;
   renderLoading?: () => React.ReactNode;
-  render?: (data: any) => React.ReactNode;
+  render?: (data: D) => React.ReactNode;
 };
 
 export type State = {
@@ -20,7 +20,7 @@ export type State = {
   poll: number;
 };
 
-export class WithAPIData extends React.Component<Props, State> {
+export class WithAPIData<T> extends React.Component<Props<T>, State> {
   interval: NodeJS.Timeout | null = null;
   state = {
     error: null,
@@ -28,7 +28,9 @@ export class WithAPIData extends React.Component<Props, State> {
     poll:
       this.props.poll === true
         ? DEFAULT_POLLING_INTERVAL
-        : this.props.poll ? this.props.poll : 0,
+        : this.props.poll
+        ? this.props.poll
+        : 0,
   };
 
   fetchData() {

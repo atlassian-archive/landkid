@@ -10,19 +10,19 @@ import { Header } from './Header';
 export function App() {
   return (
     <div>
-      <WithAPIData
+      <WithAPIData<{ loggedIn: boolean; user?: ISessionUser }>
         endpoint="auth/whoami"
         renderLoading={() => <Header />}
-        render={(userInfo: { loggedIn: boolean; user?: ISessionUser }) => {
+        render={(userInfo) => {
           if (userInfo.loggedIn) {
             return (
               <React.Fragment>
                 <Header user={userInfo.user} />
-                <WithAPIData
+                <WithAPIData<RunnerState>
                   poll={true}
                   endpoint="api/current-state"
                   renderLoading={() => <Section>Loading...</Section>}
-                  render={(data: RunnerState) => (
+                  render={(data) => (
                     <div>
                       <CurrentState {...data} />
 
