@@ -4,6 +4,7 @@ import { wrap, requireAuth } from '../middleware';
 import { Runner } from '../../lib/Runner';
 import { Logger } from '../../lib/Logger';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
+import { AccountService } from '../../lib/AccountService';
 
 export function apiRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
@@ -29,27 +30,49 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
-  router.post('/pause', requireAuth('admin'), (req, res) => {
-    let pausedReason = 'Paused via API';
-    if (req && req.body && req.body.reason) {
-      pausedReason = String(req.body.reason);
-    }
-    runner.pause(pausedReason, req.user!);
-    res.json({ paused: true, pausedReason });
-  });
+  router.get(
+    '/user/:aaid',
+    requireAuth('read'),
+    wrap(async (req, res) => {
+      res.json(
+        await AccountService.get(client).getAccountInfo(req.params.aaid),
+      );
+    }),
+  );
 
-  router.post('/unpause', requireAuth('admin'), (req, res) => {
-    runner.unpause(req.user!);
-    res.json({ paused: false });
-  });
+  router.post(
+    '/pause',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      let pausedReason = 'Paused via API';
+      if (req && req.body && req.body.reason) {
+        pausedReason = String(req.body.reason);
+      }
+      runner.pause(pausedReason, req.user!);
+      res.json({ paused: true, pausedReason });
+    }),
+  );
+
+  router.post(
+    '/unpause',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.unpause(req.user!);
+      res.json({ paused: false });
+    }),
+  );
 
   /**
    * This is a magic endpoint that allows us to call next() if landkid hangs
    */
-  router.post('/next', requireAuth('admin'), (req, res) => {
-    runner.next();
-    res.json({ message: 'Calling next()' });
-  });
+  router.post(
+    '/next',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.next();
+      res.json({ message: 'Called next()' });
+    }),
+  );
 
   return router;
 }

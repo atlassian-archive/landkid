@@ -173,7 +173,7 @@ export function QueueItem(props: QueueItemProps) {
           <Lozenge>
             <User aaid={request.pullRequest.authorAaid}>
               {user => {
-                return user.username;
+                return user.displayName;
               }}
             </User>
           </Lozenge>

@@ -82,7 +82,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         triggererAaid: aaid,
         commit,
         prTitle: prInfo.title,
-        prAuthorAaid: prInfo.author,
+        prAuthorAaid: prInfo.authorAaid,
       };
       const positionInQueue = await runner.enqueue(landRequest);
       Logger.info('Request to land received', { landRequest, positionInQueue });

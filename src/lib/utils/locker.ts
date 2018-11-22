@@ -1,11 +1,5 @@
-import { createClient } from 'redis';
 import * as RedLock from 'redlock';
-import { config } from '../Config';
-
-const client = createClient({
-  port: config.deployment.redis.port,
-  host: config.deployment.redis.endpoint,
-});
+import { client } from './redis-client';
 
 const redlock = new RedLock([client]);
 
