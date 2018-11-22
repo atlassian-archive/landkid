@@ -8,6 +8,7 @@ import { Logger } from '../lib/Logger';
 import { apiRoutes } from './api';
 import { bitbucketRoutes } from './bitbucket';
 import { makeDescriptor } from '../bitbucket/descriptor';
+import { authRoutes } from './auth';
 
 export function routes(
   server: express.Application,
@@ -31,6 +32,7 @@ export function routes(
       .json(bitbucketAddonDescriptor);
   });
   router.use('/api', apiRoutes(runner, client));
+  router.use('/auth', authRoutes());
   router.use('/bitbucket', bitbucketRoutes(runner, client));
 
   if (process.env.NODE_ENV === 'production') {

@@ -32,7 +32,7 @@ export class WithAPIData extends React.Component<Props, State> {
   };
 
   fetchData() {
-    fetch(`/api/${this.props.endpoint}`)
+    fetch(`/${this.props.endpoint}`)
       .then(res => res.json())
       .then(data => this.setState({ data }))
       .catch(error => this.setState({ error }));

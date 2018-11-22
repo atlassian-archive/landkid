@@ -1,6 +1,6 @@
 import * as express from 'express';
 
-import { wrap } from '../middleware';
+import { wrap, requireAuth } from '../middleware';
 import { config } from '../../lib/Config';
 import { Runner } from '../../lib/Runner';
 import { Logger } from '../../lib/Logger';
@@ -12,6 +12,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
 
   router.get(
     '/current-state',
+    requireAuth('read'),
     wrap(async (req, res) => {
       const state = await runner.getState();
       Logger.info('Requesting current state');
@@ -19,6 +20,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
+  // TODO: Remove and merge into is-allowed-to-land
   router.get(
     '/settings',
     wrap(async (req, res) => {
@@ -27,6 +29,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
+  // TODO: Move to proxy
   router.get(
     '/is-allowed-to-land/:pullRequestId',
     wrap(async (req, res) => {
@@ -36,6 +39,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
+  // TODO: Move to proxy
   router.post(
     '/land-pr/:pullRequestId',
     wrap(async (req, res) => {
@@ -74,6 +78,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
+  // TODO: Move to proxy
   router.post(
     '/land-when-able/:pullRequestId',
     wrap(async (req, res) => {
@@ -112,6 +117,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
 
   router.post(
     '/cancel-pr/:pullRequestId',
+    requireAuth('land'),
     wrap(async (req, res) => {
       const pullRequestId = parseInt(req.params.pullRequestId, 10);
       const userUuid = req.query.userUuid;
@@ -144,7 +150,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
-  router.post('/pause', (req, res) => {
+  router.post('/pause', requireAuth('admin'), (req, res) => {
     let pausedReason = 'Paused via API';
     if (req && req.body && req.body.reason) {
       pausedReason = String(req.body.reason);
@@ -153,14 +159,14 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     res.json({ paused: true, pausedReason });
   });
 
-  router.post('/unpause', (req, res) => {
+  router.post('/unpause', requireAuth('admin'), (req, res) => {
     runner.unpause();
     res.json({ paused: false });
   });
 
   // this is another escape hatch that we expose in case we ever get in a weird state. Its safe to
   // expose
-  router.post('/next', (req, res) => {
+  router.post('/next', requireAuth('admin'), (req, res) => {
     runner.next();
     res.json({ message: 'Calling next()' });
   });

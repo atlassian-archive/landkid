@@ -162,22 +162,20 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
 }
 
 @Table
-export class Permission extends Model<Permission> {
-  @PrimaryKey
-  @Column(Sequelize.STRING)
-  readonly aaid: string;
+export class Permission extends Model<Permission> implements IPermission {
+  @Column(Sequelize.STRING) readonly aaid: string;
 
   @AllowNull(false)
   @Default('read')
   @Column(Sequelize.ENUM({ values: ['read', 'land', 'admin'] }))
-  readonly mode: 'read' | 'land' | 'admin';
+  readonly mode: IPermissionMode;
 
   @AllowNull(false)
   @Default(() => new Date())
   @Column(Sequelize.DATE)
   readonly dateAssigned: Date;
 
-  @AllowNull(false)
+  @AllowNull(true)
   @Column(Sequelize.STRING)
   readonly assignedByAaid: string;
 }

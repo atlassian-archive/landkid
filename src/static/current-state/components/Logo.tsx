@@ -7,6 +7,7 @@ let styles = css({
   '& .logo__secondary': {
     color: 'var(--secondary-text-color)',
   },
+  flex: 1,
 });
 
 export function Logo() {
