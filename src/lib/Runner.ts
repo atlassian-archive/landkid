@@ -14,7 +14,7 @@ import {
 
 export class Runner {
   constructor(
-    private queue: LandRequestQueue,
+    public queue: LandRequestQueue,
     private history: LandRequestHistory,
     private client: BitbucketClient,
     private config: Config,
@@ -52,7 +52,7 @@ export class Runner {
         landRequest.pullRequestId,
       );
 
-      if (isAllowedToLand.isAllowed) {
+      if (isAllowedToLand.errors.length === 0) {
         Logger.info('Allowed to land, creating land build', {
           landRequest: landRequest.get(),
         });
@@ -181,7 +181,7 @@ export class Runner {
     return state.get();
   };
 
-  private isPaused = async () => {
+  public isPaused = async () => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
       order: [['date', 'DESC']],
     });
@@ -264,7 +264,7 @@ export class Runner {
       const pullRequestId = landRequest.request.pullRequestId;
       let isAllowedToLand = await this.client.isAllowedToLand(pullRequestId);
 
-      if (isAllowedToLand.isAllowed) {
+      if (isAllowedToLand.errors.length === 0) {
         this.moveFromWaitingToQueue(pullRequestId);
       }
     }

@@ -22,7 +22,7 @@ export function authRoutes() {
         loggedIn: !!req.user,
         user: req.user,
         permission: req.user
-          ? await permissionService.getPermissionForUser(req.user)
+          ? await permissionService.getPermissionForUser(req.user.aaid)
           : 'read',
       });
     }),

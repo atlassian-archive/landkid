@@ -86,6 +86,7 @@ export class BitbucketAPI {
       description: data.description,
       createdOn: new Date(data.created_on),
       author: data.author.username,
+      authorAaid: data.author.account_id,
       state: data.state,
       approvals: approvals,
       openTasks: data.task_count,

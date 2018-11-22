@@ -1,4 +1,4 @@
-import { PullRequestSettings, ApprovalChecks, Config } from '../types';
+import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
@@ -13,27 +13,8 @@ function getRealApprovals(
   return approvals.filter(approval => approval !== creator);
 }
 
-// Given a set of checks, returns whether a PR passes all the required checks based on config
-function passedPullRequestChecks(
-  prSettings: PullRequestSettings,
-  approvalData: ApprovalChecks,
-) {
-  let passed = true;
-  if (!approvalData.isOpen || !approvalData.isApproved) {
-    passed = false;
-  }
-  if (prSettings.requireClosedTasks) {
-    passed = passed && approvalData.allTasksClosed;
-  }
-  if (prSettings.requireGreenBuild) {
-    passed = passed && approvalData.isGreen;
-  }
-
-  return passed;
-}
-
 export class BitbucketClient {
-  private bitbucket = new BitbucketAPI(this.config.repoConfig);
+  public bitbucket = new BitbucketAPI(this.config.repoConfig);
   private pipelines = new BitbucketPipelinesAPI(this.config.repoConfig);
 
   constructor(private config: Config) {}
@@ -62,21 +43,36 @@ export class BitbucketClient {
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
 
-    const isAllowed = passedPullRequestChecks(
-      this.config.prSettings,
-      approvalChecks,
-    );
-
     Logger.info('isAllowedToLand()', {
       pullRequestId,
-      isAllowed,
       approvalChecks,
       requirements: this.config.prSettings,
     });
 
+    const { prSettings } = this.config;
+    const errors: string[] = [];
+
+    if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
+      errors.push(
+        'Pull Request needs all tasks completed (you might need to open and re-close them!)',
+      );
+    }
+
+    if (prSettings.requiredApprovals && !approvalChecks.isApproved) {
+      errors.push('Pull request needs to be approved');
+    }
+
+    if (prSettings.requireGreenBuild && !approvalChecks.isGreen) {
+      errors.push('Pull Request needs a green build');
+    }
+
+    if (!approvalChecks.isOpen) {
+      errors.push('PR is already closed!');
+    }
+
     return {
-      isAllowed,
       ...approvalChecks,
+      errors,
     };
   }
 

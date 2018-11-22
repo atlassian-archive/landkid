@@ -17,17 +17,17 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
   },
   modules: {
     proxy: {
-      '/can-land': {
+      '/can-land/{repository}/{pullrequest}': {
         destination:
-          '/api/bitbucket/proxy/can-land?aaid={user.account_id}&pullRequestId={pullrequest.id}',
+          '/bitbucket/proxy/can-land?aaid={user.account_id}&pullRequestId={pullrequest.id}',
       },
-      '/land': {
+      '/land/{repository}/{pullrequest}': {
         destination:
-          '/api/bitbucket/proxy/land?aaid={user.account_id}&pullRequestId={pullrequest.id}',
+          '/bitbucket/proxy/land?aaid={user.account_id}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
       },
-      '/land-when-able': {
+      '/land-when-able/{repository}/{pullrequest}': {
         destination:
-          '/api/bitbucket/proxy/land-when-able?aaid={user.account_id}&pullRequestId={pullrequest.id}',
+          '/bitbucket/proxy/land-when-able?aaid={user.account_id}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
       },
     },
     webPanels: [
@@ -41,7 +41,7 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
           value: 'Release queue',
         },
         url:
-          '/bitbucket/index.html?repoOwner={pullrequest.source.repository.owner.username}&repoSlug={pullrequest.source.repository.name}&pullRequestId={pullrequest.id}&username={user.username}&userUuid={user.uuid}&state={pullrequest.state}&commit={pullrequest.source.commit.hash}&title={pullrequest.title}',
+          '/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}',
         location: 'org.bitbucket.pullrequest.overview.informationPanel',
         conditions: [
           {
