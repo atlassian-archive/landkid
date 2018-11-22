@@ -1,4 +1,4 @@
-import { PullRequestSettings, ApprovalChecks, Config } from '../types';
+import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';

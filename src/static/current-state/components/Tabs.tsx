@@ -4,6 +4,7 @@ import { Section } from './Section';
 import { QueueItemsList, HistoryItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
 import { WithAPIData } from './WithAPIData';
+import { User } from './User';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -155,7 +156,15 @@ export const SystemTab: React.FunctionComponent<SystemTabProps> = props => {
     <Tab>
       <div style={{ marginTop: '27px' }}>
         <h3>Allowed Users</h3>
-        <p>{allowedUsers.join(', ')}</p>
+        <p>
+          {allowedUsers.map(userAaid => (
+            <User aaid={userAaid}>
+              {user => {
+                return user.displayName;
+              }}
+            </User>
+          ))}
+        </p>
       </div>
     </Tab>
   );
