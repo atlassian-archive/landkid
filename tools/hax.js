@@ -10,7 +10,9 @@ const typesPath = path.resolve(
   'index.d.ts',
 );
 
-fs.writeFileSync(
-  typesPath,
-  fs.readFileSync(typesPath, 'utf8').replace('user?: any;', ''),
-);
+if (fs.existsSync(typesPath)) {
+  fs.writeFileSync(
+    typesPath,
+    fs.readFileSync(typesPath, 'utf8').replace('user?: any;', ''),
+  );
+}

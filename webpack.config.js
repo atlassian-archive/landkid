@@ -31,7 +31,10 @@ module.exports = {
       '/bitbucket': 'http://localhost:8080',
       '/ac': 'http://localhost:8080',
     },
-    public: require('./config').baseUrl.replace('https://', ''),
+    public:
+      process.env.NODE_ENV !== 'production'
+        ? require('./config').baseUrl.replace('https://', '')
+        : undefined,
   },
   module: {
     rules: [
