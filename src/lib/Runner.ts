@@ -148,20 +148,18 @@ export class Runner {
     }
   }
 
-  async pause(reason: string) {
+  async pause(reason: string, user: ISessionUser) {
     await PauseStateTransition.create<PauseStateTransition>({
       paused: true,
       reason,
-      // TODO: Get AAID here
-      pauserAaid: '__TOTALLY_AN_AAID__',
+      pauserAaid: user.aaid,
     });
   }
 
-  async unpause() {
+  async unpause(user: ISessionUser) {
     await PauseStateTransition.create<PauseStateTransition>({
       paused: false,
-      // TODO: Get AAID here
-      pauserAaid: '__TOTALLY_AN_AAID__',
+      pauserAaid: user.aaid,
     });
   }
 
