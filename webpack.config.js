@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -31,10 +32,9 @@ module.exports = {
       '/bitbucket': 'http://localhost:8080',
       '/ac': 'http://localhost:8080',
     },
-    public:
-      process.env.NODE_ENV !== 'production'
-        ? require('./config').baseUrl.replace('https://', '')
-        : undefined,
+    public: fs.existsSync('./config')
+      ? require('./config').baseUrl.replace('https://', '')
+      : undefined,
   },
   module: {
     rules: [
