@@ -1,3 +1,5 @@
+declare module '@atlaskit/pagination';
+
 declare interface Window {
   landClicked: () => void;
   landWhenAbleClicked: () => void;
@@ -68,6 +70,12 @@ declare interface HistoryItem {
   request: ILandRequest;
   statusEvents: Array<IStatusUpdate>;
 }
+
+declare type HistoryResponse = {
+  history: HistoryItem[];
+  count: number;
+  pageLen: number;
+};
 
 declare interface ICanLand {
   canLand: boolean;

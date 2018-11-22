@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { css } from 'emotion';
 import { Section } from './Section';
-import { QueueItemsList, HistoryItemsList } from './QueueItemsList';
+import { QueueItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
-import { WithAPIData } from './WithAPIData';
 import { User } from './User';
+import { HistoryTab } from './HistoryTab';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -127,27 +127,6 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
 };
-
-export function HistoryTab(props: HistoryTabProps) {
-  return (
-    <WithAPIData<HistoryItem[]>
-      poll={false}
-      renderLoading={() => <Section>Loading...</Section>}
-      endpoint="api/history"
-      render={history => (
-        <HistoryItemsList
-          bitbucketBaseUrl={props.bitbucketBaseUrl}
-          history={history}
-          renderEmpty={() => (
-            <Tab>
-              <EmptyState>History is empty...</EmptyState>
-            </Tab>
-          )}
-        />
-      )}
-    />
-  );
-}
 
 export type SystemTabProps = { allowedUsers: Array<string> };
 export const SystemTab: React.FunctionComponent<SystemTabProps> = props => {

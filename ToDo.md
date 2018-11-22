@@ -27,14 +27,14 @@
 
 * [ ] History
   * [x] Basic history
-  * [ ] Pagination
+  * [x] Pagination
 * [x] AllowedToLand check is broken
 * [ ] Productionised config
 * [ ] addon frontend in react
 * [ ] add websockets :D :D :D
 * [ ] Move the static files routes
 * [x] Clean up serving of ac.json
-* [ ] Allow refresh on bb addon
+* [ ] Allow refresh/back on bb addon
 * [x] Remove cancel release
 * [x] Fix binary file and files arr in package.json
 * [ ] Add # routes to select tabs
@@ -46,6 +46,7 @@
   * [x] Don't require passing in repo-uuid
   * [ ] Don't require admins to be AAID
 * [-] Don't require hacking ac.json to personal
+*
 
 
 ## Someone

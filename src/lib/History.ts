@@ -3,17 +3,18 @@ import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 const PAGE_LEN = 20;
 
 export class LandRequestHistory {
-  public getHistory = async (): Promise<HistoryItem[]> => {
+  public getHistory = async (page: number): Promise<HistoryResponse> => {
+    const actualPage = page - 1;
     // First we need to know which landrequests have changed recently
-    const latestLandRequestStatuses = await LandRequestStatus.findAll<
+    const latestLandRequestStatuses = await LandRequestStatus.findAndCountAll<
       LandRequestStatus
     >({
       where: {
         isLatest: true,
       },
-      order: [['date', 'ASC']],
+      order: [['date', 'DESC']],
       limit: PAGE_LEN,
-      offset: 0,
+      offset: actualPage * PAGE_LEN,
       attributes: ['requestId'],
     });
 
@@ -21,9 +22,10 @@ export class LandRequestHistory {
     const allHistoryData = await LandRequest.findAll<LandRequest>({
       where: {
         id: {
-          $in: latestLandRequestStatuses.map(s => s.requestId),
+          $in: latestLandRequestStatuses.rows.map(s => s.requestId),
         },
       },
+      order: [['created', 'DESC']],
       include: [PullRequest, LandRequestStatus],
     });
 
@@ -37,6 +39,10 @@ export class LandRequestHistory {
       };
     });
 
-    return transformedHistory;
+    return {
+      history: transformedHistory,
+      count: latestLandRequestStatuses.count,
+      pageLen: PAGE_LEN,
+    };
   };
 }
