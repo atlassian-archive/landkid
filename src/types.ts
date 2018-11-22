@@ -35,6 +35,12 @@ export type DeploymentConfig = {
     endpoint: string;
     port: number;
   };
+  oAuth: OAuthConfig;
+};
+
+export type OAuthConfig = {
+  key: string;
+  secret: string;
 };
 
 export type Config = {

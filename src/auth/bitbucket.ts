@@ -3,8 +3,9 @@ import * as passport from 'passport';
 import { Strategy, VerifyCallback } from 'passport-oauth2';
 import { Logger } from '../lib/Logger';
 import { config } from '../lib/Config';
+import { OAuthConfig } from '../types';
 
-export function initializePassport() {
+export function initializePassport(oAuthConfig: OAuthConfig) {
   passport.deserializeUser<ISessionUser, string>((serialized, done) => {
     done(null, JSON.parse(serialized));
   });
@@ -20,8 +21,8 @@ export function initializePassport() {
         authorizationURL: 'https://bitbucket.org/site/oauth2/authorize',
         tokenURL: 'https://bitbucket.org/site/oauth2/access_token',
         callbackURL: `${config.baseUrl}/auth/callback`,
-        clientID: 'gxGvB4RZtx2uKYL96j',
-        clientSecret: 'SzDE73T3ELFwYNff8BHXj7RcJhpG84rL',
+        clientID: oAuthConfig.key,
+        clientSecret: oAuthConfig.secret,
       },
       async (
         accessToken: string,

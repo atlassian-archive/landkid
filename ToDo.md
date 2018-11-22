@@ -35,6 +35,10 @@
 * [ ] Remove cancel release
 * [x] Fix binary file and files arr in package.json
 * [ ] Add # routes to select tabs
+* [x] Load oAuth from config
+* [ ] Better error messages from config
+* [ ] Validate commit hasnt changed before merge
+* [ ] Logout
 
 
 ## Someone
