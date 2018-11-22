@@ -30,7 +30,7 @@ async function main() {
   }
 
   await initializeSequelize();
-  initializePassport();
+  initializePassport(config.deployment.oAuth);
 
   const server = express();
 
