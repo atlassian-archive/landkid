@@ -18,7 +18,7 @@
   * [x] webpack dev server
   * [x] passing in config
   * [x] scripts for dev + prod
-* [ ] AAID to User Info endpoint
+* [x] AAID to User Info endpoint
 * [ ] validate secret from bb on installation
 * [ ] Linting
 * [ ] CI

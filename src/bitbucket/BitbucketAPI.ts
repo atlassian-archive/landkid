@@ -27,9 +27,7 @@ export class BitbucketAPI {
 
   mergePullRequest = async (pullRequestId: number) => {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
-    const message = `pull request #${
-      pullRequestId
-    } merged  by Landkid after a successful build rebased on Master`;
+    const message = `pull request #${pullRequestId} merged  by Landkid after a successful build rebased on Master`;
     const data = {
       close_source_branch: true,
       message: message,
@@ -96,9 +94,9 @@ export class BitbucketAPI {
   getPullRequestBuildStatuses = async (
     pullRequestId: number,
   ): Promise<Array<BB.BuildStatus>> => {
-    const endpoint = `${this.apiBaseUrl}/pullrequests/${
-      pullRequestId
-    }/statuses`;
+    const endpoint = `${
+      this.apiBaseUrl
+    }/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(
       endpoint,
       this.axiosGetConfig,
@@ -115,5 +113,16 @@ export class BitbucketAPI {
         createdOn: new Date(status.created_on),
         url: status.url,
       }));
+  };
+
+  getUser = async (aaid: string): Promise<ISessionUser> => {
+    const endpoint = `https://api.bitbucket.org/2.0/users/${aaid}`;
+    const resp = await axios.get(endpoint, this.axiosGetConfig);
+
+    return {
+      username: resp.data.username,
+      aaid: resp.data.account_id,
+      displayName: resp.data.display_name,
+    };
   };
 }
