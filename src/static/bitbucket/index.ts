@@ -33,9 +33,7 @@ function proxy<T>(url: string, type: string): Promise<T> {
 }
 
 function createBtn(btnText: string, appearance: string, onClickFn: string) {
-  return `<button type="button" class="ak-button ak-button__appearance-${
-    appearance
-  }" onClick="${onClickFn}()">
+  return `<button type="button" class="ak-button ak-button__appearance-${appearance}" onClick="${onClickFn}()">
     ${btnText}
   </button>`;
 }
@@ -83,35 +81,6 @@ const willLandWhenAbleView = () => {
     <p>Your pull request has been queued to land once it is able</p>
   </div>`;
 };
-// TODO: There are more detailed messages we could give here now
-// const notAllowedToLand = (reasons: {
-//   isOpen?: boolean;
-//   isApproved?: boolean;
-//   isGreen?: boolean;
-//   allTasksClosed?: boolean;
-// }) => {
-//   const isOpen = reasons.isOpen;
-//   const isApproved = reasons.isApproved;
-//   const isGreen = reasons.isGreen;
-//   const allTasksClosed = reasons.allTasksClosed;
-
-//   if (!isOpen) {
-//     return `<div><p>PR is already closed!</p></div>`;
-//   }
-//   if (!isApproved) {
-//     return `<div><p>Pull request needs to be approved</p></div>`;
-//   }
-//   if (!isGreen) {
-//     return `<div><p>Pull Request needs a green build</p></div>`;
-//   }
-//   if (!allTasksClosed) {
-//     return `<div><p>Pull Request needs all tasks completed (you might need to open and re-close them!)</p></div>`;
-//   }
-//   console.error(reasons);
-//   return `<div>
-//     <p>Error finding reason, please check console</p>
-//   </div>`;
-// };
 
 const errorCreatingLandRequestView = (err: { reason?: string }) => {
   console.error(err);

@@ -33,7 +33,6 @@ export class BitbucketClient {
       this.config.prSettings.canApproveOwnPullRequest,
     );
 
-    // TODO: add extra check for isApproved against list of users allowed to approve (if configured)
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
       isGreen:

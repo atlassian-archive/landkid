@@ -128,8 +128,6 @@ export type HistoryTabProps = {
 };
 
 export function HistoryTab(props: HistoryTabProps) {
-  // TODO: WithAPIData
-  // return <p>History here</p>;
   return (
     <WithAPIData<HistoryItem[]>
       poll={false}

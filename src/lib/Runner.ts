@@ -136,12 +136,14 @@ export class Runner {
     }
   };
 
-  async cancelCurrentlyRunningBuild() {
+  async cancelCurrentlyRunningBuild(user: ISessionUser) {
     const running = await this.getRunning();
     if (!running) return;
 
-    // TODO: Add the user
-    await running.request.setStatus('aborted', 'Cancelled by user');
+    await running.request.setStatus(
+      'aborted',
+      `Cancelled by user "${user.aaid}" (${user.displayName})`,
+    );
 
     if (running.request.buildId) {
       this.client.stopLandBuild(running.request.buildId);
@@ -209,15 +211,20 @@ export class Runner {
     });
   }
 
-  async removeLandRequestByPullRequestId(pullRequestId: number) {
+  async removeLandRequestByPullRequestId(
+    pullRequestId: number,
+    user: ISessionUser,
+  ) {
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
       },
     });
     for (const request of requests) {
-      // TODO: Record user who cancelled here
-      await request.setStatus('aborted', 'Cancelled by user');
+      await request.setStatus(
+        'aborted',
+        `Cancelled by user: "${user.aaid}" (${user.displayName})`,
+      );
     }
   }
 
