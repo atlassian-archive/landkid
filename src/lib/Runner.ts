@@ -283,6 +283,7 @@ export class Runner {
         },
       },
       order: [['dateAssigned', 'DESC']],
+      attributes: ['aaid'],
       group: 'aaid',
     })).map(p => p.aaid);
   };

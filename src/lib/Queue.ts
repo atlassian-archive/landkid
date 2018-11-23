@@ -10,7 +10,6 @@ export class LandRequestQueue {
         state: 'will-queue-when-ready',
       },
       order: [['date', 'ASC']],
-      group: 'requestId',
       include: [
         {
           model: LandRequest,
@@ -31,7 +30,6 @@ export class LandRequestQueue {
         },
       },
       order: [['date', 'ASC']],
-      group: 'requestId',
       include: [
         {
           model: LandRequest,
