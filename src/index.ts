@@ -63,8 +63,13 @@ async function main() {
 
   await routes(server, client, runner);
 
+  // TODO: lookup all admins in user service to add them to the redis cache
+
   server.listen(config.port, () => {
     Logger.info('LandKid is running', { port: config.port });
+
+    // In case there were things still in the queue when we start up
+    runner.next();
   });
 }
 

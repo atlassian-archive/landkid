@@ -13,7 +13,12 @@ const findRunning = (updates: IStatusUpdate[]) => {
 
 export const RunningBuild: React.FunctionComponent<Props> = props => {
   const running = findRunning(props.queue);
-  if (!running) return <p>No currently running builds</p>;
+  if (!running)
+    return React.createElement(
+      'marquee',
+      { style: { fontSize: '24px', color: 'lightskyblue' } },
+      'No currently running builds',
+    );
 
   return (
     <Section>
