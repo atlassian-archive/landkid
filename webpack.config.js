@@ -7,11 +7,8 @@ const outputPath = process.env.OUTPUT_PATH || '.';
 
 module.exports = {
   entry: {
-    bitbucket: path.resolve(__dirname, './src/static/bitbucket/index'),
-    'current-state': path.resolve(
-      __dirname,
-      './src/static/current-state/index',
-    ),
+    bitbucket: path.resolve(__dirname, './src/static/bitbucket'),
+    'current-state': path.resolve(__dirname, './src/static/current-state'),
   },
   output: {
     path: path.resolve(outputPath),
@@ -32,7 +29,7 @@ module.exports = {
       '/bitbucket': 'http://localhost:8080',
       '/ac': 'http://localhost:8080',
     },
-    public: fs.existsSync('./config')
+    public: fs.existsSync('./config.js')
       ? require('./config').baseUrl.replace('https://', '')
       : undefined,
   },

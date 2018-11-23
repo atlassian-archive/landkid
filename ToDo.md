@@ -22,19 +22,21 @@
 * [ ] validate secret from bb on installation
 * [ ] Linting
 * [ ] CI
+* [ ] Move BB requests to using app config
 
 ## Luke
 
-* [ ] History
+* [x] History
   * [x] Basic history
   * [x] Pagination
 * [x] AllowedToLand check is broken
 * [ ] Productionised config
-* [ ] addon frontend in react
+  * [ ] Allow refresh/back on bb addon
+* [x] addon frontend in react
 * [ ] add websockets :D :D :D
-* [ ] Move the static files routes
+* [x] Move the static files routes
+  * What does this mean?
 * [x] Clean up serving of ac.json
-* [ ] Allow refresh/back on bb addon
 * [x] Remove cancel release
 * [x] Fix binary file and files arr in package.json
 * [ ] Add # routes to select tabs
@@ -46,7 +48,8 @@
   * [x] Don't require passing in repo-uuid
   * [ ] Don't require admins to be AAID
 * [-] Don't require hacking ac.json to personal
-*
+* [ ] Add pausing to admin ui
+* [ ] show LANDKID_DEPLOYMENT in webpanel
 
 
 ## Someone

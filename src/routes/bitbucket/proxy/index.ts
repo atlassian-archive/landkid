@@ -24,6 +24,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const prId = parseInt(pullRequestId, 10);
 
       const errors: string[] = [];
+      const landCheckErrors: string[] = [];
 
       const permissionLevel = await permissionService.getPermissionForUser(
         aaid,
@@ -36,6 +37,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         } else {
           const landChecks = await client.isAllowedToLand(prId);
           errors.push(...landChecks.errors);
+          landCheckErrors.push(...landChecks.errors);
 
           const queued = await runner.queue.getStatusesForQueuedRequests();
           const waiting = await runner.queue.getStatusesForWaitingRequests();
@@ -55,7 +57,9 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       res.json({
         canLand: errors.length === 0,
-        canLandWhenAble: errors.length === 0 && prSettings.allowLandWhenAble,
+        canLandWhenAble:
+          errors.length === landCheckErrors.length &&
+          prSettings.allowLandWhenAble,
         errors,
       });
     }),

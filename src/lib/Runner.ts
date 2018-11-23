@@ -259,7 +259,7 @@ export class Runner {
     }
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
-    // this.next();
+    this.next();
   }
 
   async checkWaitingLandRequests() {
