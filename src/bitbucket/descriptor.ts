@@ -1,16 +1,16 @@
 export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
-  name: 'Atlaskid',
+  name: `Landkid ${(process.env.LANDKID_DEPLOYMENT || 'local').toUpperCase()}`,
   description: "Addon to display a 'release queue' panel in PRs",
   baseUrl,
-  key: 'atlaskid-addon-foo',
+  key: `landkid-${process.env.LANDKID_DEPLOYMENT || 'local'}`,
   vendor: {
-    name: 'Luke Batchelor',
+    name: 'Fabric Build',
   },
   scopes: ['pullrequest'],
   authentication: {
     type: 'jwt',
   },
-  contexts: ['personal'],
+  contexts: ['account'],
   lifecycle: {
     installed: '/bitbucket/lifecycle/installed',
     uninstalled: '/bitbucket/lifecycle/uninstalled',
@@ -38,7 +38,11 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
         },
         key: 'atlaskid-addon-panel',
         name: {
-          value: 'Release queue',
+          value: `Landkid Queue${
+            process.env.LANDKID_DEPLOYMENT !== 'prod'
+              ? ` (${process.env.LANDKID_DEPLOYMENT})`
+              : ''
+          }`,
         },
         url:
           '/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}',
