@@ -275,17 +275,32 @@ export class Runner {
     }
   }
 
-  private getUsersAllowedToLand = async () => {
-    return (await Permission.findAll<Permission>({
-      where: {
-        mode: {
-          $in: ['land', 'admin'],
-        },
-      },
+  private getUsersAllowedToLand = async (): Promise<string[]> => {
+    // TODO: Figure out how to use distinct
+    const perms = await Permission.findAll<Permission>({
       order: [['dateAssigned', 'DESC']],
-      attributes: ['aaid'],
-      group: 'aaid',
-    })).map(p => p.aaid);
+    });
+
+    const aaidPerms: Record<string, Permission> = {};
+    for (const perm of perms) {
+      if (
+        !aaidPerms[perm.aaid] ||
+        aaidPerms[perm.aaid].dateAssigned.getTime() <
+          perm.dateAssigned.getTime()
+      ) {
+        aaidPerms[perm.aaid] = perm;
+      }
+    }
+
+    const allowedToLand: string[] = [];
+    for (const aaid of Object.keys(aaidPerms)) {
+      const perm = aaidPerms[aaid];
+      if (['land', 'admin'].includes(perm.mode)) {
+        allowedToLand.push(aaidPerms[aaid].aaid);
+      }
+    }
+
+    return allowedToLand;
   };
 
   private getDatesSinceLastFailures = async (): Promise<number> => {
