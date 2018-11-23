@@ -128,6 +128,12 @@ export class BitbucketAPI {
 
   getRepository = async (): Promise<BB.Repository> => {
     const endpoint = this.apiBaseUrl;
+    Logger.info('attempting to fetch UUID', {
+      username: this.config.botUsername,
+      passwordChar: `${this.config.botPassword ||
+        'WHY THE HECK IS THIS NOT HERE'}`[0],
+      endpoint,
+    });
     const { data } = await axios.get<BB.RepositoryResponse>(
       endpoint,
       this.axiosGetConfig,
