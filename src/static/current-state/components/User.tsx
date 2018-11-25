@@ -17,6 +17,12 @@ export class User extends React.Component<Props, State> {
     this.fetch(this.props.aaid);
   }
 
+  componentWillUpdate(newProps: Props) {
+    if (newProps.aaid !== this.props.aaid) {
+      this.fetch(this.props.aaid);
+    }
+  }
+
   private key = (aaid: string) => `user-info:${aaid}`;
 
   private async fetch(aaid: string) {

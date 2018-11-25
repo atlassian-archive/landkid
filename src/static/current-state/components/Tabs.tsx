@@ -135,15 +135,17 @@ export const SystemTab: React.FunctionComponent<SystemTabProps> = props => {
     <Tab>
       <div style={{ marginTop: '27px' }}>
         <h3>Allowed Users</h3>
-        <p>
+        <ul>
           {allowedUsers.map(userAaid => (
-            <User aaid={userAaid}>
-              {user => {
-                return user.displayName;
-              }}
-            </User>
+            <li key={userAaid}>
+              <User aaid={userAaid}>
+                {user => {
+                  return user.displayName;
+                }}
+              </User>
+            </li>
           ))}
-        </p>
+        </ul>
       </div>
     </Tab>
   );
