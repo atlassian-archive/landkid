@@ -4,7 +4,12 @@ import { client } from './redis-client';
 const redlock = new RedLock([client]);
 
 export const withLock = async <T>(resource: string, fn: () => Promise<T>) => {
-  const lock = await redlock.lock(resource, 60000);
+  let lock: RedLock.Lock;
+  try {
+    lock = await redlock.lock(resource, 60000);
+  } catch {
+    return;
+  }
   let result: T;
   try {
     result = await fn();
