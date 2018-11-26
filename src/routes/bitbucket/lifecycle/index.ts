@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { authenticateIncomingBBCall, wrap } from '../../middleware';
 import { Installation } from '../../../db';
+import { Logger } from '../../../lib/Logger';
 
 export function lifecycleRoutes() {
   const router = express();
@@ -10,16 +11,13 @@ export function lifecycleRoutes() {
     wrap(async (req, res) => {
       const install = await Installation.findOne<Installation>();
       if (install) {
+        Logger.error('Attempted to install over and existing installation');
         return res.status(400).json({
-          error: 'Already installed',
+          error: 'Attempted to install over and existing installation',
         });
       }
 
-      if (
-        !req.body.clientKey ||
-        !req.body.sharedSecret ||
-        req.body.productType !== 'bitbucket'
-      ) {
+      if (!req.body.clientKey || !req.body.sharedSecret || req.body.productType !== 'bitbucket') {
         return res.status(400).json({
           error: 'Invalid installation webhook',
         });
