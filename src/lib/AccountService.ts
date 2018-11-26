@@ -29,7 +29,7 @@ export class AccountService {
   };
 
   public getAccountInfo = async (aaid: string): Promise<ISessionUser> => {
-    return await withLock(
+    const info = await withLock(
       this.resource(aaid),
       async (): Promise<ISessionUser> => {
         const cached = await getAsync(this.key(aaid));
@@ -42,5 +42,6 @@ export class AccountService {
         return JSON.parse(cached);
       },
     );
+    return info || this.getAccountInfo(aaid);
   };
 }

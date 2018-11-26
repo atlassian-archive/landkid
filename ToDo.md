@@ -40,7 +40,8 @@
 * [x] Fix binary file and files arr in package.json
 * [ ] Add # routes to select tabs
 * [x] Load oAuth from config
-* [ ] Better error messages from config
+* [x] Better error messages from config
+* [x] Better error messages from APIs
 * [ ] Validate commit hasnt changed before merge
 * [ ] Logout
 * [ ] Remove UUIDs from config
@@ -51,7 +52,7 @@
 * [ ] show LANDKID_DEPLOYMENT in webpanel
 * [ ] document deployment process
 * [ ] Create nicer landing page
-
+* [ ] Log stack traces on error (https://github.com/bithavoc/express-winston)
 
 ## Someone
 

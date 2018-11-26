@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as jwtTools from 'atlassian-jwt';
 import { Installation } from '../db';
 import { permissionService } from '../lib/PermissionService';
+import { Logger } from '../lib/Logger';
 
 export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
   return async (req, res, next) => {
@@ -23,6 +24,7 @@ export const permission = (userMode: IPermissionMode) => ({
 export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHandler =>
   wrap(async (req, res, next) => {
     if (!req.user) {
+      Logger.error('Endpoint requires authentication');
       return res.status(401).json({
         error: 'This endpoint requires authentication',
       });
@@ -42,14 +44,16 @@ export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHand
 export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (req, res, next) => {
   const install = await Installation.findOne<Installation>();
   if (!install) {
+    Logger.error('Addon has not been installed, can not be validated');
     return res.status(401).json({
       error: 'Addon has not been installed, can not be validated',
     });
   }
   let jwt: string | undefined = req.query.jwt || req.header('authorization');
   if (!jwt) {
+    Logger.error('Authenticated request requires a JWT token');
     return res.status(401).json({
-      error: 'No JWT, please provide one m8y',
+      error: 'Authenticated request requires a JWT token',
     });
   }
   if (jwt.startsWith('JWT ')) {
@@ -60,6 +64,7 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
   try {
     decoded = jwtTools.decode(jwt, install.sharedSecret);
   } catch (err) {
+    Logger.error('Could not validate JWT');
     return res.status(401).json({
       error: 'Could not validate JWT',
     });
@@ -74,8 +79,9 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
   const expectedHash = jwtTools.createQueryStringHash(jwtTools.fromExpressRequest(req));
 
   if (expectedHash !== decoded.qsh) {
+    Logger.error('JWT token is valid but not for this request');
     return res.status(401).json({
-      error: 'Well, you got quite far, but you are as bad as luke',
+      error: 'JWT token is valid but not for this request',
     });
   }
 

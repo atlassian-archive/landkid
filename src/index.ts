@@ -24,9 +24,7 @@ const RedisStore = connectRedis(session);
 
 async function main() {
   if (!hasConfig) {
-    throw new Error(
-      'Could not find config.js file, see the README for instructions',
-    );
+    throw new Error('Could not find config.js file, see the README for instructions');
   }
 
   await initializeSequelize();
