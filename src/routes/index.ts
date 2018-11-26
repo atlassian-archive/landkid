@@ -10,11 +10,7 @@ import { bitbucketRoutes } from './bitbucket';
 import { makeDescriptor } from '../bitbucket/descriptor';
 import { authRoutes } from './auth';
 
-export async function routes(
-  server: express.Application,
-  client: BitbucketClient,
-  runner: Runner,
-) {
+export async function routes(server: express.Application, client: BitbucketClient, runner: Runner) {
   const router = express();
 
   let repoUuid = config.repoConfig.uuid;
@@ -31,9 +27,7 @@ export async function routes(
   });
 
   router.get('/ac', (req, res) => {
-    res
-      .header('Access-Control-Allow-Origin', '*')
-      .json(bitbucketAddonDescriptor);
+    res.header('Access-Control-Allow-Origin', '*').json(bitbucketAddonDescriptor);
   });
   router.use('/api', apiRoutes(runner, client));
   router.use('/auth', authRoutes());

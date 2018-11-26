@@ -22,9 +22,7 @@ export type QueueItemsListProps = {
   bitbucketBaseUrl: string;
 };
 
-export const QueueItemsList: React.FunctionComponent<
-  QueueItemsListProps
-> = props => {
+export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = props => {
   const { queue, fading, renderEmpty } = props;
   const filteredQueue = queue.filter(item => item.state !== 'running');
   if (!filteredQueue.length) {

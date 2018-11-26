@@ -4,12 +4,8 @@ import { promisify } from 'util';
 import { withLock } from './utils/locker';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
 
-const getAsync: (key: string) => Promise<string | undefined> = promisify(
-  client.get,
-).bind(client);
-const setAsync: (key: string, value: string) => Promise<void> = promisify(
-  client.set,
-).bind(client);
+const getAsync: (key: string) => Promise<string | undefined> = promisify(client.get).bind(client);
+const setAsync: (key: string, value: string) => Promise<void> = promisify(client.set).bind(client);
 
 let instance: AccountService | null = null;
 

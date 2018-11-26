@@ -17,8 +17,7 @@ let queueItemStyles = css({
   color: 'inherit',
 
   '&:hover': {
-    boxShadow:
-      'rgba(23, 43, 77, 0.32) 0px 4px 8px -2px, rgba(23, 43, 77, 0.25) 0px 0px 1px',
+    boxShadow: 'rgba(23, 43, 77, 0.32) 0px 4px 8px -2px, rgba(23, 43, 77, 0.25) 0px 0px 1px',
     color: 'inherit',
     textDecoration: 'none',
   },
@@ -99,10 +98,7 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
   </div>
 );
 
-const landStatusToAppearance: Record<
-  IStatusUpdate['state'],
-  LozengeAppearance
-> = {
+const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
   'will-queue-when-ready': 'new',
   queued: 'new',
   running: 'inprogress',
@@ -129,8 +125,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   aborted: 'Aborted',
 };
 
-const buildUrlFromId = (base: string, id: number) =>
-  `${base}/addon/pipelines/home#!/results/${id}`;
+const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
 
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
@@ -148,11 +143,7 @@ export function QueueItem(props: QueueItemProps) {
   return (
     <a
       className={`${queueItemStyles} queue-item`}
-      href={
-        request.buildId
-          ? buildUrlFromId(bitbucketBaseUrl, request.buildId)
-          : '#'
-      }
+      href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
     >
       <div className="queue-item__title">
         <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
@@ -162,9 +153,7 @@ export function QueueItem(props: QueueItemProps) {
       </div>
       <div className="queue-item__status-line">
         <StatusItem title="Status:">
-          <Lozenge
-            appearance={status ? landStatusToAppearance[status.state] : 'new'}
-          >
+          <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
             {landStatusToNiceString[status.state]}
           </Lozenge>
         </StatusItem>

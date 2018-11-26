@@ -38,9 +38,7 @@ export type Props = {
 };
 
 export const Badge: React.FunctionComponent<Props> = props => {
-  let selectedAppearance = props.appearance
-    ? appearance[props.appearance]
-    : appearance.default;
+  let selectedAppearance = props.appearance ? appearance[props.appearance] : appearance.default;
   return (
     <span className={styles} style={selectedAppearance}>
       {props.children}

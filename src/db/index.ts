@@ -102,8 +102,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 }
 
 @Table
-export class LandRequestStatus extends Model<LandRequestStatus>
-  implements IStatusUpdate {
+export class LandRequestStatus extends Model<LandRequestStatus> implements IStatusUpdate {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)
@@ -182,8 +181,7 @@ export class Permission extends Model<Permission> implements IPermission {
 }
 
 @Table
-export class PauseStateTransition extends Model<PauseStateTransition>
-  implements IPauseState {
+export class PauseStateTransition extends Model<PauseStateTransition> implements IPauseState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)

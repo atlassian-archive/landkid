@@ -117,10 +117,7 @@ export class App extends React.Component {
 
         return (
           <div>
-            <p>
-              {' '}
-              😭 You cannot currently land this PR for the following reasons:{' '}
-            </p>
+            <p> 😭 You cannot currently land this PR for the following reasons: </p>
             <ul>
               {errors.map(error => {
                 return <li key={error}>{error}</li>;
@@ -167,9 +164,7 @@ export class App extends React.Component {
         );
       }
       case 'unknown-error': {
-        return (
-          <div>💩 An unknown error occured, see console for information</div>
-        );
+        return <div>💩 An unknown error occured, see console for information</div>;
       }
       case 'pr-closed': {
         return <div>👏 Pullrequest is already closed!</div>;

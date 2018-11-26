@@ -26,11 +26,7 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
     error: null,
     data: null,
     poll:
-      this.props.poll === true
-        ? DEFAULT_POLLING_INTERVAL
-        : this.props.poll
-        ? this.props.poll
-        : 0,
+      this.props.poll === true ? DEFAULT_POLLING_INTERVAL : this.props.poll ? this.props.poll : 0,
   };
 
   fetchData() {

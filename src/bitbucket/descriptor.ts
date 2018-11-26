@@ -39,9 +39,7 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
         key: 'atlaskid-addon-panel',
         name: {
           value: `Landkid Queue${
-            process.env.LANDKID_DEPLOYMENT !== 'prod'
-              ? ` (${process.env.LANDKID_DEPLOYMENT})`
-              : ''
+            process.env.LANDKID_DEPLOYMENT !== 'prod' ? ` (${process.env.LANDKID_DEPLOYMENT})` : ''
           }`,
         },
         url:
