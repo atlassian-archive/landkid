@@ -1,9 +1,7 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
 export class LandRequestQueue {
-  public getStatusesForWaitingRequests = async (): Promise<
-    LandRequestStatus[]
-  > => {
+  public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
     return await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
@@ -19,9 +17,7 @@ export class LandRequestQueue {
     });
   };
 
-  public getStatusesForQueuedRequests = async (): Promise<
-    LandRequestStatus[]
-  > => {
+  public getStatusesForQueuedRequests = async (): Promise<LandRequestStatus[]> => {
     return await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,

@@ -22,7 +22,7 @@
 * [ ] validate secret from bb on installation
 * [ ] Linting
 * [ ] CI
-* [ ] Move BB requests to using app config
+* [ ] Move BB requests to using app config (to avoid rate limiting)
 
 ## Luke
 
@@ -31,11 +31,10 @@
   * [x] Pagination
 * [x] AllowedToLand check is broken
 * [ ] Productionised config
-  * [ ] Allow refresh/back on bb addon
 * [x] addon frontend in react
+  * [x] Allow refresh/back on bb addon
 * [ ] add websockets :D :D :D
-* [x] Move the static files routes
-  * What does this mean?
+* [x] Move the static files route
 * [x] Clean up serving of ac.json
 * [x] Remove cancel release
 * [x] Fix binary file and files arr in package.json
@@ -50,6 +49,8 @@
 * [-] Don't require hacking ac.json to personal
 * [ ] Add pausing to admin ui
 * [ ] show LANDKID_DEPLOYMENT in webpanel
+* [ ] document deployment process
+* [ ] Create nicer landing page
 
 
 ## Someone

@@ -48,9 +48,7 @@ export class Runner {
       });
 
       const commit = landRequest.forCommit;
-      const isAllowedToLand = await this.client.isAllowedToLand(
-        landRequest.pullRequestId,
-      );
+      const isAllowedToLand = await this.client.isAllowedToLand(landRequest.pullRequestId);
 
       if (isAllowedToLand.errors.length === 0) {
         Logger.info('Allowed to land, creating land build', {
@@ -127,10 +125,7 @@ export class Runner {
           running: running.get(),
           statusEvent,
         });
-        await running.request.setStatus(
-          'aborted',
-          'Landkid pipelines build was stopped',
-        );
+        await running.request.setStatus('aborted', 'Landkid pipelines build was stopped');
         break;
       }
     }
@@ -189,9 +184,7 @@ export class Runner {
     return state.paused;
   };
 
-  private async createRequestFromOptions(
-    landRequestOptions: LandRequestOptions,
-  ) {
+  private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
     const pr =
       (await PullRequest.findOne<PullRequest>({
         where: {
@@ -211,20 +204,14 @@ export class Runner {
     });
   }
 
-  async removeLandRequestByPullRequestId(
-    pullRequestId: number,
-    user: ISessionUser,
-  ) {
+  async removeLandRequestByPullRequestId(pullRequestId: number, user: ISessionUser) {
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
       },
     });
     for (const request of requests) {
-      await request.setStatus(
-        'aborted',
-        `Cancelled by user: "${user.aaid}" (${user.displayName})`,
-      );
+      await request.setStatus('aborted', `Cancelled by user: "${user.aaid}" (${user.displayName})`);
     }
   }
 
@@ -285,8 +272,7 @@ export class Runner {
     for (const perm of perms) {
       if (
         !aaidPerms[perm.aaid] ||
-        aaidPerms[perm.aaid].dateAssigned.getTime() <
-          perm.dateAssigned.getTime()
+        aaidPerms[perm.aaid].dateAssigned.getTime() < perm.dateAssigned.getTime()
       ) {
         aaidPerms[perm.aaid] = perm;
       }
@@ -313,9 +299,7 @@ export class Runner {
       order: [['date', 'DESC']],
     });
     if (!lastFailure) return -1;
-    return Math.floor(
-      (Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24),
-    );
+    return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   async getHistory(page: number) {
@@ -342,9 +326,9 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
-      bitbucketBaseUrl: `https://bitbucket.org/${
-        this.config.repoConfig.repoOwner
-      }/${this.config.repoConfig.repoName}`,
+      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
+        this.config.repoConfig.repoName
+      }`,
     };
   }
 }

@@ -33,14 +33,11 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
       ) => {
         let userInfo: ISessionUser;
         try {
-          const userResponse = await axios.get(
-            'https://api.bitbucket.org/2.0/user',
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
+          const userResponse = await axios.get('https://api.bitbucket.org/2.0/user', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
             },
-          );
+          });
 
           userInfo = {
             aaid: userResponse.data.account_id,

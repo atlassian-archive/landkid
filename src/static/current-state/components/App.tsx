@@ -13,7 +13,7 @@ export function App() {
       <WithAPIData<{ loggedIn: boolean; user?: ISessionUser }>
         endpoint="auth/whoami"
         renderLoading={() => <Header />}
-        render={(userInfo) => {
+        render={userInfo => {
           if (userInfo.loggedIn) {
             return (
               <React.Fragment>
@@ -22,14 +22,11 @@ export function App() {
                   poll={true}
                   endpoint="api/current-state"
                   renderLoading={() => <Section>Loading...</Section>}
-                  render={(data) => (
+                  render={data => (
                     <div>
                       <CurrentState {...data} />
 
-                      <RunningBuild
-                        queue={data.queue}
-                        bitbucketBaseUrl={data.bitbucketBaseUrl}
-                      />
+                      <RunningBuild queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
 
                       <Tabs
                         bitbucketBaseUrl={data.bitbucketBaseUrl}

@@ -57,25 +57,19 @@ export function TabsControls(props: TabsControlsProps) {
     <div className={controlsStyles}>
       <button
         onClick={() => selectTab(0)}
-        className={`ak-button__appearance-subtle ${
-          selected === 0 ? '--selected' : ''
-        }`}
+        className={`ak-button__appearance-subtle ${selected === 0 ? '--selected' : ''}`}
       >
         System
       </button>
       <button
         onClick={() => selectTab(1)}
-        className={`ak-button__appearance-subtle ${
-          selected === 1 ? '--selected' : ''
-        }`}
+        className={`ak-button__appearance-subtle ${selected === 1 ? '--selected' : ''}`}
       >
         Queue
       </button>
       <button
         onClick={() => selectTab(2)}
-        className={`ak-button__appearance-subtle ${
-          selected === 2 ? '--selected' : ''
-        }`}
+        className={`ak-button__appearance-subtle ${selected === 2 ? '--selected' : ''}`}
       >
         History
       </button>
@@ -182,12 +176,8 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       <Section important last>
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
         {selected === 0 ? <SystemTab allowedUsers={allowedUsers} /> : null}
-        {selected === 1 ? (
-          <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} />
-        ) : null}
-        {selected === 2 ? (
-          <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} />
-        ) : null}
+        {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
+        {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}
       </Section>
     );
   }

@@ -11,9 +11,7 @@ class PermissionService {
     });
 
     if (!permission) {
-      const defaultMode: IPermissionMode = config.landkidAdmins.includes(aaid)
-        ? 'admin'
-        : 'read';
+      const defaultMode: IPermissionMode = config.landkidAdmins.includes(aaid) ? 'admin' : 'read';
       await Permission.create({
         aaid,
         mode: defaultMode,

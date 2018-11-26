@@ -14,11 +14,7 @@ export type Props = {
   last?: boolean;
 };
 
-export const Section: React.FunctionComponent<Props> = ({
-  children,
-  important,
-  last,
-}) => (
+export const Section: React.FunctionComponent<Props> = ({ children, important, last }) => (
   <div
     className={important ? importantStyles : styles}
     style={{ paddingBottom: last ? '45px' : 0 }}

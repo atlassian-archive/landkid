@@ -24,17 +24,14 @@ export class BitbucketPipelinesAPI {
       'Content-Type': 'application/json',
     },
   };
-  private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${
-    this.config.repoName
-  }`;
+  private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
 
   constructor(private config: RepoConfig) {}
 
   public processStatusWebhook = (body: any): BB.BuildStatusEvent | null => {
     // Sometimes the events are wrapped in an extra body layer. We don't know why,
     // so we'll just guard for it here
-    const statusEvent: PipelinesStatusEvent =
-      body && body.data ? body.data : body;
+    const statusEvent: PipelinesStatusEvent = body && body.data ? body.data : body;
     if (
       !statusEvent ||
       !statusEvent.commit_status ||
@@ -42,10 +39,9 @@ export class BitbucketPipelinesAPI {
       !statusEvent.commit_status.url ||
       typeof statusEvent.commit_status.url !== 'string'
     ) {
-      Logger.error(
-        'Status event receieved that does not match the shape we were expecting',
-        { statusEvent: body },
-      );
+      Logger.error('Status event receieved that does not match the shape we were expecting', {
+        statusEvent: body,
+      });
       return null;
     }
     const buildStatus = statusEvent.commit_status.state;
@@ -78,9 +74,7 @@ export class BitbucketPipelinesAPI {
     );
     Logger.info('Created build', { buildNumber: resp.data.build_number });
     if (!resp.data.build_number || typeof resp.data.build_number !== 'number') {
-      Logger.error(
-        'Response from creating build does not match the shape we expected',
-      );
+      Logger.error('Response from creating build does not match the shape we expected');
       return null;
     }
     // build_number comes back as a number unfortunately

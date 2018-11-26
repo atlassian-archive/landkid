@@ -4,11 +4,7 @@ import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
-function getRealApprovals(
-  approvals: Array<string>,
-  creator: string,
-  creatorCanApprove: boolean,
-) {
+function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
   if (creatorCanApprove) return approvals;
   return approvals.filter(approval => approval !== creator);
 }
@@ -20,12 +16,8 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToLand(pullRequestId: number) {
-    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(
-      pullRequestId,
-    );
-    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(
-      pullRequestId,
-    );
+    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
+    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
     const author = pullRequest.author;
     let approvals = getRealApprovals(
       pullRequest.approvals,
@@ -36,8 +28,7 @@ export class BitbucketClient {
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
       isGreen:
-        buildStatuses.every(status => status.state === 'SUCCESSFUL') &&
-        buildStatuses.length > 0,
+        buildStatuses.every(status => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };

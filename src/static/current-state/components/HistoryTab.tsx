@@ -69,18 +69,12 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
                 <QueueItemJoined
                   bitbucketBaseUrl={this.props.bitbucketBaseUrl}
                   request={item.request}
-                  status={
-                    item.statusEvents.find(status => status.isLatest) || null
-                  }
+                  status={item.statusEvents.find(status => status.isLatest) || null}
                   key={item.request.id}
                 />
               ))}
               <div style={{ marginTop: '30px' }}>
-                <Pagination
-                  value={this.state.page}
-                  total={pages}
-                  onChange={this.onPageChange}
-                />
+                <Pagination value={this.state.page} total={pages} onChange={this.onPageChange} />
               </div>
             </div>
           );

@@ -19,9 +19,7 @@ export class BitbucketAPI {
       'Content-Type': 'application/json',
     },
   };
-  private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${
-    this.config.repoName
-  }`;
+  private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
 
   constructor(private config: RepoConfig) {}
 
@@ -36,15 +34,11 @@ export class BitbucketAPI {
 
     Logger.info('Merging pull request', { pullRequestId, endpoint });
     // This is just defining the function that we will retry
-    const attemptMerge = () =>
-      axios.post(endpoint, JSON.stringify(data), this.axiosPostConfig);
+    const attemptMerge = () => axios.post(endpoint, JSON.stringify(data), this.axiosPostConfig);
 
-    const onFailedAttempt = (
-      failure: AxiosError & pRetry.FailedAttemptError,
-    ) => {
+    const onFailedAttempt = (failure: AxiosError & pRetry.FailedAttemptError) => {
       const { response, attemptNumber, attemptsLeft } = failure;
-      const { status, statusText, headers, data } =
-        response || ({} as Record<string, undefined>);
+      const { status, statusText, headers, data } = response || ({} as Record<string, undefined>);
 
       Logger.error('Merge attempt failed', {
         err: failure,
@@ -69,10 +63,7 @@ export class BitbucketAPI {
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}`;
-    const resp = await axios.get<BB.PullRequestResponse>(
-      endpoint,
-      this.axiosGetConfig,
-    );
+    const resp = await axios.get<BB.PullRequestResponse>(endpoint, this.axiosGetConfig);
     const data = resp.data;
     const approvals = data.participants
       .filter(participant => participant.approved)
@@ -91,12 +82,8 @@ export class BitbucketAPI {
     };
   };
 
-  getPullRequestBuildStatuses = async (
-    pullRequestId: number,
-  ): Promise<Array<BB.BuildStatus>> => {
-    const endpoint = `${
-      this.apiBaseUrl
-    }/pullrequests/${pullRequestId}/statuses`;
+  getPullRequestBuildStatuses = async (pullRequestId: number): Promise<Array<BB.BuildStatus>> => {
+    const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(
       endpoint,
       this.axiosGetConfig,
@@ -105,9 +92,7 @@ export class BitbucketAPI {
     const allBuildStatuses = resp.data.values;
     // need to remove build statuses that we created or rerunning would be impossible
     return allBuildStatuses
-      .filter(
-        buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/),
-      )
+      .filter(buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/))
       .map(status => ({
         state: status.state,
         createdOn: new Date(status.created_on),
@@ -130,14 +115,10 @@ export class BitbucketAPI {
     const endpoint = this.apiBaseUrl;
     Logger.info('attempting to fetch UUID', {
       username: this.config.botUsername,
-      passwordChar: `${this.config.botPassword ||
-        'WHY THE HECK IS THIS NOT HERE'}`[0],
+      passwordChar: `${this.config.botPassword || 'WHY THE HECK IS THIS NOT HERE'}`[0],
       endpoint,
     });
-    const { data } = await axios.get<BB.RepositoryResponse>(
-      endpoint,
-      this.axiosGetConfig,
-    );
+    const { data } = await axios.get<BB.RepositoryResponse>(endpoint, this.axiosGetConfig);
 
     return {
       repoOwner: data.owner.username,

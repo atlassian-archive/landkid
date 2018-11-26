@@ -49,9 +49,7 @@ export type Props = {
 };
 
 export const Lozenge: React.FunctionComponent<Props> = props => {
-  let selectedApperance = props.appearance
-    ? appearance[props.appearance]
-    : appearance.default;
+  let selectedApperance = props.appearance ? appearance[props.appearance] : appearance.default;
 
   return (
     <span className={styles} style={selectedApperance}>
