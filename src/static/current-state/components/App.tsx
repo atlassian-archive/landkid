@@ -35,6 +35,7 @@ export function App() {
                         allowedUsers={data.usersAllowedToLand}
                         queue={data.queue}
                         loggedInUser={loggedInUser}
+                        paused={data.pauseState.paused}
                       />
                     </div>
                   )}
