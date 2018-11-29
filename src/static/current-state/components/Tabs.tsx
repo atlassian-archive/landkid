@@ -129,43 +129,104 @@ export type HistoryTabProps = {
   bitbucketBaseUrl: string;
 };
 
-export type SystemTabProps = { allowedUsers: IPermission[]; loggedInUser: ISessionUser };
-export const SystemTab: React.FunctionComponent<SystemTabProps> = props => {
-  const { allowedUsers, loggedInUser } = props;
-  console.log(allowedUsers);
-  return (
-    <Tab>
-      <div style={{ marginTop: '27px' }}>
-        <h3>Allowed Users</h3>
-        <ul>
-          {allowedUsers
-            .sort(sortUsersByPermission)
-            .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
-              <li key={aaid}>
-                <User aaid={aaid}>
-                  {user => (
-                    <div
-                      title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
-                      style={{ display: 'flex', flexDirection: 'row' }}
-                    >
-                      <span style={{ display: 'inline-block', minWidth: '150px' }}>
-                        {user.displayName}
-                      </span>
-                      <PermissionControl
-                        user={user}
-                        userPermission={mode}
-                        loggedInUser={loggedInUser}
-                      />
-                    </div>
-                  )}
-                </User>
-              </li>
-            ))}
-        </ul>
-      </div>
-    </Tab>
-  );
+export type SystemTabProps = {
+  allowedUsers: IPermission[];
+  loggedInUser: ISessionUser;
+  defaultPaused: boolean;
 };
+export type SystemTabsState = {
+  paused: boolean;
+};
+export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> {
+  constructor(props: SystemTabProps) {
+    super(props);
+    this.state = {
+      paused: props.defaultPaused,
+    };
+  }
+
+  onPauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    if (checked) {
+      const reason = window.prompt(
+        'What would you like the pause message to be?',
+        'Builds have been paused by an admin, see the Fabric Build room for details',
+      );
+      fetch('/api/pause', {
+        method: 'POST',
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ reason }),
+      }).then(() => {
+        this.setState({ paused: true });
+      });
+    } else {
+      fetch('/api/unpause', { method: 'POST' }).then(() => {
+        this.setState({ paused: false });
+      });
+    }
+  };
+
+  render() {
+    const { allowedUsers, loggedInUser } = this.props;
+    return (
+      <Tab>
+        <div style={{ marginTop: '27px' }}>
+          {loggedInUser.permission === 'admin' && (
+            <React.Fragment>
+              <h3>Pause Builds</h3>
+              <div
+                className={`ak-field-toggle ak-field-toggle__size-large`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  fontSize: '14px',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  name="pause-toggle"
+                  id="pause-toggle"
+                  value="pause-toggle"
+                  checked={this.state.paused}
+                  onChange={this.onPauseChange}
+                />
+                <label htmlFor="pause-toggle">Option</label>
+                <span>{this.state.paused ? 'Paused' : 'Not paused'}</span>
+              </div>
+            </React.Fragment>
+          )}
+          <h3>Allowed Users</h3>
+          <ul>
+            {allowedUsers
+              .sort(sortUsersByPermission)
+              .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
+                <li key={aaid}>
+                  <User aaid={aaid}>
+                    {user => (
+                      <div
+                        title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+                        style={{ display: 'flex', flexDirection: 'row' }}
+                      >
+                        <span style={{ display: 'inline-block', minWidth: '150px' }}>
+                          {user.displayName}
+                        </span>
+                        <PermissionControl
+                          user={user}
+                          userPermission={mode}
+                          loggedInUser={loggedInUser}
+                        />
+                      </div>
+                    )}
+                  </User>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </Tab>
+    );
+  }
+}
 
 export const Tab: React.FunctionComponent = props => {
   const { children } = props;
@@ -178,6 +239,7 @@ export type TabsProps = {
   queue: IStatusUpdate[];
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
+  paused: boolean;
 };
 
 export type TabsState = {
@@ -193,13 +255,17 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
 
   render() {
     let { selected } = this.state;
-    let { allowedUsers, bitbucketBaseUrl, queue, loggedInUser } = this.props;
+    let { allowedUsers, bitbucketBaseUrl, queue, loggedInUser, paused } = this.props;
 
     return (
       <Section important last>
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
         {selected === 0 ? (
-          <SystemTab allowedUsers={allowedUsers} loggedInUser={loggedInUser} />
+          <SystemTab
+            allowedUsers={allowedUsers}
+            loggedInUser={loggedInUser}
+            defaultPaused={paused}
+          />
         ) : null}
         {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
         {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}

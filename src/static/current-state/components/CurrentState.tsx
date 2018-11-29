@@ -36,7 +36,7 @@ export function CurrentState(props: Props) {
   // const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
   const { daysSinceLastFailure, queue, pauseState } = props;
   const fancyDaysSinceLastFailure = daysSinceLastFailure === -1 ? '∞' : daysSinceLastFailure;
-  function renderColumns() {
+  function renderStateColumns() {
     return (
       <div className={styles}>
         <div className="current-state__card">
@@ -46,7 +46,7 @@ export function CurrentState(props: Props) {
           </div>
         </div>
         <div className="current-state__card">
-          <h4 className="current-state__card-title">Awesome:</h4>
+          <h4 className="current-state__card-title">Paused:</h4>
           <div className="current-state__info">
             <Badge appearance="added">Yes</Badge>
           </div>
@@ -61,15 +61,15 @@ export function CurrentState(props: Props) {
     );
   }
 
-  function renderPanel() {
+  function renderPausedPanel() {
     return (
       <Panel>
         <strong>Builds are currently paused</strong>
         <br />
-        {pauseState.reason || 'No reason was provided, get used to it'}
+        {pauseState.reason || 'No reason was provided'}
       </Panel>
     );
   }
 
-  return <Section>{pauseState.paused ? renderPanel() : renderColumns()}</Section>;
+  return <Section>{pauseState.paused ? renderPausedPanel() : renderStateColumns()}</Section>;
 }
