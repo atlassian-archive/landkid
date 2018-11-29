@@ -5,6 +5,7 @@ import { QueueItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
 import { User } from './User';
 import { HistoryTab } from './HistoryTab';
+import { PermissionControl } from './PermissionControl';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -118,27 +119,48 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
   );
 };
 
+// sort by permssion descending (admin -> land -> read)
+function sortUsersByPermission(user1: IPermission, user2: IPermission) {
+  const permssionsLevels = ['read', 'land', 'admin'];
+  return permssionsLevels.indexOf(user2.mode) - permssionsLevels.indexOf(user1.mode);
+}
+
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
 };
 
-export type SystemTabProps = { allowedUsers: Array<string> };
+export type SystemTabProps = { allowedUsers: IPermission[]; loggedInUser: ISessionUser };
 export const SystemTab: React.FunctionComponent<SystemTabProps> = props => {
-  const { allowedUsers } = props;
+  const { allowedUsers, loggedInUser } = props;
+  console.log(allowedUsers);
   return (
     <Tab>
       <div style={{ marginTop: '27px' }}>
         <h3>Allowed Users</h3>
         <ul>
-          {allowedUsers.map(userAaid => (
-            <li key={userAaid}>
-              <User aaid={userAaid}>
-                {user => {
-                  return user.displayName;
-                }}
-              </User>
-            </li>
-          ))}
+          {allowedUsers
+            .sort(sortUsersByPermission)
+            .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
+              <li key={aaid}>
+                <User aaid={aaid}>
+                  {user => (
+                    <div
+                      title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+                      style={{ display: 'flex', flexDirection: 'row' }}
+                    >
+                      <span style={{ display: 'inline-block', minWidth: '150px' }}>
+                        {user.displayName}
+                      </span>
+                      <PermissionControl
+                        user={user}
+                        userPermission={mode}
+                        loggedInUser={loggedInUser}
+                      />
+                    </div>
+                  )}
+                </User>
+              </li>
+            ))}
         </ul>
       </div>
     </Tab>
@@ -152,9 +174,10 @@ export const Tab: React.FunctionComponent = props => {
 
 export type TabsProps = {
   selected: number;
-  allowedUsers: Array<string>;
+  allowedUsers: IPermission[];
   queue: IStatusUpdate[];
   bitbucketBaseUrl: string;
+  loggedInUser: ISessionUser;
 };
 
 export type TabsState = {
@@ -170,12 +193,14 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
 
   render() {
     let { selected } = this.state;
-    let { allowedUsers, bitbucketBaseUrl, queue } = this.props;
+    let { allowedUsers, bitbucketBaseUrl, queue, loggedInUser } = this.props;
 
     return (
       <Section important last>
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
-        {selected === 0 ? <SystemTab allowedUsers={allowedUsers} /> : null}
+        {selected === 0 ? (
+          <SystemTab allowedUsers={allowedUsers} loggedInUser={loggedInUser} />
+        ) : null}
         {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
         {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}
       </Section>
