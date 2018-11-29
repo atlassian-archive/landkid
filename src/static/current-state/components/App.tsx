@@ -10,11 +10,12 @@ import { Header } from './Header';
 export function App() {
   return (
     <div>
-      <WithAPIData<{ loggedIn: boolean; user?: ISessionUser }>
+      <WithAPIData<{ loggedIn: boolean; user?: ISessionUser; permission: IPermissionMode }>
         endpoint="auth/whoami"
         renderLoading={() => <Header />}
         render={userInfo => {
           if (userInfo.loggedIn) {
+            const loggedInUser = { ...userInfo.user!, permission: userInfo.permission };
             return (
               <React.Fragment>
                 <Header user={userInfo.user} />
@@ -33,6 +34,7 @@ export function App() {
                         selected={1}
                         allowedUsers={data.usersAllowedToLand}
                         queue={data.queue}
+                        loggedInUser={loggedInUser}
                       />
                     </div>
                   )}

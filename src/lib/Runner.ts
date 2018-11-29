@@ -11,6 +11,7 @@ import {
   Permission,
   LandRequestStatus,
 } from '../db';
+import { permissionService } from './PermissionService';
 
 export class Runner {
   constructor(
@@ -262,12 +263,13 @@ export class Runner {
     }
   }
 
-  private getUsersAllowedToLand = async (): Promise<string[]> => {
+  private getUsersPermissions = async (requestingUser: ISessionUser): Promise<IPermission[]> => {
     // TODO: Figure out how to use distinct
     const perms = await Permission.findAll<Permission>({
       order: [['dateAssigned', 'DESC']],
     });
 
+    // Need to get only the latest record for each user
     const aaidPerms: Record<string, Permission> = {};
     for (const perm of perms) {
       if (
@@ -278,11 +280,19 @@ export class Runner {
       }
     }
 
-    const allowedToLand: string[] = [];
+    // Now we need to filter to only show the records that the requesting user is allowed to see
+    const allowedToLand: RunnerState['usersAllowedToLand'] = [];
+    const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
     for (const aaid of Object.keys(aaidPerms)) {
-      const perm = aaidPerms[aaid];
-      if (['land', 'admin'].includes(perm.mode)) {
-        allowedToLand.push(aaidPerms[aaid].aaid);
+      // admins see all users
+      if (requestingUserMode === 'admin') {
+        allowedToLand.push(aaidPerms[aaid]);
+        // land users can see land and admin users
+      } else if (requestingUserMode === 'land' && aaidPerms[aaid].mode !== 'read') {
+        allowedToLand.push(aaidPerms[aaid]);
+        // read users can only see admins
+      } else if (requestingUserMode === 'read' && aaidPerms[aaid].mode === 'admin') {
+        allowedToLand.push(aaidPerms[aaid]);
       }
     }
 
@@ -306,7 +316,7 @@ export class Runner {
     return this.history.getHistory(page);
   }
 
-  async getState(): Promise<RunnerState> {
+  async getState(requestingUser: ISessionUser): Promise<RunnerState> {
     const [
       daysSinceLastFailure,
       pauseState,
@@ -317,7 +327,7 @@ export class Runner {
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
-      this.getUsersAllowedToLand(),
+      this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
     ]);
     return {

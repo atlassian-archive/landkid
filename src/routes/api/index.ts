@@ -5,6 +5,7 @@ import { Runner } from '../../lib/Runner';
 import { Logger } from '../../lib/Logger';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
+import { permissionService } from '../../lib/PermissionService';
 
 export function apiRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
@@ -13,7 +14,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     '/current-state',
     requireAuth('read'),
     wrap(async (req, res) => {
-      const state = await runner.getState();
+      const state = await runner.getState(req.user!);
       Logger.info('Requesting current state');
       res.header('Access-Control-Allow-Origin', '*').json(state);
     }),
@@ -34,9 +35,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     '/user/:aaid',
     requireAuth('read'),
     wrap(async (req, res) => {
-      res.json(
-        await AccountService.get(client).getAccountInfo(req.params.aaid),
-      );
+      res.json(await AccountService.get(client).getAccountInfo(req.params.aaid));
     }),
   );
 
@@ -50,6 +49,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
       }
       runner.pause(pausedReason, req.user!);
       res.json({ paused: true, pausedReason });
+    }),
+  );
+
+  router.patch(
+    '/permission/:aaid',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const userAaid = req.params.aaid;
+      const mode = req.body.mode;
+      if (['read', 'land', 'admin'].indexOf(mode) === -1) {
+        return res.status(400).json({ error: 'Invalid permission mode' });
+      }
+      res.json(await permissionService.setPermissionForUser(userAaid, mode, req.user!));
     }),
   );
 

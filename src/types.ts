@@ -58,6 +58,6 @@ export type RunnerState = {
   waitingToQueue: Array<IStatusUpdate>;
   pauseState: IPauseState;
   daysSinceLastFailure: number;
-  usersAllowedToLand: Array<string>;
+  usersAllowedToLand: IPermission[];
   bitbucketBaseUrl: string;
 };

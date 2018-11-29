@@ -32,13 +32,7 @@ declare interface IPauseState {
 declare interface IStatusUpdate {
   id: string;
   date: Date;
-  state:
-    | 'will-queue-when-ready'
-    | 'queued'
-    | 'running'
-    | 'success'
-    | 'fail'
-    | 'aborted';
+  state: 'will-queue-when-ready' | 'queued' | 'running' | 'success' | 'fail' | 'aborted';
   reason: string | null;
   requestId: string;
   isLatest: boolean;
@@ -49,6 +43,7 @@ declare interface ISessionUser {
   aaid: string;
   username: string;
   displayName: string;
+  permission?: IPermissionMode;
 }
 
 declare type IPermissionMode = 'read' | 'land' | 'admin';
