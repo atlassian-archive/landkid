@@ -46,7 +46,7 @@ export function CurrentState(props: Props) {
           </div>
         </div>
         <div className="current-state__card">
-          <h4 className="current-state__card-title">Paused:</h4>
+          <h4 className="current-state__card-title">Working:</h4>
           <div className="current-state__info">
             <Badge appearance="added">Yes</Badge>
           </div>

@@ -130,6 +130,8 @@ export class Runner {
         break;
       }
     }
+
+    this.next();
   };
 
   async cancelCurrentlyRunningBuild(user: ISessionUser) {
