@@ -41,6 +41,7 @@ export class Runner {
 
       if (running) return;
 
+      // check if there is something else in the queue
       const landRequestInfo = await this.queue.maybeGetStatusForNextRequestInQueue();
       if (!landRequestInfo) return;
       const landRequest = landRequestInfo.request;
@@ -48,6 +49,7 @@ export class Runner {
         landRequest: landRequest.get(),
       });
 
+      // TODO: Pass this commit in to isAllowed to land and make sure it hasnt changed
       const commit = landRequest.forCommit;
       const isAllowedToLand = await this.client.isAllowedToLand(landRequest.pullRequestId);
 
@@ -69,6 +71,7 @@ export class Runner {
           { ...isAllowedToLand, ...landRequest.get() },
           'Land request is not allowed to land',
         );
+        await landRequest.setStatus('fail', 'Land request did not pass land checks');
         this.next();
       }
     });
@@ -92,24 +95,15 @@ export class Runner {
 
     Logger.info('Build status update', { statusEvent, running });
 
-    // Add build status
-    // this.running = running = {
-    //   ...running,
-    //   buildStatus: statusEvent.buildStatus,
-    // };
-
-    // let addToHistory = () =>
-    //   this.history.set(statusEvent, { ...running, finishedTime: new Date() });
-
     switch (statusEvent.buildStatus) {
       case 'SUCCESSFUL': {
         try {
           const pullRequestId = running.request.pullRequestId;
-          Logger.info('Merging pull request', { pullRequestId, running });
+          Logger.info('Attempting merge pull request', { pullRequestId, running });
           await this.client.mergePullRequest(pullRequestId);
           await running.request.setStatus('success');
         } catch (err) {
-          await running.request.setStatus('fail');
+          await running.request.setStatus('fail', 'Unable to merge pull request');
         }
         break;
       }
@@ -118,7 +112,7 @@ export class Runner {
           running: running.get(),
           statusEvent,
         });
-        await running.request.setStatus('fail');
+        await running.request.setStatus('fail', 'Landkid build failed');
         break;
       }
       case 'STOPPED': {
@@ -220,7 +214,6 @@ export class Runner {
 
   async enqueue(landRequestOptions: LandRequestOptions): Promise<void> {
     // TODO: Ensure no land request is pending for this PR
-    // TODO: Return the position in queue
     if (await this.isPaused()) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
@@ -229,6 +222,7 @@ export class Runner {
 
   async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
     // TODO: Ensure no land request is pending for this PR
+    if (await this.isPaused()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 

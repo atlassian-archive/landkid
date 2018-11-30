@@ -222,6 +222,9 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                 </li>
               ))}
           </ul>
+          {loggedInUser.permission === 'read' && (
+            <p>To get land access, you will need to ping one of the admins above</p>
+          )}
         </div>
       </Tab>
     );

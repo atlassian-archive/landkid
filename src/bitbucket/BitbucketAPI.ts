@@ -40,8 +40,10 @@ export class BitbucketAPI {
       const { response, attemptNumber, attemptsLeft } = failure;
       const { status, statusText, headers, data } = response || ({} as Record<string, undefined>);
 
+      // NOTE: Do **NOT** log the whole failure object here, it will have the axios config in it
+      // which contains auth credentials
+
       Logger.error('Merge attempt failed', {
-        err: failure,
         response: {
           statusCode: status,
           statusText,
@@ -75,7 +77,7 @@ export class BitbucketAPI {
       description: data.description,
       createdOn: new Date(data.created_on),
       author: data.author.username,
-      authorAaid: data.author.account_id,
+      authorAaid: data.author.uuid,
       state: data.state,
       approvals: approvals,
       openTasks: data.task_count,
@@ -106,19 +108,16 @@ export class BitbucketAPI {
 
     return {
       username: resp.data.username,
-      aaid: resp.data.account_id,
+      aaid: resp.data.uuid,
       displayName: resp.data.display_name,
     };
   };
 
   getRepository = async (): Promise<BB.Repository> => {
     const endpoint = this.apiBaseUrl;
-    Logger.info('attempting to fetch UUID', {
-      username: this.config.botUsername,
-      passwordChar: `${this.config.botPassword || 'WHY THE HECK IS THIS NOT HERE'}`[0],
-      endpoint,
-    });
+    Logger.info('fetching uuid for repository', { endpoint });
     const { data } = await axios.get<BB.RepositoryResponse>(endpoint, this.axiosGetConfig);
+    Logger.info('successfully fetched repo uuid', { uuid: data.uuid });
 
     return {
       repoOwner: data.owner.username,

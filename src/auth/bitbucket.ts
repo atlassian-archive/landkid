@@ -40,12 +40,12 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
           });
 
           userInfo = {
-            aaid: userResponse.data.account_id,
+            aaid: userResponse.data.uuid,
             username: userResponse.data.username,
             displayName: userResponse.data.display_name,
           };
 
-          Logger.info('User logged in', { userInfo });
+          Logger.info('User logged in', { aaid: userInfo.aaid });
         } catch (err) {
           return verified(err);
         }

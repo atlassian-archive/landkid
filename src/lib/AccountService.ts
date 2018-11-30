@@ -28,7 +28,9 @@ export class AccountService {
     return this.client.bitbucket.getUser(aaid);
   };
 
-  public getAccountInfo = async (aaid: string): Promise<ISessionUser> => {
+  public getAccountInfo = async (aaid: string, retry = 5): Promise<ISessionUser | null> => {
+    if (retry === 0) return null;
+
     const info = await withLock(
       this.resource(aaid),
       async (): Promise<ISessionUser> => {
@@ -42,6 +44,6 @@ export class AccountService {
         return JSON.parse(cached);
       },
     );
-    return info || this.getAccountInfo(aaid);
+    return info || this.getAccountInfo(aaid, retry - 1);
   };
 }

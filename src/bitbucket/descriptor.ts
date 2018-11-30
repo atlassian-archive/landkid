@@ -18,16 +18,15 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
   modules: {
     proxy: {
       '/can-land/{repository}/{pullrequest}': {
-        destination:
-          '/bitbucket/proxy/can-land?aaid={user.account_id}&pullRequestId={pullrequest.id}',
+        destination: '/bitbucket/proxy/can-land?aaid={user.uuid}&pullRequestId={pullrequest.id}',
       },
       '/land/{repository}/{pullrequest}': {
         destination:
-          '/bitbucket/proxy/land?aaid={user.account_id}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
+          '/bitbucket/proxy/land?aaid={user.uuid}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
       },
       '/land-when-able/{repository}/{pullrequest}': {
         destination:
-          '/bitbucket/proxy/land-when-able?aaid={user.account_id}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
+          '/bitbucket/proxy/land-when-able?aaid={user.uuid}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}',
       },
     },
     webPanels: [

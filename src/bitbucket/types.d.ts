@@ -8,7 +8,10 @@ declare namespace BB {
 
   type User = {
     username: string;
+    // Note: We can't actually user the account_id anymore (we can't look users up by aaid)
+    // We still refer to it everywhere as aaid, but we'll actually use the users uuid
     account_id: string;
+    uuid: string;
   };
 
   type PullRequestResponse = {

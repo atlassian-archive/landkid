@@ -5,7 +5,7 @@
 module.exports = {
   baseUrl: 'https://mydomain.com',
   port: 8080,
-  landkidAdmins: ['my-bb-admin-aaid'],
+  landkidAdmins: ['my-bb-admin-uuid'],
   repoConfig: {
     botUsername: 'my-bot',
     botPassword: 'my-bot-password',
