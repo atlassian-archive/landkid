@@ -7,8 +7,6 @@ export type LandRequestOptions = {
 };
 
 export type RepoConfig = {
-  botUsername: string;
-  botPassword: string;
   repoOwner: string;
   repoName: string;
   uuid?: string;

@@ -7,8 +7,6 @@ module.exports = {
   port: 8080,
   landkidAdmins: ['my-bb-admin-uuid'],
   repoConfig: {
-    botUsername: 'my-bot',
-    botPassword: 'my-bot-password',
     repoOwner: 'awesome-org',
     repoName: 'cool-thing',
     uuid: '{1b3e3a62-e6ec-4548-94ff-c4db699db0af}', // This is optional but will make development startup faster

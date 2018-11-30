@@ -2,8 +2,9 @@ import * as express from 'express';
 import { authenticateIncomingBBCall, wrap } from '../../middleware';
 import { Installation } from '../../../db';
 import { Logger } from '../../../lib/Logger';
+import { Runner } from '../../../lib/Runner';
 
-export function lifecycleRoutes() {
+export function lifecycleRoutes(runner: Runner) {
   const router = express();
 
   router.post(
@@ -45,6 +46,14 @@ export function lifecycleRoutes() {
           id: 'the-one-and-only',
         },
       });
+
+      const [queued, waiting] = await Promise.all([
+        runner.queue.getStatusesForQueuedRequests(),
+        runner.queue.getStatusesForWaitingRequests(),
+      ]);
+      for (const status of [...queued, ...waiting]) {
+        await status.request.setStatus('aborted', 'BitBucket Addon was Uninstalled...');
+      }
       res.send('Bye');
     }),
   );

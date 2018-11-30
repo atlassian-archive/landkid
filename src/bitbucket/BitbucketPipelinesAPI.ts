@@ -1,6 +1,9 @@
 import axios from 'axios';
+import * as jwtTools from 'atlassian-jwt';
+
 import { Logger } from '../lib/Logger';
 import { RepoConfig } from '../types';
+import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
@@ -12,18 +15,6 @@ interface PipelinesStatusEvent {
 }
 
 export class BitbucketPipelinesAPI {
-  private axiosGetConfig = {
-    auth: {
-      username: this.config.botUsername,
-      password: this.config.botPassword,
-    },
-  };
-  private axiosPostConfig = {
-    ...this.axiosGetConfig,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
   private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
 
   constructor(private config: RepoConfig) {}
@@ -67,10 +58,14 @@ export class BitbucketPipelinesAPI {
         type: 'pipeline_commit_target',
       },
     };
+    const endpoint = `${this.apiBaseUrl}/pipelines/`;
     const resp = await axios.post(
-      `${this.apiBaseUrl}/pipelines/`,
+      endpoint,
       JSON.stringify(data),
-      this.axiosPostConfig,
+      await bitbucketAuthenticator.getAuthConfig(
+        jwtTools.fromMethodAndPathAndBody('post', endpoint, data),
+        axiosPostConfig,
+      ),
     );
     Logger.info('Created build', { buildNumber: resp.data.build_number });
     if (!resp.data.build_number || typeof resp.data.build_number !== 'number') {

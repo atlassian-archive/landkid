@@ -1,12 +1,14 @@
+export const getAppKey = () => `landkid-${process.env.LANDKID_DEPLOYMENT || 'local'}`;
+
 export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
   name: `Landkid ${(process.env.LANDKID_DEPLOYMENT || 'local').toUpperCase()}`,
   description: "Addon to display a 'release queue' panel in PRs",
   baseUrl,
-  key: `landkid-${process.env.LANDKID_DEPLOYMENT || 'local'}`,
+  key: getAppKey(),
   vendor: {
     name: 'Fabric Build',
   },
-  scopes: ['pullrequest'],
+  scopes: ['pullrequest', 'pullrequest:write', 'repository', 'pipeline'],
   authentication: {
     type: 'jwt',
   },

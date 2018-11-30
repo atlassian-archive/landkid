@@ -1,24 +1,14 @@
 import axios, { AxiosError } from 'axios';
+import * as jwtTools from 'atlassian-jwt';
 import * as pRetry from 'p-retry';
 
 import { RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
+import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
 export class BitbucketAPI {
-  private axiosGetConfig = {
-    auth: {
-      username: this.config.botUsername,
-      password: this.config.botPassword,
-    },
-  };
-  private axiosPostConfig = {
-    ...this.axiosGetConfig,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
   private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
 
   constructor(private config: RepoConfig) {}
@@ -34,7 +24,15 @@ export class BitbucketAPI {
 
     Logger.info('Merging pull request', { pullRequestId, endpoint });
     // This is just defining the function that we will retry
-    const attemptMerge = () => axios.post(endpoint, JSON.stringify(data), this.axiosPostConfig);
+    const attemptMerge = async () =>
+      axios.post(
+        endpoint,
+        JSON.stringify(data),
+        await bitbucketAuthenticator.getAuthConfig(
+          jwtTools.fromMethodAndPathAndBody('post', endpoint, data),
+          axiosPostConfig,
+        ),
+      );
 
     const onFailedAttempt = (failure: AxiosError & pRetry.FailedAttemptError) => {
       const { response, attemptNumber, attemptsLeft } = failure;
@@ -65,7 +63,10 @@ export class BitbucketAPI {
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}`;
-    const resp = await axios.get<BB.PullRequestResponse>(endpoint, this.axiosGetConfig);
+    const resp = await axios.get<BB.PullRequestResponse>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+    );
     const data = resp.data;
     const approvals = data.participants
       .filter(participant => participant.approved)
@@ -88,7 +89,7 @@ export class BitbucketAPI {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(
       endpoint,
-      this.axiosGetConfig,
+      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
     );
     // fairly safe to assume we'll never need to paginate these results
     const allBuildStatuses = resp.data.values;
@@ -104,7 +105,10 @@ export class BitbucketAPI {
 
   getUser = async (aaid: string): Promise<ISessionUser> => {
     const endpoint = `https://api.bitbucket.org/2.0/users/${aaid}`;
-    const resp = await axios.get(endpoint, this.axiosGetConfig);
+    const resp = await axios.get(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+    );
 
     return {
       username: resp.data.username,
@@ -116,7 +120,10 @@ export class BitbucketAPI {
   getRepository = async (): Promise<BB.Repository> => {
     const endpoint = this.apiBaseUrl;
     Logger.info('fetching uuid for repository', { endpoint });
-    const { data } = await axios.get<BB.RepositoryResponse>(endpoint, this.axiosGetConfig);
+    const { data } = await axios.get<BB.RepositoryResponse>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+    );
     Logger.info('successfully fetched repo uuid', { uuid: data.uuid });
 
     return {

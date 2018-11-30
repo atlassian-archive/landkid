@@ -9,7 +9,7 @@ import { lifecycleRoutes } from './lifecycle';
 export function bitbucketRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
 
-  router.use('/lifecycle', lifecycleRoutes());
+  router.use('/lifecycle', lifecycleRoutes(runner));
   router.use('/proxy', proxyRoutes(runner, client));
   router.use('/webhook', webhookRoutes(runner, client));
 
