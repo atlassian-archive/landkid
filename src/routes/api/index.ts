@@ -11,6 +11,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
 
   router.get(
+    '/meta',
+    wrap(async (req, res) => {
+      res.header('Access-Control-Allow-Origin', '*').json({ meta: 'meta' });
+    }),
+  );
+
+  router.get(
     '/current-state',
     requireAuth('read'),
     wrap(async (req, res) => {
