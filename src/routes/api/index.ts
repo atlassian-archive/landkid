@@ -7,13 +7,15 @@ import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
 
+const landKidTag = process.env['LANDKID_TAG'] || 'Unknown';
+
 export function apiRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
 
   router.get(
     '/meta',
     wrap(async (req, res) => {
-      res.header('Access-Control-Allow-Origin', '*').json({ meta: 'meta' });
+      res.header('Access-Control-Allow-Origin', '*').json({ meta: { 'tag-version': landKidTag } });
     }),
   );
 
