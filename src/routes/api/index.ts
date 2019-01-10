@@ -83,6 +83,15 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
     }),
   );
 
+  router.post(
+    '/cancel-current',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.cancelCurrentlyRunningBuild(req.user!);
+      res.json({ cancelled: true });
+    }),
+  );
+
   /**
    * This is a magic endpoint that allows us to call next() if landkid hangs
    */
