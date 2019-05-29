@@ -70,14 +70,14 @@ export class BitbucketAPI {
     const data = resp.data;
     const approvals = data.participants
       .filter(participant => participant.approved)
-      .map(participant => participant.user.username);
+      .map(participant => participant.user.account_id);
 
     return {
       pullRequestId,
       title: data.title,
       description: data.description,
       createdOn: new Date(data.created_on),
-      author: data.author.username,
+      author: data.author.account_id,
       authorAaid: data.author.uuid,
       state: data.state,
       approvals: approvals,
