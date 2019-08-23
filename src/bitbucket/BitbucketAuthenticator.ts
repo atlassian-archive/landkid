@@ -22,7 +22,7 @@ class BitbucketAuthenticator {
       },
       install.sharedSecret,
     );
-    Logger.info('Generated JWT:', { token });
+    Logger.info('Generated JWT');
     return {
       Authorization: `JWT ${token}`,
     };

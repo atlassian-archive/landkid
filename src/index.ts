@@ -13,12 +13,12 @@ import { initializeSequelize } from './db';
 
 import { BitbucketClient } from './bitbucket/BitbucketClient';
 import { config, hasConfig } from './lib/Config';
-import { Logger } from './lib/Logger';
 import { LandRequestQueue } from './lib/Queue';
 import { Runner } from './lib/Runner';
 import { routes } from './routes';
 import { initializePassport } from './auth/bitbucket';
 import { LandRequestHistory } from './lib/History';
+import { Logger } from './lib/Logger';
 
 const RedisStore = connectRedis(session);
 
