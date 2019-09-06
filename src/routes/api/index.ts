@@ -15,7 +15,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient) {
   router.get(
     '/meta',
     wrap(async (req, res) => {
-      res.header('Access-Control-Allow-Origin', '*').json({ meta: { 'tag-version': landKidTag } });
+      res.header('Access-Control-Allow-Origin', '*').json({ meta: { 'tag-version': landKidTag }, isNew: true });
     }),
   );
 
