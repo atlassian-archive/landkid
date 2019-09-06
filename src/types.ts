@@ -49,6 +49,7 @@ export type Config = {
   prSettings: PullRequestSettings;
   deployment: DeploymentConfig;
   sequelize?: any;
+  easterEgg?: any;
 };
 
 export type RunnerState = {

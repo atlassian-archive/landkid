@@ -29,7 +29,7 @@ export async function routes(server: express.Application, client: BitbucketClien
   router.get('/ac', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*').json(bitbucketAddonDescriptor);
   });
-  router.use('/api', apiRoutes(runner, client));
+  router.use('/api', apiRoutes(runner, client, config));
   router.use('/auth', authRoutes());
   router.use('/bitbucket', bitbucketRoutes(runner, client));
 

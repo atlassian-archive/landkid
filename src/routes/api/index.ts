@@ -6,16 +6,20 @@ import { Logger } from '../../lib/Logger';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
+import { Config } from '../../types';
 
 const landKidTag = process.env['LANDKID_TAG'] || 'Unknown';
 
-export function apiRoutes(runner: Runner, client: BitbucketClient) {
+export function apiRoutes(runner: Runner, client: BitbucketClient, config: Config) {
   const router = express();
+  const easterEggText = config.easterEgg || 'There is no cow level';
 
   router.get(
     '/meta',
     wrap(async (req, res) => {
-      res.header('Access-Control-Allow-Origin', '*').json({ meta: { 'tag-version': landKidTag }, isNew: true });
+      res
+        .header('Access-Control-Allow-Origin', '*')
+        .json({ meta: { 'tag-version': landKidTag, easterEgg: easterEggText }, isNew: true });
     }),
   );
 
