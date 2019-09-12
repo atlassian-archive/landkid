@@ -17,9 +17,11 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   router.get(
     '/meta',
     wrap(async (req, res) => {
+      const install = await runner.getInstallationIfExists();
+      const isInstalled = !!install;
       res
         .header('Access-Control-Allow-Origin', '*')
-        .json({ meta: { 'tag-version': landKidTag, easterEgg: easterEggText }, isNew: true });
+        .json({ meta: { 'tag-version': landKidTag, easterEgg: easterEggText }, isInstalled });
     }),
   );
 
@@ -105,6 +107,15 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       await runner.next();
       res.json({ message: 'Called next()' });
+    }),
+  );
+
+  router.post(
+    '/uninstall',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.deleteInstallation();
+      res.json({ message: 'Installation deleted' });
     }),
   );
 

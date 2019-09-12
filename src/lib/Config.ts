@@ -22,6 +22,7 @@ const getConfig = (): Config | null => {
 
     return config;
   } catch (e) {
+    console.log('Error whilst loading config', e);
     return null;
   }
 };

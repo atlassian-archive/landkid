@@ -5,6 +5,7 @@ import { Logger } from './Logger';
 import { RunnerState, Config, LandRequestOptions } from '../types';
 import { withLock } from './utils/locker';
 import {
+  Installation,
   LandRequest,
   PauseStateTransition,
   PullRequest,
@@ -310,6 +311,15 @@ export class Runner {
 
   async getHistory(page: number) {
     return this.history.getHistory(page);
+  }
+
+  async getInstallationIfExists() {
+    const install = await Installation.findOne();
+    return install;
+  }
+
+  async deleteInstallation() {
+    await Installation.truncate();
   }
 
   async getState(requestingUser: ISessionUser): Promise<RunnerState> {
