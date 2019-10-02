@@ -26,7 +26,7 @@ That's it!
 Landkid simply provides a simple queue and a way to call a custom build that
 runs with master. Instead of hitting "merge", you'll get landkid to add you to a
 queue which runs one sanity check build (the equivalent of the same build that
-would have run, had your merge happend) and if it goes green, is merged
+would have run, had your merge happened) and if it goes green, is merged
 automatically!
 
 #### Supported Hosts
@@ -81,7 +81,7 @@ The problem is threefold:
 
 Sure, that would solve the problem.
 
-Except now you are moving all the responsibilty to keep things up to date on the
+Except now you are moving all the responsibility to keep things up to date on the
 devs.
 
 It would create an endless cycle of approvals, rebases, merge conflicts,
@@ -142,10 +142,10 @@ Take another look at the last line of our monorepos master build
 - yarn run release
 ```
 
-That's about to pacakge our code up and push to npm. What about all the new
+That's about to package our code up and push to npm. What about all the new
 changes we've just pulled into our build when we rebased? Did we test them? Lint
 them? **BUILD** them?
 
-You can keep going deeper, trying to add rebases, and checkout outs, or staging
-branches, but you will innevitably wind up with the same solution, or another
+You can keep going deeper, trying to add rebases, and checkouts, or staging
+branches, but you will inevitably wind up with the same solution, or another
 hidden caveat somewhere.
