@@ -15,7 +15,7 @@ export class BitbucketAPI {
 
   mergePullRequest = async (pullRequestId: number) => {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
-    const message = `pull request #${pullRequestId} merged  by Landkid after a successful build rebased on Master`;
+    const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on Master`;
     const data = {
       close_source_branch: true,
       message: message,
