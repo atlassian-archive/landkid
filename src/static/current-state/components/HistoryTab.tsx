@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Pagination from '@atlaskit/pagination';
 
+import { TabContent } from './TabContent';
 import { EmptyState } from './EmptyState';
 import { QueueItemJoined } from './QueueItem';
 import { WithAPIData } from './WithAPIData';
@@ -20,18 +21,18 @@ export type HistoryTabProps = {
 };
 
 /**
- * <HistoryItemsList
-          bitbucketBaseUrl={props.bitbucketBaseUrl}
-          history={historyResponse.history}
-          items={historyResponse.count}
-          pageLen={historyResponse.pageLen}
-          onPageChange={this.onPageChange}
-          renderEmpty={() => (
-            <Tab>
-              <EmptyState>History is empty...</EmptyState>
-            </Tab>
-          )}
-        />
+  <HistoryItemsList
+    bitbucketBaseUrl={props.bitbucketBaseUrl}
+    history={historyResponse.history}
+    items={historyResponse.count}
+    pageLen={historyResponse.pageLen}
+    onPageChange={this.onPageChange}
+    renderEmpty={() => (
+      <TabContent>
+        <EmptyState>History is empty...</EmptyState>
+      </TabContent>
+    )}
+  />
  */
 
 type HistoryState = {
@@ -58,7 +59,11 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
         render={historyResponse => {
           const { history, pageLen, count } = historyResponse;
           if (!history.length) {
-            return <EmptyState>Empty...</EmptyState>;
+            return (
+              <TabContent>
+                <EmptyState>Empty...</EmptyState>
+              </TabContent>
+            );
           }
 
           const pages = Math.floor(count / pageLen);

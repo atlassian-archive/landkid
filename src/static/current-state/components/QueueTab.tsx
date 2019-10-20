@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tab } from './Tab';
+import { TabContent } from './TabContent';
 import { QueueItemsList } from './QueueItemsList';
 import { EmptyState } from './EmptyState';
 
@@ -17,9 +17,9 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
         queue={queue}
         fading
         renderEmpty={() => (
-          <Tab>
+          <TabContent>
             <EmptyState>Queue is empty...</EmptyState>
-          </Tab>
+          </TabContent>
         )}
       />
     </div>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tab } from './Tab';
+import { TabContent } from './TabContent';
 import { User } from './User';
 import { PermissionControl } from './PermissionControl';
 
@@ -49,13 +49,13 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     }
   };
 
-  onNextClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  onNextClick = () => {
     fetch('/api/next', { method: 'POST' })
       .then(r => r.json())
       .then(console.log);
   };
 
-  onCancelClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  onCancelClick = () => {
     fetch('/api/cancel-current', { method: 'POST' })
       .then(r => r.json())
       .then(console.log);
@@ -64,7 +64,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   render() {
     const { allowedUsers, loggedInUser } = this.props;
     return (
-      <Tab>
+      <TabContent>
         <div style={{ marginTop: '27px' }}>
           {loggedInUser.permission === 'admin' && (
             <React.Fragment>
@@ -138,7 +138,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
             <p>To get land access, you will need to ping one of the admins above</p>
           )}
         </div>
-      </Tab>
+      </TabContent>
     );
   }
 }

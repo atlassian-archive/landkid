@@ -19,7 +19,7 @@ let tabStyles = css({
   },
 });
 
-export const Tab: React.FunctionComponent = props => {
+export const TabContent: React.FunctionComponent = props => {
   const { children } = props;
   return <div className={tabStyles}>{children}</div>;
 };
