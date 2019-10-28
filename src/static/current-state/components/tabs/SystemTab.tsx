@@ -61,6 +61,14 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
       .then(console.log);
   };
 
+  onUninstallClick = () => {
+    const confirm = window.confirm('Are you sure you want to uninstall landkid?');
+    if (!confirm) return;
+    fetch('/api/uninstall', { method: 'POST' })
+      .then(r => r.json())
+      .then(console.log);
+  };
+
   render() {
     const { allowedUsers, loggedInUser } = this.props;
     return (
@@ -90,7 +98,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                 />
                 <label htmlFor="pause-toggle">Option</label>
               </div>
-              <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+              <div style={{ marginTop: '10px' }}>
                 <button
                   className={`ak-button ak-button__appearance-default`}
                   onClick={this.onNextClick}
@@ -98,12 +106,20 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   Next Build
                 </button>
               </div>
-              <div>
+              <div style={{ marginTop: '10px' }}>
                 <button
                   className={`ak-button ak-button__appearance-default`}
                   onClick={this.onCancelClick}
                 >
                   Cancel Current Build
+                </button>
+              </div>
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  className={`ak-button ak-button__appearance-default`}
+                  onClick={this.onUninstallClick}
+                >
+                  Uninstall Landkid
                 </button>
               </div>
             </React.Fragment>

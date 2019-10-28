@@ -26,14 +26,10 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const errors: string[] = [];
       const landCheckErrors: string[] = [];
 
-      const permissionLevel = await permissionService.getPermissionForUser(
-        aaid,
-      );
+      const permissionLevel = await permissionService.getPermissionForUser(aaid);
       if (permission(permissionLevel).isAtLeast('land')) {
         if (await runner.isPaused()) {
-          errors.push(
-            'Builds have been manually paused, see landkid for more information',
-          );
+          errors.push('Builds have been manually paused, see landkid for more information');
         } else {
           const landChecks = await client.isAllowedToLand(prId);
           errors.push(...landChecks.errors);
@@ -44,9 +40,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
           for (const queueItem of [...queued, ...waiting]) {
             if (queueItem.request.pullRequest.prId === prId) {
-              errors.push(
-                'This PR has already been queued, patience young padawan',
-              );
+              errors.push('This PR has already been queued, patience young padawan');
               break;
             }
           }
@@ -57,9 +51,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       res.json({
         canLand: errors.length === 0,
-        canLandWhenAble:
-          errors.length === landCheckErrors.length &&
-          prSettings.allowLandWhenAble,
+        canLandWhenAble: errors.length === landCheckErrors.length && prSettings.allowLandWhenAble,
         errors,
       });
     }),
@@ -68,10 +60,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/land',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId, commit } = req.query as Record<
-        string,
-        string
-      >;
+      const { aaid, pullRequestId, commit } = req.query as Record<string, string>;
       const prId = parseInt(pullRequestId, 10);
 
       if (!pullRequestId || !aaid || !commit) {
@@ -92,17 +81,14 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       Logger.info('Request to land received', { landRequest, positionInQueue });
 
       res.status(200).json({ positionInQueue });
-      runner.next();
+      // runner.next();
     }),
   );
 
   router.post(
     '/land-when-able',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId, commit } = req.query as Record<
-        string,
-        string
-      >;
+      const { aaid, pullRequestId, commit } = req.query as Record<string, string>;
       const prId = parseInt(pullRequestId, 10);
 
       if (!pullRequestId || !aaid || !commit) {

@@ -119,5 +119,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.post(
+    '/remove/:id',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const requestID = req.params.id;
+      const success = await runner.queue.removeRequestFromQueue(requestID);
+      if (success) {
+        res.json({ message: 'Request removed from queue' });
+      } else {
+        res.status(400).json({ error: 'Request either does not exist or is not queued' });
+      }
+    }),
+  );
+
   return router;
 }

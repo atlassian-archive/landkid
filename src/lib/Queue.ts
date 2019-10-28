@@ -71,4 +71,23 @@ export class LandRequestQueue {
 
     return requestStatus;
   };
+
+  public removeRequestFromQueue = async (requestId: string): Promise<boolean> => {
+    const status: number = await LandRequestStatus.destroy({
+      where: {
+        requestId: requestId,
+        state: 'queued',
+      },
+    });
+
+    if (status === 0) return false;
+
+    await LandRequest.destroy({
+      where: {
+        id: requestId,
+      },
+    });
+
+    return true;
+  };
 }

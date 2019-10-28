@@ -140,46 +140,67 @@ export function QueueItem(props: QueueItemProps) {
 
   if (!status) return null;
 
+  const handleRemoveClick = () => {
+    fetch(`/api/remove/${request.id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(console.log);
+  };
+
   return (
     <a
       className={`${queueItemStyles} queue-item`}
       href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
     >
-      <div className="queue-item__title">
-        <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
-          [PR #{request.pullRequestId}]
-        </a>{' '}
-        {request.pullRequest.title}
-      </div>
-      <div className="queue-item__status-line">
-        <StatusItem title="Status:">
-          <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
-            {landStatusToNiceString[status.state]}
-          </Lozenge>
-        </StatusItem>
+      <ak-grid layout="fluid">
+        <ak-grid-column size="10">
+          <div className="queue-item__title">
+            <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
+              [PR #{request.pullRequestId}]
+            </a>{' '}
+            {request.pullRequest.title}
+          </div>
+          <div className="queue-item__status-line">
+            <StatusItem title="Status:">
+              <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
+                {landStatusToNiceString[status.state]}
+              </Lozenge>
+            </StatusItem>
 
-        <StatusItem title="Author:">
-          <Lozenge>
-            <User aaid={request.pullRequest.authorAaid}>
-              {user => {
-                return user.displayName;
-              }}
-            </User>
-          </Lozenge>
-        </StatusItem>
+            <StatusItem title="Author:">
+              <Lozenge>
+                <User aaid={request.pullRequest.authorAaid}>
+                  {user => {
+                    return user.displayName;
+                  }}
+                </User>
+              </Lozenge>
+            </StatusItem>
 
-        <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
-          {distanceInWords(status.date, { addSuffix: true })}
-        </StatusItem>
+            <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
+              {distanceInWords(status.date, { addSuffix: true })}
+            </StatusItem>
 
-        {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
-          <StatusItem title="Duration:">
-            <Lozenge appearance="new">
-              {duration(+new Date(request.created), +new Date(status.date))}
-            </Lozenge>
-          </StatusItem>
+            {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
+              <StatusItem title="Duration:">
+                <Lozenge appearance="new">
+                  {duration(+new Date(request.created), +new Date(status.date))}
+                </Lozenge>
+              </StatusItem>
+            ) : null}
+          </div>
+        </ak-grid-column>
+        {status.state === 'queued' ? (
+          <ak-grid-column size="2" style={{ alignSelf: 'center' }}>
+            <button
+              className={`ak-button ak-button__appearance-default`}
+              style={{ float: 'right' }}
+              onClick={handleRemoveClick}
+            >
+              Remove
+            </button>
+          </ak-grid-column>
         ) : null}
-      </div>
+      </ak-grid>
     </a>
   );
 }
