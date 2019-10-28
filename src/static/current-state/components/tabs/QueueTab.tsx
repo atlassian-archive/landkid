@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TabContent } from './TabContent';
-import { QueueItemsList } from './QueueItemsList';
-import { EmptyState } from './EmptyState';
+import { QueueItemsList } from '../QueueItemsList';
+import { EmptyState } from '../EmptyState';
 
 export type QueueTabProps = {
   queue: IStatusUpdate[];

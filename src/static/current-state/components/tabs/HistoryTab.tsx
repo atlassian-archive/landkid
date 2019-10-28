@@ -2,10 +2,10 @@ import * as React from 'react';
 import Pagination from '@atlaskit/pagination';
 
 import { TabContent } from './TabContent';
-import { EmptyState } from './EmptyState';
-import { QueueItemJoined } from './QueueItem';
-import { WithAPIData } from './WithAPIData';
-import { Section } from './Section';
+import { EmptyState } from '../EmptyState';
+import { QueueItemJoined } from '../QueueItem';
+import { WithAPIData } from '../WithAPIData';
+import { Section } from '../Section';
 
 export type HistoryItemsListProps = {
   history: Array<HistoryItem>;

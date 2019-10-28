@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TabContent } from './TabContent';
-import { User } from './User';
-import { PermissionControl } from './PermissionControl';
+import { User } from '../User';
+import { PermissionControl } from '../PermissionControl';
 
 // sort by permssion descending (admin -> land -> read)
 function sortUsersByPermission(user1: IPermission, user2: IPermission) {
