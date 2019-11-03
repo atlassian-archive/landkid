@@ -126,7 +126,7 @@ export class Runner {
       }
     }
 
-    // this.next();
+    this.next();
   };
 
   async cancelCurrentlyRunningBuild(user: ISessionUser) {
@@ -244,7 +244,7 @@ export class Runner {
     }
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
-    // this.next();
+    this.next();
   }
 
   async checkWaitingLandRequests() {
