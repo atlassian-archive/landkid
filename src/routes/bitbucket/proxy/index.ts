@@ -81,7 +81,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       Logger.info('Request to land received', { landRequest, positionInQueue });
 
       res.status(200).json({ positionInQueue });
-      // runner.next();
+      runner.next();
     }),
   );
 
