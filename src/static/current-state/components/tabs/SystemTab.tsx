@@ -79,7 +79,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   marginTop: '10px',
                 }}
               >
-                <span>{this.state.paused ? 'Unpause' : 'Pause'} Builds</span>
+                <span>{this.state.paused ? 'Unpause' : 'Pause'} Builds: </span>
                 <input
                   type="checkbox"
                   name="pause-toggle"

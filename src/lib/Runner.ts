@@ -174,12 +174,12 @@ export class Runner {
     return state.get();
   };
 
-  public isPaused = async () => {
+  public isPaused = async (): Promise<string | false> => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
       order: [['date', 'DESC']],
     });
     if (!state) return false;
-    return state.paused;
+    return state.paused ? state.reason : false;
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
