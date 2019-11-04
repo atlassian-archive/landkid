@@ -45,12 +45,12 @@ let controlsStyles = css({
   },
 });
 
-export type TabsControlsProps = {
+type TabsControlsProps = {
   selected: number;
   selectTab: (tab: number) => void;
 };
 
-export function TabsControls(props: TabsControlsProps) {
+function TabsControls(props: TabsControlsProps) {
   const { selected, selectTab } = props;
   return (
     <div className={controlsStyles}>
@@ -76,7 +76,7 @@ export function TabsControls(props: TabsControlsProps) {
   );
 }
 
-export type TabsProps = {
+type TabsProps = {
   selected: number;
   allowedUsers: IPermission[];
   queue: IStatusUpdate[];
@@ -85,16 +85,29 @@ export type TabsProps = {
   paused: boolean;
 };
 
-export type TabsState = {
+type TabsState = {
   selected: number;
 };
 
 export class Tabs extends React.Component<TabsProps, TabsState> {
-  state: TabsState = {
-    selected: 1,
-  };
+  constructor(props: TabsProps) {
+    super(props);
 
-  private onTabSelected = (selected: number) => this.setState({ selected });
+    let selected = 1;
+    const selectedItem = sessionStorage.getItem('selectedTab');
+    if (selectedItem) {
+      selected = parseInt(selectedItem);
+    }
+
+    this.state = {
+      selected: isNaN(selected) ? 1 : selected,
+    };
+  }
+
+  private onTabSelected = (selected: number) => {
+    this.setState({ selected });
+    sessionStorage.setItem('selectedTab', selected.toString());
+  };
 
   render() {
     let { selected } = this.state;

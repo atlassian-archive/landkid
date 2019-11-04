@@ -41,10 +41,12 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
         body: JSON.stringify({ reason }),
       }).then(() => {
         this.setState({ paused: true });
+        location.reload();
       });
     } else {
       fetch('/api/unpause', { method: 'POST' }).then(() => {
         this.setState({ paused: false });
+        location.reload();
       });
     }
   };
@@ -52,13 +54,13 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   onNextClick = () => {
     fetch('/api/next', { method: 'POST' })
       .then(r => r.json())
-      .then(console.log);
+      .then(() => location.reload());
   };
 
   onCancelClick = () => {
     fetch('/api/cancel-current', { method: 'POST' })
       .then(r => r.json())
-      .then(console.log);
+      .then(() => location.reload());
   };
 
   render() {
