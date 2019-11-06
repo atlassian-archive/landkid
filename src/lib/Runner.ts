@@ -174,12 +174,20 @@ export class Runner {
     return state.get();
   };
 
-  public isPaused = async (): Promise<string | false> => {
+  public isPaused = async (): Promise<
+    | {
+        isPaused: true;
+        reason: string;
+      }
+    | {
+        isPaused: false;
+      }
+  > => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
       order: [['date', 'DESC']],
     });
-    if (!state) return false;
-    return state.paused ? state.reason : false;
+    if (!state) return { isPaused: false };
+    return state.paused ? { isPaused: false } : { isPaused: true, reason: state.reason };
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
@@ -215,7 +223,7 @@ export class Runner {
 
   async enqueue(landRequestOptions: LandRequestOptions): Promise<void> {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.isPaused()) return;
+    if ((await this.isPaused()).isPaused) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
@@ -223,7 +231,7 @@ export class Runner {
 
   async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.isPaused()) return;
+    if ((await this.isPaused()).isPaused) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 

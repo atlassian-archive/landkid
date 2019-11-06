@@ -52,15 +52,23 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   onNextClick = () => {
-    fetch('/api/next', { method: 'POST' })
-      .then(r => r.json())
-      .then(() => location.reload());
+    fetch('/api/next', { method: 'POST' }).then(r => {
+      if (r.status !== 200) {
+        console.error(r);
+      } else {
+        location.reload();
+      }
+    });
   };
 
   onCancelClick = () => {
-    fetch('/api/cancel-current', { method: 'POST' })
-      .then(r => r.json())
-      .then(() => location.reload());
+    fetch('/api/cancel-current', { method: 'POST' }).then(r => {
+      if (r.status !== 200) {
+        console.error(r);
+      } else {
+        location.reload();
+      }
+    });
   };
 
   render() {

@@ -28,9 +28,9 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
       if (permission(permissionLevel).isAtLeast('land')) {
-        const paused = await runner.isPaused();
-        if (paused) {
-          errors.push(`Builds have been manually paused: "${paused}"`);
+        const pauseState = await runner.isPaused();
+        if (pauseState.isPaused) {
+          errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
           const landChecks = await client.isAllowedToLand(prId);
           errors.push(...landChecks.errors);
