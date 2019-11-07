@@ -187,7 +187,7 @@ export class Runner {
       order: [['date', 'DESC']],
     });
     if (!state) return { isPaused: false };
-    return state.paused ? { isPaused: false } : { isPaused: true, reason: state.reason };
+    return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
