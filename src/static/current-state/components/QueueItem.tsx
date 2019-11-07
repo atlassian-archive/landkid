@@ -137,13 +137,16 @@ type QueueItemProps = {
 
 export class QueueItem extends React.Component<QueueItemProps> {
   handleRemoveClick = () => {
-    fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' }).then(r => {
-      if (r.status !== 200) {
-        console.error(r);
-      } else {
-        location.reload();
-      }
-    });
+    fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' })
+      .then(response => response.json())
+      .then(json => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          location.reload();
+        }
+      });
   };
 
   render() {
