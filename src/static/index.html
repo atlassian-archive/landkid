@@ -60,34 +60,36 @@
       color: white;
     }
 
-    .circle-border-green {
+    .circle-button:focus {
+      outline: 0;
+    }
+
+    .circle-border {
       position: absolute;
-      top: -7;
-      bottom: -7;
-      left: -7;
-      right: -7;
       background: transparent;
       border-radius: 50%;
-      border-left: 4px dashed green;
-      animation-name: RotateClockwise;
-      animation-duration: 8s;
       animation-iteration-count: infinite;
       animation-timing-function: linear;
     }
 
-    .circle-border-red {
-      position: absolute;
+    .circle-border.inner {
+      top: -7;
+      bottom: -7;
+      left: -7;
+      right: -7;
+      border-left: 4px dashed green;
+      animation-name: RotateClockwise;
+      animation-duration: 8s;
+    }
+
+    .circle-border.outer {
       top: -15;
       bottom: -15;
       left: -15;
       right: -15;
-      background: transparent;
-      border-radius: 50%;
       border-right: 4px dashed red;
       animation-name: RotateAnticlockwise;
       animation-duration: 20s;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
     }
 
     @keyframes RotateClockwise {
@@ -140,8 +142,8 @@
     </p>
 
     <a class="circle-button" href="/current-state">
-      <div class="circle-border-green"></div>
-      <div class="circle-border-red"></div>
+      <div class="circle-border inner"></div>
+      <div class="circle-border outer"></div>
       GO
     </a>
   </div>
