@@ -109,6 +109,24 @@
         transform: rotate(0deg);
       }
     }
+
+    #hurry-up {
+      margin-top: 50px;
+      text-align: center;
+      color: red;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #liability {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      color: gray;
+      font-size: 0.5rem;
+    }
   </style>
   <script>
     function randomColor() {
@@ -121,6 +139,11 @@
     }
 
     setInterval(randomColor, 800);
+
+    setTimeout(function() {
+      var hurryUp = document.getElementById('hurry-up');
+      hurryUp.classList.remove('hidden');
+    }, 60000);
   </script>
 </head>
 
@@ -146,7 +169,11 @@
       <div class="circle-border outer"></div>
       GO
     </a>
+
+    <p id="hurry-up" class="hidden">😡 What are you still doing here, go check out Landkid!! 😡</p>
   </div>
+
+  <p id="liability">Jack Gardner is not liable for any injuries induced by viewing this page</p>
 </body>
 
 </html>
