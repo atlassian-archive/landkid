@@ -124,7 +124,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestID = req.params.id;
-      const success = await runner.queue.removeRequestFromQueue(requestID);
+      const success = await runner.removeLandRequestFromQueue(requestID, req.user!);
       if (success) {
         res.json({ message: 'Request removed from queue' });
       } else {

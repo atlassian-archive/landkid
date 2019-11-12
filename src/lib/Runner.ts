@@ -255,6 +255,18 @@ export class Runner {
     this.next();
   }
 
+  async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {
+    const landRequestInfo = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
+    if (!landRequestInfo) return false;
+
+    await landRequestInfo.request.setStatus(
+      'aborted',
+      `Removed from queue by user "${user.aaid}" (${user.displayName})`,
+    );
+    Logger.info('Removing landRequest from queue', landRequestInfo);
+    return true;
+  }
+
   async checkWaitingLandRequests() {
     Logger.info('Checking for waiting landrequests ready to queue');
 

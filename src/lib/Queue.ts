@@ -36,7 +36,7 @@ export class LandRequestQueue {
   };
 
   public maybeGetStatusForNextRequestInQueue = async (): Promise<LandRequestStatus | null> => {
-    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         isLatest: true,
         state: 'queued',
@@ -49,9 +49,9 @@ export class LandRequestQueue {
         },
       ],
     });
-    if (!status) return null;
+    if (!requestStatus) return null;
 
-    return status;
+    return requestStatus;
   };
 
   public maybeGetStatusForRunningRequest = async (): Promise<LandRequestStatus | null> => {
@@ -72,22 +72,23 @@ export class LandRequestQueue {
     return requestStatus;
   };
 
-  public removeRequestFromQueue = async (requestId: string): Promise<boolean> => {
-    const status: number = await LandRequestStatus.destroy({
+  public maybeGetStatusForQueuedRequestById = async (
+    requestId: number,
+  ): Promise<LandRequestStatus | null> => {
+    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         requestId: requestId,
+        isLatest: true,
         state: 'queued',
       },
+      include: [
+        {
+          model: LandRequest,
+        },
+      ],
     });
+    if (!requestStatus || !requestStatus.request) return null;
 
-    if (status === 0) return false;
-
-    await LandRequest.destroy({
-      where: {
-        id: requestId,
-      },
-    });
-
-    return true;
+    return requestStatus;
   };
 }
