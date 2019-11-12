@@ -4,7 +4,7 @@ import { Section } from './Section';
 import { WithAPIData } from './WithAPIData';
 import { CurrentState } from './CurrentState';
 import { RunningBuild } from './RunningBuild';
-import { Tabs } from './Tabs';
+import { Tabs } from './tabs';
 import { Header } from './Header';
 
 export function App() {

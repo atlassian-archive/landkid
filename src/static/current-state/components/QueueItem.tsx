@@ -129,59 +129,89 @@ const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/ho
 
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
-export type QueueItemProps = {
+type QueueItemProps = {
   request: ILandRequest;
   status: IStatusUpdate | null;
   bitbucketBaseUrl: string;
 };
 
-export function QueueItem(props: QueueItemProps) {
-  const { bitbucketBaseUrl, request, status } = props;
+export class QueueItem extends React.Component<QueueItemProps> {
+  handleRemoveClick = () => {
+    fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' })
+      .then(response => response.json())
+      .then(json => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          location.reload();
+        }
+      });
+  };
 
-  if (!status) return null;
+  render() {
+    const { bitbucketBaseUrl, request, status } = this.props;
 
-  return (
-    <a
-      className={`${queueItemStyles} queue-item`}
-      href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
-    >
-      <div className="queue-item__title">
-        <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
-          [PR #{request.pullRequestId}]
-        </a>{' '}
-        {request.pullRequest.title}
-      </div>
-      <div className="queue-item__status-line">
-        <StatusItem title="Status:">
-          <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
-            {landStatusToNiceString[status.state]}
-          </Lozenge>
-        </StatusItem>
+    if (!status) return null;
 
-        <StatusItem title="Author:">
-          <Lozenge>
-            <User aaid={request.pullRequest.authorAaid}>
-              {user => {
-                return user.displayName;
-              }}
-            </User>
-          </Lozenge>
-        </StatusItem>
+    return (
+      <a
+        className={`${queueItemStyles} queue-item`}
+        href={request.buildId ? buildUrlFromId(bitbucketBaseUrl, request.buildId) : '#'}
+      >
+        <ak-grid layout="fluid">
+          <ak-grid-column size="10">
+            <div className="queue-item__title">
+              <a href={prUrlFromId(bitbucketBaseUrl, request.pullRequestId)}>
+                [PR #{request.pullRequestId}]
+              </a>{' '}
+              {request.pullRequest.title}
+            </div>
+            <div className="queue-item__status-line">
+              <StatusItem title="Status:">
+                <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
+                  {landStatusToNiceString[status.state]}
+                </Lozenge>
+              </StatusItem>
 
-        <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
-          {distanceInWords(status.date, { addSuffix: true })}
-        </StatusItem>
+              <StatusItem title="Author:">
+                <Lozenge>
+                  <User aaid={request.pullRequest.authorAaid}>
+                    {user => {
+                      return user.displayName;
+                    }}
+                  </User>
+                </Lozenge>
+              </StatusItem>
 
-        {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
-          <StatusItem title="Duration:">
-            <Lozenge appearance="new">
-              {duration(+new Date(request.created), +new Date(status.date))}
-            </Lozenge>
-          </StatusItem>
-        ) : null}
-      </div>
-    </a>
-  );
+              <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
+                {distanceInWords(status.date, { addSuffix: true })}
+              </StatusItem>
+
+              {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
+                <StatusItem title="Duration:">
+                  <Lozenge appearance="new">
+                    {duration(+new Date(request.created), +new Date(status.date))}
+                  </Lozenge>
+                </StatusItem>
+              ) : null}
+            </div>
+          </ak-grid-column>
+          {status.state === 'queued' ? (
+            <ak-grid-column size="2" style={{ alignSelf: 'center' }}>
+              <button
+                className={`ak-button ak-button__appearance-default`}
+                style={{ float: 'right' }}
+                onClick={this.handleRemoveClick}
+              >
+                Remove
+              </button>
+            </ak-grid-column>
+          ) : null}
+        </ak-grid>
+      </a>
+    );
+  }
 }
 
 export function QueueItemJoined(props: QueueItemProps) {

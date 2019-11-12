@@ -36,7 +36,7 @@ export class LandRequestQueue {
   };
 
   public maybeGetStatusForNextRequestInQueue = async (): Promise<LandRequestStatus | null> => {
-    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         isLatest: true,
         state: 'queued',
@@ -49,9 +49,9 @@ export class LandRequestQueue {
         },
       ],
     });
-    if (!status) return null;
+    if (!requestStatus) return null;
 
-    return status;
+    return requestStatus;
   };
 
   public maybeGetStatusForRunningRequest = async (): Promise<LandRequestStatus | null> => {
@@ -68,6 +68,26 @@ export class LandRequestQueue {
       ],
     });
     if (!requestStatus) return null;
+
+    return requestStatus;
+  };
+
+  public maybeGetStatusForQueuedRequestById = async (
+    requestId: number,
+  ): Promise<LandRequestStatus | null> => {
+    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId: requestId,
+        isLatest: true,
+        state: 'queued',
+      },
+      include: [
+        {
+          model: LandRequest,
+        },
+      ],
+    });
+    if (!requestStatus || !requestStatus.request) return null;
 
     return requestStatus;
   };

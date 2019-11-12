@@ -174,12 +174,20 @@ export class Runner {
     return state.get();
   };
 
-  public isPaused = async () => {
+  public isPaused = async (): Promise<
+    | {
+        isPaused: true;
+        reason: string;
+      }
+    | {
+        isPaused: false;
+      }
+  > => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
       order: [['date', 'DESC']],
     });
-    if (!state) return false;
-    return state.paused;
+    if (!state) return { isPaused: false };
+    return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
@@ -215,7 +223,7 @@ export class Runner {
 
   async enqueue(landRequestOptions: LandRequestOptions): Promise<void> {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.isPaused()) return;
+    if ((await this.isPaused()).isPaused) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
@@ -223,7 +231,7 @@ export class Runner {
 
   async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.isPaused()) return;
+    if ((await this.isPaused()).isPaused) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 
@@ -245,6 +253,18 @@ export class Runner {
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
     this.next();
+  }
+
+  async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {
+    const landRequestInfo = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
+    if (!landRequestInfo) return false;
+
+    await landRequestInfo.request.setStatus(
+      'aborted',
+      `Removed from queue by user "${user.aaid}" (${user.displayName})`,
+    );
+    Logger.info('Removing landRequest from queue', landRequestInfo);
+    return true;
   }
 
   async checkWaitingLandRequests() {
