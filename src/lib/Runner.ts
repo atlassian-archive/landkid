@@ -201,6 +201,7 @@ export class Runner {
         prId: landRequestOptions.prId,
         authorAaid: landRequestOptions.prAuthorAaid,
         title: landRequestOptions.prTitle,
+        targetBranch: landRequestOptions.prTargetBranch,
       }));
 
     return await LandRequest.create<LandRequest>({

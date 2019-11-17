@@ -77,6 +77,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prTargetBranch: prInfo.targetBranch,
       };
       const positionInQueue = await runner.enqueue(landRequest);
       Logger.info('Request to land received', { landRequest, positionInQueue });
@@ -105,6 +106,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prTargetBranch: prInfo.targetBranch,
       };
 
       Logger.info('Request to land when able received', { landRequest });
