@@ -6,20 +6,28 @@ type MessengerProps = {
 
 type MessengerState = {
   message: string;
+  type: string;
 };
 
 export class Messenger extends React.Component<MessengerProps, MessengerState> {
-  state = {
+  messageColours = {
+    default: 'green',
+    warning: 'orange',
+    error: 'red',
+  };
+
+  state: MessengerState = {
     message: '',
+    type: 'default',
   };
 
   sendMessage = () => {
-    const { message } = this.state;
+    const { message, type } = this.state;
     if (!message) return;
     fetch('/api/message', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, type }),
     }).then(() => location.reload());
   };
 
@@ -29,7 +37,7 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
 
   render() {
     const {
-      currentMessageState: { messageExists, message },
+      currentMessageState: { messageExists, message, messageType },
     } = this.props;
     return (
       <ak-grid style={{ marginLeft: '-15px' }}>
@@ -45,9 +53,29 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
               name="message"
               onChange={({ currentTarget: { value } }) => this.setState({ message: value })}
             />
+            <select
+              className="ak-field-select"
+              style={{
+                width: '120px',
+                marginTop: '10px',
+                paddingTop: '6px',
+                paddingBottom: '6px',
+              }}
+              id="messageType"
+              name="messageType"
+              defaultValue="default"
+              onChange={({ currentTarget: { value } }) => this.setState({ type: value })}
+            >
+              <option>default</option>
+              <option>warning</option>
+              <option>error</option>
+            </select>
             <button
               className="ak-button ak-button__appearance-default"
-              style={{ marginTop: '10px' }}
+              style={{
+                width: '120px',
+                marginLeft: '10px',
+              }}
               onClick={this.sendMessage}
             >
               Send Message
@@ -57,7 +85,17 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
         {messageExists ? (
           <ak-grid-column size="5">
             <h4 style={{ marginTop: '20px' }}>Current Banner Message:</h4>
-            <p>{message}</p>
+            <div
+              style={{
+                width: 'fit-content',
+                border: `2px solid ${this.messageColours[messageType || 'default']}`,
+                borderRadius: '5px',
+                padding: '6px',
+                marginTop: '5px',
+              }}
+            >
+              {message}
+            </div>
             <button
               className="ak-button ak-button__appearance-default"
               style={{ marginTop: '10px' }}

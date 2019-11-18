@@ -230,6 +230,14 @@ export class MessageStateTransition extends Model<PauseStateTransition> implemen
   @Column(Sequelize.STRING({ length: 2000 }))
   readonly message: string;
 
+  @AllowNull(true)
+  @Column(
+    Sequelize.ENUM({
+      values: ['default', 'warning', 'error'],
+    }),
+  )
+  readonly messageType: IMessageState['messageType'];
+
   @AllowNull(false)
   @Default(() => new Date())
   @Column(Sequelize.DATE)

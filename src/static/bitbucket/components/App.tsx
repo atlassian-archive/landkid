@@ -1,7 +1,13 @@
 import * as React from 'react';
 import { proxyRequest } from '../utils/RequestProxy';
 
-export type AppState = {
+type BannerMessage = {
+  messageExists: boolean;
+  message: string | null;
+  messageType: 'default' | 'warning' | 'error' | null;
+};
+
+type AppState = {
   curState:
     | 'checking-can-land'
     | 'cannot-land'
@@ -12,16 +18,26 @@ export type AppState = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
-  bannerMessage: string;
+  bannerMessage: BannerMessage;
 };
 
 export class App extends React.Component {
+  messageColours = {
+    default: 'green',
+    warning: 'orange',
+    error: 'red',
+  };
+
   state: AppState = {
     curState: 'checking-can-land',
     canLand: false,
     canLandWhenAble: false,
     errors: [],
-    bannerMessage: '',
+    bannerMessage: {
+      messageExists: false,
+      message: null,
+      messageType: null,
+    },
   };
 
   async componentDidMount() {
@@ -38,7 +54,7 @@ export class App extends React.Component {
       canLand: string;
       canLandWhenAble: string;
       errors: string[];
-      bannerMessage: string;
+      bannerMessage: BannerMessage;
     };
     proxyRequest<Resp>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
@@ -96,8 +112,8 @@ export class App extends React.Component {
     );
   };
 
-  renderLandState = () => {
-    switch (this.state.curState) {
+  renderLandState = (curState: AppState['curState']) => {
+    switch (curState) {
       case 'checking-can-land': {
         return <p>🤔 Checking Landkid permissions...</p>;
       }
@@ -178,12 +194,25 @@ export class App extends React.Component {
   };
 
   render() {
+    const {
+      curState,
+      bannerMessage: { messageExists, message, messageType },
+    } = this.state;
     return (
       <React.Fragment>
-        {this.state.curState !== 'checking-can-land' && this.state.bannerMessage ? (
-          <p>{this.state.bannerMessage}</p>
+        {curState !== 'checking-can-land' && messageExists ? (
+          <div
+            style={{
+              width: 'fit-content',
+              border: `2px solid ${this.messageColours[messageType || 'default']}`,
+              borderRadius: '5px',
+              padding: '6px',
+            }}
+          >
+            {message}
+          </div>
         ) : null}
-        {this.renderLandState()}
+        {this.renderLandState(curState)}
       </React.Fragment>
     );
   }

@@ -191,11 +191,16 @@ export class Runner {
     return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
   };
 
-  async sendBannerMessage(message: string, user: ISessionUser) {
+  async sendBannerMessage(
+    message: string,
+    messageType: IMessageState['messageType'],
+    user: ISessionUser,
+  ) {
     await MessageStateTransition.create<MessageStateTransition>({
+      senderAaid: user.aaid,
       messageExists: true,
       message,
-      senderAaid: user.aaid,
+      messageType,
     });
   }
 
@@ -206,38 +211,42 @@ export class Runner {
     });
   }
 
-  private getMessageState = async (): Promise<IMessageState> => {
+  public getMessageState = async (): Promise<IMessageState> => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
     });
     if (!state) {
       return {
         id: '_',
-        date: new Date(0),
-        messageExists: false,
         senderAaid: '',
+        messageExists: false,
         message: null,
+        messageType: null,
+        date: new Date(0),
       };
     }
     return state.get();
   };
 
-  public getBannerMessage = async (): Promise<
-    | {
-        messageExists: true;
-        message: string;
-      }
-    | {
-        messageExists: false;
-      }
-  > => {
+  public getBannerMessage = async (): Promise<{
+    messageExists: boolean;
+    message: string | null;
+    messageType: IMessageState['messageType'];
+  }> => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
     });
-    if (!state) return { messageExists: false };
-    return state.messageExists
-      ? { messageExists: true, message: state.message }
-      : { messageExists: false };
+    if (!state)
+      return {
+        messageExists: false,
+        message: null,
+        messageType: null,
+      };
+    return {
+      messageExists: state.messageExists,
+      message: state.message,
+      messageType: state.messageType,
+    };
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {

@@ -35,6 +35,7 @@ declare interface IMessageState {
   senderAaid: string;
   messageExists: boolean;
   message: string | null;
+  messageType: 'default' | 'warning' | 'error' | null;
   date: Date;
 }
 

@@ -31,6 +31,8 @@ function logEvent(event) {
 }
 umzug.on('migrating', logEvent('migrating'));
 umzug.on('migrated', logEvent('migrated'));
+umzug.on('reverting', logEvent('reverting'));
+umzug.on('reverted', logEvent('reverted'));
 
 // Log the status of all migration scripts
 function getMigrationStatus() {
@@ -58,7 +60,7 @@ switch (cmd) {
     break;
 
   case 'down':
-  case 'prev':
+  case 'revert':
     umzug.down();
     break;
 

@@ -138,13 +138,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       let message = '';
-      if (req && req.body && req.body.message) {
+      let type = '';
+      if (req && req.body && req.body.message && req.body.type) {
         message = String(req.body.message);
+        type = String(req.body.type);
       }
       if (!message) {
         res.status(400).json({ error: 'Cannot send an empty message' });
       }
-      runner.sendBannerMessage(message, req.user!);
+      if (!['default', 'warning', 'error'].includes(type)) {
+        res.status(400).json({ error: 'Message type must be one of: default, warning, error' });
+      }
+      // @ts-ignore -- check above
+      runner.sendBannerMessage(message, type, req.user!);
       res.json({ message });
     }),
   );

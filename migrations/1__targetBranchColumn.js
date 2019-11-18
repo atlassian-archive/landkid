@@ -19,6 +19,6 @@ module.exports = {
   },
   // VIOLATES FOREIGN KEY CONSTRAINT
   down: function(query, Sequelize) {
-    return query.removeColumn('PullRequest', 'targetBranch');
+    throw new Error('NO DROP FUNCTION FOR THIS MIGRATION');
   },
 };

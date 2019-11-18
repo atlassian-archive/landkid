@@ -18,6 +18,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING({ length: 2000 }),
       },
+      messageType: {
+        allowNull: true,
+        type: Sequelize.ENUM('default', 'warning', 'error'),
+      },
       date: {
         allowNull: false,
         type: Sequelize.DATE,
