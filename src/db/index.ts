@@ -163,7 +163,7 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @AllowNull(false)
   @Default('unknown')
   @Column(Sequelize.STRING)
-  readonly targetBranch: string;
+  targetBranch: string;
 }
 
 @Table
