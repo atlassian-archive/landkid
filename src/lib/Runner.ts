@@ -211,7 +211,7 @@ export class Runner {
     });
   }
 
-  public getMessageState = async (): Promise<IMessageState> => {
+  private getMessageState = async (): Promise<IMessageState> => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
     });
@@ -228,25 +228,22 @@ export class Runner {
     return state.get();
   };
 
-  public getBannerMessage = async (): Promise<{
-    messageExists: boolean;
-    message: string | null;
-    messageType: IMessageState['messageType'];
-  }> => {
+  public getBannerMessage = async (): Promise<
+    Pick<IMessageState, 'messageExists' | 'message' | 'messageType'>
+  > => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
+      attributes: ['messageExists', 'message', 'messageType'],
     });
-    if (!state)
+    if (!state) {
       return {
         messageExists: false,
         message: null,
         messageType: null,
       };
-    return {
-      messageExists: state.messageExists,
-      message: state.message,
-      messageType: state.messageType,
-    };
+    }
+    Logger.info('STATE:', state.get());
+    return state.get();
   };
 
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {

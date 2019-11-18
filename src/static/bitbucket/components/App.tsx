@@ -207,6 +207,7 @@ export class App extends React.Component {
               border: `2px solid ${this.messageColours[messageType || 'default']}`,
               borderRadius: '5px',
               padding: '6px',
+              marginBottom: '10px',
             }}
           >
             {message}
