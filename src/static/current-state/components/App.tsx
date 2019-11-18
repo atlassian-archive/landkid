@@ -36,6 +36,7 @@ export function App() {
                         queue={data.queue}
                         loggedInUser={loggedInUser}
                         paused={data.pauseState.paused}
+                        messageState={data.messageState}
                       />
                     </div>
                   )}

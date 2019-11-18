@@ -11,6 +11,7 @@ import {
   PullRequest,
   Permission,
   LandRequestStatus,
+  MessageStateTransition,
 } from '../db';
 import { permissionService } from './PermissionService';
 
@@ -190,6 +191,55 @@ export class Runner {
     return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
   };
 
+  async sendBannerMessage(message: string, user: ISessionUser) {
+    await MessageStateTransition.create<MessageStateTransition>({
+      messageExists: true,
+      message,
+      senderAaid: user.aaid,
+    });
+  }
+
+  async removeBannerMessage(user: ISessionUser) {
+    await MessageStateTransition.create<MessageStateTransition>({
+      messageExists: false,
+      senderAaid: user.aaid,
+    });
+  }
+
+  private getMessageState = async (): Promise<IMessageState> => {
+    const state = await MessageStateTransition.findOne<MessageStateTransition>({
+      order: [['date', 'DESC']],
+    });
+    if (!state) {
+      return {
+        id: '_',
+        date: new Date(0),
+        messageExists: false,
+        senderAaid: '',
+        message: null,
+      };
+    }
+    return state.get();
+  };
+
+  public getBannerMessage = async (): Promise<
+    | {
+        messageExists: true;
+        message: string;
+      }
+    | {
+        messageExists: false;
+      }
+  > => {
+    const state = await MessageStateTransition.findOne<MessageStateTransition>({
+      order: [['date', 'DESC']],
+    });
+    if (!state) return { messageExists: false };
+    return state.messageExists
+      ? { messageExists: true, message: state.message }
+      : { messageExists: false };
+  };
+
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
     const pr =
       (await PullRequest.findOne<PullRequest>({
@@ -350,12 +400,14 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
+      messageState,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
+      this.getMessageState(),
     ]);
     return {
       daysSinceLastFailure,
@@ -363,6 +415,7 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
+      messageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,

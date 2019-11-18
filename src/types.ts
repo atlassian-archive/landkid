@@ -59,5 +59,6 @@ export type RunnerState = {
   pauseState: IPauseState;
   daysSinceLastFailure: number;
   usersAllowedToLand: IPermission[];
+  messageState: IMessageState;
   bitbucketBaseUrl: string;
 };

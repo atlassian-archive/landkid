@@ -184,9 +184,11 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </Lozenge>
               </StatusItem>
 
-              <StatusItem title="Target Branch:">
-                <Lozenge>{request.pullRequest.targetBranch}</Lozenge>
-              </StatusItem>
+              {request.pullRequest.targetBranch !== 'unknown' ? (
+                <StatusItem title="Target Branch:">
+                  <Lozenge>{request.pullRequest.targetBranch}</Lozenge>
+                </StatusItem>
+              ) : null}
 
               <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
                 {distanceInWords(status.date, { addSuffix: true })}

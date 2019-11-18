@@ -12,6 +12,7 @@ export type AppState = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
+  bannerMessage: string;
 };
 
 export class App extends React.Component {
@@ -20,6 +21,7 @@ export class App extends React.Component {
     canLand: false,
     canLandWhenAble: false,
     errors: [],
+    bannerMessage: '',
   };
 
   async componentDidMount() {
@@ -36,18 +38,21 @@ export class App extends React.Component {
       canLand: string;
       canLandWhenAble: string;
       errors: string[];
+      bannerMessage: string;
     };
     proxyRequest<Resp>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors }) => {
+      .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
         if (canLand) {
           return this.setState({
             curState: 'can-land',
+            bannerMessage,
           });
         }
         this.setState({
           curState: 'cannot-land',
           canLandWhenAble,
           errors,
+          bannerMessage,
         });
       })
       .catch(err => {
@@ -91,7 +96,7 @@ export class App extends React.Component {
     );
   };
 
-  render() {
+  renderLandState = () => {
     switch (this.state.curState) {
       case 'checking-can-land': {
         return <p>🤔 Checking Landkid permissions...</p>;
@@ -170,5 +175,16 @@ export class App extends React.Component {
         return <div>👏 Pullrequest is already closed!</div>;
       }
     }
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        {this.state.curState !== 'checking-can-land' && this.state.bannerMessage ? (
+          <p>{this.state.bannerMessage}</p>
+        ) : null}
+        {this.renderLandState()}
+      </React.Fragment>
+    );
   }
 }

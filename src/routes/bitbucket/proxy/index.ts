@@ -25,6 +25,12 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const errors: string[] = [];
       const landCheckErrors: string[] = [];
+      let bannerMessage: string = '';
+
+      const messageState = await runner.getBannerMessage();
+      if (messageState.messageExists) {
+        bannerMessage = messageState.message;
+      }
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
       if (permission(permissionLevel).isAtLeast('land')) {
@@ -54,6 +60,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         canLand: errors.length === 0,
         canLandWhenAble: errors.length === landCheckErrors.length && prSettings.allowLandWhenAble,
         errors,
+        bannerMessage,
       });
     }),
   );
