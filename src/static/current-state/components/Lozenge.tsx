@@ -5,16 +5,18 @@ import { LozengeAppearance } from './types';
 
 let styles = css({
   boxSizing: 'border-box',
-  display: 'inline-flex',
+  display: 'block',
   fontSize: '11px',
   fontWeight: '700',
   lineHeight: '1',
-  maxWidth: '200px',
+  maxWidth: '180px',
   textTransform: 'uppercase',
   verticalAlign: 'baseline',
   whiteSpace: 'nowrap',
   borderRadius: '3px',
   padding: '2px 4px 3px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 });
 
 let appearance = {
@@ -46,13 +48,14 @@ let appearance = {
 
 export type Props = {
   appearance?: LozengeAppearance;
+  title?: string;
 };
 
 export const Lozenge: React.FunctionComponent<Props> = props => {
   let selectedApperance = props.appearance ? appearance[props.appearance] : appearance.default;
 
   return (
-    <span className={styles} style={selectedApperance}>
+    <span className={styles} style={selectedApperance} title={props.title}>
       {props.children}
     </span>
   );

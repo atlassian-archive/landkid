@@ -45,7 +45,7 @@ let controlsStyles = css({
   },
 });
 
-type TabsControlsProps = {
+export type TabsControlsProps = {
   selected: number;
   selectTab: (tab: number) => void;
 };
@@ -76,7 +76,7 @@ function TabsControls(props: TabsControlsProps) {
   );
 }
 
-type TabsProps = {
+export type TabsProps = {
   selected: number;
   allowedUsers: IPermission[];
   queue: IStatusUpdate[];
@@ -111,8 +111,15 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
   };
 
   render() {
-    let { selected } = this.state;
-    let { allowedUsers, bitbucketBaseUrl, queue, loggedInUser, paused, messageState } = this.props;
+    const { selected } = this.state;
+    const {
+      allowedUsers,
+      bitbucketBaseUrl,
+      queue,
+      loggedInUser,
+      paused,
+      messageState,
+    } = this.props;
 
     return (
       <Section important last>

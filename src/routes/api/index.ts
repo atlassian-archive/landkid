@@ -149,7 +149,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       if (!['default', 'warning', 'error'].includes(type)) {
         res.status(400).json({ error: 'Message type must be one of: default, warning, error' });
       }
-      // @ts-ignore -- check above
+      // @ts-ignore -- checks value of type above
       runner.sendBannerMessage(message, type, req.user!);
       res.json({ message });
     }),

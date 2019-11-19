@@ -28,7 +28,6 @@ module.exports = {
       },
     });
   },
-  // VIOLATES FOREIGN KEY CONSTRAINT
   down: function(query, Sequelize) {
     return query.dropTable('MessageStateTransition');
   },

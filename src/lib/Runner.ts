@@ -74,7 +74,7 @@ export class Runner {
           'Land request is not allowed to land',
         );
         await landRequest.setStatus('fail', 'Land request did not pass land checks');
-        this.next();
+        // this.next();
       }
     });
   }
@@ -127,7 +127,7 @@ export class Runner {
       }
     }
 
-    this.next();
+    // this.next();
   };
 
   async cancelCurrentlyRunningBuild(user: ISessionUser) {
@@ -206,8 +206,8 @@ export class Runner {
 
   async removeBannerMessage(user: ISessionUser) {
     await MessageStateTransition.create<MessageStateTransition>({
-      messageExists: false,
       senderAaid: user.aaid,
+      messageExists: false,
     });
   }
 
@@ -242,7 +242,6 @@ export class Runner {
         messageType: null,
       };
     }
-    Logger.info('STATE:', state.get());
     return state.get();
   };
 
@@ -309,7 +308,7 @@ export class Runner {
     }
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
-    this.next();
+    // this.next();
   }
 
   async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {

@@ -23,9 +23,15 @@ type AppState = {
 
 export class App extends React.Component {
   messageColours = {
-    default: 'green',
+    default: 'transparent',
     warning: 'orange',
     error: 'red',
+  };
+
+  messageEmoji = {
+    default: '📢',
+    warning: '⚠️',
+    error: '❌',
   };
 
   state: AppState = {
@@ -198,19 +204,21 @@ export class App extends React.Component {
       curState,
       bannerMessage: { messageExists, message, messageType },
     } = this.state;
+    const msgType = messageType || 'default';
     return (
       <React.Fragment>
         {curState !== 'checking-can-land' && messageExists ? (
           <div
             style={{
               width: 'fit-content',
-              border: `2px solid ${this.messageColours[messageType || 'default']}`,
+              border: `2px solid ${this.messageColours[msgType]}`,
               borderRadius: '5px',
               padding: '6px',
               marginBottom: '10px',
+              fontWeight: msgType === 'default' ? 'bold' : 'normal',
             }}
           >
-            {message}
+            {`${this.messageEmoji[msgType]} ${message} ${this.messageEmoji[msgType]}`}
           </div>
         ) : null}
         {this.renderLandState(curState)}

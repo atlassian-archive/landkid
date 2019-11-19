@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-type MessengerProps = {
+export type MessengerProps = {
   currentMessageState: IMessageState;
 };
 
@@ -11,9 +11,15 @@ type MessengerState = {
 
 export class Messenger extends React.Component<MessengerProps, MessengerState> {
   messageColours = {
-    default: 'green',
+    default: 'transparent',
     warning: 'orange',
     error: 'red',
+  };
+
+  messageEmoji = {
+    default: '📢',
+    warning: '⚠️',
+    error: '❌',
   };
 
   state: MessengerState = {
@@ -39,9 +45,10 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
     const {
       currentMessageState: { messageExists, message, messageType },
     } = this.props;
+    const msgType = messageType || 'default';
     return (
       <ak-grid style={{ marginLeft: '-15px' }}>
-        <ak-grid-column size="6">
+        <ak-grid-column size={6}>
           <div className="ak-field-group" style={{ width: '400px' }}>
             <h4 style={{ marginBottom: '5px' }}>
               Banner Message to be displayed on Pull Requests:
@@ -83,18 +90,19 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
           </div>
         </ak-grid-column>
         {messageExists ? (
-          <ak-grid-column size="5">
+          <ak-grid-column size={5}>
             <h4 style={{ marginTop: '20px' }}>Current Banner Message:</h4>
             <div
               style={{
                 width: 'fit-content',
-                border: `2px solid ${this.messageColours[messageType || 'default']}`,
+                border: `2px solid ${this.messageColours[msgType]}`,
                 borderRadius: '5px',
                 padding: '6px',
                 marginTop: '5px',
+                fontWeight: msgType === 'default' ? 'bold' : 'normal',
               }}
             >
-              {message}
+              {`${this.messageEmoji[msgType]} ${message} ${this.messageEmoji[msgType]}`}
             </div>
             <button
               className="ak-button ak-button__appearance-default"

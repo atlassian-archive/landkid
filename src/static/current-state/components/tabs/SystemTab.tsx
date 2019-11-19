@@ -101,7 +101,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
             <React.Fragment>
               <h3>Admin Controls</h3>
               <div
-                className={`ak-field-toggle ak-field-toggle__size-large`}
+                className="ak-field-toggle ak-field-toggle__size-large"
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
