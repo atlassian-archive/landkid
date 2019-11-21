@@ -14,7 +14,7 @@ export type RepoConfig = {
 
 type CustomRule = {
   rule: (
-    landRequestInfo: {
+    pullRequestInfo: {
       pullRequest: BB.PullRequest;
       buildStatuses: BB.BuildStatus[];
       approvals: string[];
