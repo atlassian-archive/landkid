@@ -42,10 +42,14 @@ export class PermissionControl extends React.Component<Props, State> {
     return (
       <React.Fragment>
         <select
+          className="ak-field-select"
           value={actualPermission}
           disabled={loggedInUser.permission !== 'admin' || loading}
           onChange={this.onPermissionChange}
-          style={{ marginRight: '10px' }}
+          style={{
+            width: '75px',
+            padding: '1px 0px 1px 5px',
+          }}
         >
           <option value="read">Read</option>
           <option value="land">Land</option>

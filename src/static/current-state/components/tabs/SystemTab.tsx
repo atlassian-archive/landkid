@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { TabContent } from './TabContent';
-import { User } from '../User';
-import { PermissionControl } from '../PermissionControl';
 import { Messenger } from './Messenger';
-
-// sort by permssion descending (admin -> land -> read)
-function sortUsersByPermission(user1: IPermission, user2: IPermission) {
-  const permssionsLevels = ['read', 'land', 'admin'];
-  return permssionsLevels.indexOf(user2.mode) - permssionsLevels.indexOf(user1.mode);
-}
+import { AllowedUsers } from './AllowedUsers';
 
 const Button = (props: { onClick: () => void; error: string; children: React.ReactChild }) => (
   <div style={{ marginTop: '10px' }}>
@@ -130,32 +123,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
               <Messenger currentMessageState={currentMessageState} />
             </React.Fragment>
           )}
-          <h3>Allowed Users</h3>
-          <ul>
-            {allowedUsers
-              .sort(sortUsersByPermission)
-              .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
-                <li key={aaid}>
-                  <User aaid={aaid}>
-                    {user => (
-                      <div
-                        title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
-                        style={{ display: 'flex', flexDirection: 'row' }}
-                      >
-                        <span style={{ display: 'inline-block', minWidth: '150px' }}>
-                          {user.displayName}
-                        </span>
-                        <PermissionControl
-                          user={user}
-                          userPermission={mode}
-                          loggedInUser={loggedInUser}
-                        />
-                      </div>
-                    )}
-                  </User>
-                </li>
-              ))}
-          </ul>
+          <AllowedUsers users={allowedUsers} loggedInUser={loggedInUser} />
           {loggedInUser.permission === 'read' && (
             <p>To get land access, you will need to ping one of the admins above</p>
           )}

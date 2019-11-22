@@ -63,9 +63,9 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
             <select
               className="ak-field-select"
               style={{
-                width: '120px',
+                width: '100px',
                 marginTop: '10px',
-                paddingTop: '6px',
+                paddingTop: '5px',
                 paddingBottom: '6px',
               }}
               id="messageType"
