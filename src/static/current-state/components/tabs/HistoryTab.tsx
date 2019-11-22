@@ -7,14 +7,14 @@ import { QueueItemJoined } from '../QueueItem';
 import { WithAPIData } from '../WithAPIData';
 import { Section } from '../Section';
 
-export type HistoryItemsListProps = {
-  history: Array<HistoryItem>;
-  renderEmpty?: () => JSX.Element;
-  bitbucketBaseUrl: string;
-  items: number;
-  pageLen: number;
-  onPageChange: (page: number) => void;
-};
+// export type HistoryItemsListProps = {
+//   history: Array<HistoryItem>;
+//   renderEmpty?: () => JSX.Element;
+//   bitbucketBaseUrl: string;
+//   items: number;
+//   pageLen: number;
+//   onPageChange: (page: number) => void;
+// };
 
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;

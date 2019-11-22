@@ -7,9 +7,9 @@ export type Props = {
   bitbucketBaseUrl: string;
 };
 
-const findRunning = (updates: IStatusUpdate[]) => {
+function findRunning(updates: IStatusUpdate[]) {
   return updates.find(update => update.state === 'running') || null;
-};
+}
 
 export const RunningBuild: React.FunctionComponent<Props> = props => {
   const running = findRunning(props.queue);

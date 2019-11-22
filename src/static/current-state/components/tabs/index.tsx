@@ -50,7 +50,7 @@ type TabsControlsProps = {
   selectTab: (tab: number) => void;
 };
 
-function TabsControls(props: TabsControlsProps) {
+const TabsControls: React.FunctionComponent<TabsControlsProps> = props => {
   const { selected, selectTab } = props;
   return (
     <div className={controlsStyles}>
@@ -74,7 +74,7 @@ function TabsControls(props: TabsControlsProps) {
       </button>
     </div>
   );
-}
+};
 
 type TabsProps = {
   selected: number;
@@ -100,7 +100,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
     }
 
     this.state = {
-      selected: isNaN(selected) ? 1 : selected,
+      selected: !selected || isNaN(selected) ? 1 : selected,
     };
   }
 

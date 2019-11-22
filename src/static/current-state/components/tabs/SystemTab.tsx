@@ -9,7 +9,12 @@ function sortUsersByPermission(user1: IPermission, user2: IPermission) {
   return permssionsLevels.indexOf(user2.mode) - permssionsLevels.indexOf(user1.mode);
 }
 
-const Button = (props: { onClick: () => void; error: string; children: React.ReactChild }) => (
+export type ButtonProps = {
+  onClick: () => void;
+  error: string;
+};
+
+const Button: React.FunctionComponent<ButtonProps> = props => (
   <div style={{ marginTop: '10px' }}>
     <button className={`ak-button ak-button__appearance-default`} onClick={props.onClick}>
       {props.children}

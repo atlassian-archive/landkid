@@ -2,9 +2,7 @@ import * as React from 'react';
 
 const DEFAULT_POLLING_INTERVAL = 15 * 1000; // 15 sec
 
-function defaultLoading() {
-  return <div>Loading...</div>;
-}
+const defaultLoading = () => <div>Loading...</div>;
 
 export type Props<D> = {
   endpoint: string;
