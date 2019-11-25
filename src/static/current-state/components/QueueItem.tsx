@@ -125,6 +125,9 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   aborted: 'Aborted',
 };
 
+const targetBranchToAppearance = (branch: string) =>
+  branch === 'master' ? 'moved' : branch === 'develop' ? 'new' : 'default';
+
 const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
 
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
@@ -190,7 +193,7 @@ export class QueueItem extends React.Component<QueueItemProps> {
               pullRequest.targetBranch !== 'unknown' ? (
                 <StatusItem title="Target Branch:">
                   <Lozenge
-                    appearance={pullRequest.targetBranch === 'master' ? 'new' : 'default'}
+                    appearance={targetBranchToAppearance(pullRequest.targetBranch)}
                     title={pullRequest.targetBranch}
                   >
                     {pullRequest.targetBranch}
