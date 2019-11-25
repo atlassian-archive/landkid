@@ -20,11 +20,10 @@ export type State = {
 
 export class WithAPIData<T> extends React.Component<Props<T>, State> {
   interval: NodeJS.Timeout | null = null;
-  state = {
+  state: State = {
     error: null,
     data: null,
-    poll:
-      this.props.poll === true ? DEFAULT_POLLING_INTERVAL : this.props.poll ? this.props.poll : 0,
+    poll: this.props.poll === true ? DEFAULT_POLLING_INTERVAL : this.props.poll || 0,
   };
 
   fetchData() {
@@ -37,7 +36,7 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
   componentDidMount() {
     this.fetchData();
 
-    if (this.state.poll) {
+    if (this.state.poll > 0) {
       this.interval = setInterval(this.fetchData.bind(this), this.state.poll);
     }
   }
