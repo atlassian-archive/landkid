@@ -16,10 +16,6 @@ import { Section } from '../Section';
 //   onPageChange: (page: number) => void;
 // };
 
-export type HistoryTabProps = {
-  bitbucketBaseUrl: string;
-};
-
 /**
   <HistoryItemsList
     bitbucketBaseUrl={props.bitbucketBaseUrl}
@@ -34,6 +30,10 @@ export type HistoryTabProps = {
     )}
   />
  */
+
+export type HistoryTabProps = {
+  bitbucketBaseUrl: string;
+};
 
 type HistoryState = {
   page: number;

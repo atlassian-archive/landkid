@@ -100,7 +100,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
     }
 
     this.state = {
-      selected: !selected || isNaN(selected) ? 1 : selected,
+      selected: isNaN(selected) || ![0, 1, 2].includes(selected) ? 1 : selected,
     };
   }
 
