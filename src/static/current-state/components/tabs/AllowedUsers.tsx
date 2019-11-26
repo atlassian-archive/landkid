@@ -20,7 +20,10 @@ export const AllowedUsers: React.FunctionComponent<Props> = props => (
       {props.users
         .sort(sortUsersByPermission)
         .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
-          <tr title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}>
+          <tr
+            key={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+            title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+          >
             <User aaid={aaid}>
               {user => (
                 <React.Fragment>
