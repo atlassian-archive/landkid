@@ -70,7 +70,7 @@ async function main() {
     Logger.info('LandKid is running', { port: config.port });
 
     // In case there were things still in the queue when we start up
-    runner.next();
+    // runner.next();
   });
 }
 

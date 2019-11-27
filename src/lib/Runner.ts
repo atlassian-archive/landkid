@@ -69,12 +69,12 @@ export class Runner {
 
         Logger.info('Land build now running', { running: landRequest.get() });
       } else {
-        Logger.info(
-          { ...isAllowedToLand, ...landRequest.get() },
-          'Land request is not allowed to land',
-        );
+        Logger.info('Land request is not allowed to land', {
+          ...isAllowedToLand,
+          ...landRequest.get(),
+        });
         await landRequest.setStatus('fail', 'Land request did not pass land checks');
-        this.next();
+        // this.next();
       }
     });
   }
@@ -82,7 +82,7 @@ export class Runner {
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
     if (!running) {
-      Logger.info('No build running, status event is irrelevant', statusEvent);
+      Logger.info('No build running, status event is irrelevant', { statusEvent });
       return;
     }
 
@@ -127,7 +127,7 @@ export class Runner {
       }
     }
 
-    this.next();
+    // this.next();
   };
 
   async cancelCurrentlyRunningBuild(user: ISessionUser) {
@@ -308,7 +308,7 @@ export class Runner {
     }
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
-    this.next();
+    // this.next();
   }
 
   async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {
@@ -319,7 +319,7 @@ export class Runner {
       'aborted',
       `Removed from queue by user "${user.aaid}" (${user.displayName})`,
     );
-    Logger.info('Removing landRequest from queue', landRequestInfo);
+    Logger.info('Removing landRequest from queue', { landRequestInfo });
     return true;
   }
 

@@ -1,4 +1,5 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
+import { Logger } from './Logger';
 
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
@@ -75,6 +76,7 @@ export class LandRequestQueue {
   public maybeGetStatusForQueuedRequestById = async (
     requestId: number,
   ): Promise<LandRequestStatus | null> => {
+    Logger.info('finding landrequeststatus', { requestId });
     const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         requestId: requestId,
@@ -87,6 +89,7 @@ export class LandRequestQueue {
         },
       ],
     });
+    Logger.info('found landrequeststatus', { requestStatus });
     if (!requestStatus || !requestStatus.request) return null;
 
     return requestStatus;

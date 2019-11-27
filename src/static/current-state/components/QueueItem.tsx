@@ -161,6 +161,11 @@ export class QueueItem extends React.Component<QueueItemProps> {
 
     if (!status) return null;
 
+    const displayTargetBranch =
+      status &&
+      ['will-queue-when-ready', 'queued', 'running'].includes(status.state) &&
+      pullRequest.targetBranch !== 'unknown';
+
     return (
       <a
         className={`${queueItemStyles} queue-item`}
@@ -189,8 +194,7 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </Lozenge>
               </StatusItem>
 
-              {['will-queue-when-ready', 'queued', 'running'].includes(status.state) &&
-              pullRequest.targetBranch !== 'unknown' ? (
+              {displayTargetBranch ? (
                 <StatusItem title="Target Branch:">
                   <Lozenge
                     appearance={targetBranchToAppearance(pullRequest.targetBranch)}
