@@ -22,7 +22,7 @@ export type State = {
 
 export class WithAPIData<T> extends React.Component<Props<T>, State> {
   interval: NodeJS.Timeout | null = null;
-  state = {
+  state: State = {
     error: null,
     data: null,
     poll:

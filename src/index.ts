@@ -9,7 +9,7 @@ import * as session from 'express-session';
 
 import * as bodyParser from 'body-parser';
 
-import { initializeSequelize } from './db';
+import { initializeSequelize, MigrationService } from './db';
 
 import { BitbucketClient } from './bitbucket/BitbucketClient';
 import { config, hasConfig } from './lib/Config';
@@ -27,7 +27,10 @@ async function main() {
     throw new Error('Could not find config.js file, see the README for instructions');
   }
 
-  await initializeSequelize();
+  const sequelize = await initializeSequelize();
+  const migrator = new MigrationService(sequelize);
+  await migrator.up();
+
   initializePassport(config.deployment.oAuth);
 
   const server = express();

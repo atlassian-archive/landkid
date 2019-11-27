@@ -1,5 +1,7 @@
-module.exports = {
-  up: function(query, Sequelize) {
+import { QueryInterface, DataTypes } from 'sequelize';
+
+export default {
+  up: function(query: QueryInterface, Sequelize: DataTypes) {
     return query.createTable('MessageStateTransition', {
       id: {
         primaryKey: true,
@@ -28,7 +30,7 @@ module.exports = {
       },
     });
   },
-  down: function(query, Sequelize) {
+  down: function(query: QueryInterface, Sequelize: DataTypes) {
     return query.dropTable('MessageStateTransition');
   },
 };

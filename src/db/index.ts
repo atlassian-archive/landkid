@@ -269,3 +269,5 @@ export const initializeSequelize = async () => {
 
   return sequelize;
 };
+
+export { MigrationService } from './MigrationService';
