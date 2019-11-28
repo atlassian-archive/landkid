@@ -74,7 +74,7 @@ export class Runner {
           ...landRequest.get(),
         });
         await landRequest.setStatus('fail', 'Land request did not pass land checks');
-        // this.next();
+        this.next();
       }
     });
   }
@@ -127,7 +127,7 @@ export class Runner {
       }
     }
 
-    // this.next();
+    this.next();
   };
 
   async cancelCurrentlyRunningBuild(user: ISessionUser) {
@@ -308,7 +308,7 @@ export class Runner {
     }
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
-    // this.next();
+    this.next();
   }
 
   async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {
