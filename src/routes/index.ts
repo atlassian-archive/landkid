@@ -20,7 +20,7 @@ export async function routes(server: express.Application, client: BitbucketClien
     repoUuid = await client.getRepoUuid();
   }
 
-  const bitbucketAddonDescriptor = makeDescriptor(config, repoUuid);
+  const bitbucketAddonDescriptor = makeDescriptor();
 
   router.get('/healthcheck', (req, res) => {
     res.sendStatus(200);
