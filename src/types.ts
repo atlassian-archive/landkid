@@ -42,6 +42,8 @@ export type OAuthConfig = {
 };
 
 export type Config = {
+  name?: string;
+  key?: string;
   port: number;
   baseUrl: string;
   landkidAdmins: string[];

@@ -1,9 +1,12 @@
-export const getAppKey = () => `landkid-${process.env.LANDKID_DEPLOYMENT || 'local'}`;
+import { config } from '../lib/Config';
 
-export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
-  name: `Landkid ${(process.env.LANDKID_DEPLOYMENT || 'local').toUpperCase()}`,
+export const getAppKey = () =>
+  `${config.key || 'landkid'}-${process.env.LANDKID_DEPLOYMENT || 'local'}`;
+
+export const makeDescriptor = () => ({
+  name: `${config.name || 'Landkid'} ${(process.env.LANDKID_DEPLOYMENT || 'local').toUpperCase()}`,
   description: "Addon to display a 'release queue' panel in PRs",
-  baseUrl,
+  baseUrl: config.baseUrl,
   key: getAppKey(),
   vendor: {
     name: 'Fabric Build',
@@ -57,7 +60,7 @@ export const makeDescriptor = (baseUrl: string, repoUuid: string) => ({
             condition: 'equals',
             target: 'repository.uuid',
             params: {
-              value: repoUuid,
+              value: config.repoConfig.uuid,
             },
           },
         ],

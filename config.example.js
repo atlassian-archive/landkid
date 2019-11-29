@@ -3,6 +3,8 @@
  */
 
 module.exports = {
+  name: 'My Landkid',
+  key: 'my-landkid',
   baseUrl: 'https://mydomain.com',
   port: 8080,
   landkidAdmins: ['my-bb-admin-uuid'],
