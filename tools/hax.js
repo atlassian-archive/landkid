@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const typesPath = path.resolve(
+const passportTypesPath = path.resolve(
   __dirname,
   '..',
   'node_modules',
@@ -10,9 +10,27 @@ const typesPath = path.resolve(
   'index.d.ts',
 );
 
-if (fs.existsSync(typesPath)) {
+const sequelizeTypesPath = path.resolve(
+  __dirname,
+  '..',
+  'node_modules',
+  '@types',
+  'sequelize',
+  'index.d.ts',
+);
+
+if (fs.existsSync(passportTypesPath)) {
   fs.writeFileSync(
-    typesPath,
-    fs.readFileSync(typesPath, 'utf8').replace('user?: any;', ''),
+    passportTypesPath,
+    fs.readFileSync(passportTypesPath, 'utf8').replace('user?: any;', ''),
+  );
+}
+
+if (fs.existsSync(sequelizeTypesPath)) {
+  fs.writeFileSync(
+    sequelizeTypesPath,
+    fs
+      .readFileSync(sequelizeTypesPath, 'utf8')
+      .replace('import ValidatorJS', 'import * as ValidatorJS'),
   );
 }

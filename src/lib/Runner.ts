@@ -11,6 +11,7 @@ import {
   PullRequest,
   Permission,
   LandRequestStatus,
+  MessageStateTransition,
 } from '../db';
 import { permissionService } from './PermissionService';
 
@@ -75,10 +76,10 @@ export class Runner {
 
         Logger.info('Land build now running', { running: landRequest.get() });
       } else {
-        Logger.info(
-          { ...isAllowedToLand, ...landRequest.get() },
-          'Land request is not allowed to land',
-        );
+        Logger.info('Land request is not allowed to land', {
+          ...isAllowedToLand,
+          ...landRequest.get(),
+        });
         await landRequest.setStatus('fail', 'Land request did not pass land checks');
         this.next();
       }
@@ -88,7 +89,7 @@ export class Runner {
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
     if (!running) {
-      Logger.info('No build running, status event is irrelevant', statusEvent);
+      Logger.info('No build running, status event is irrelevant', { statusEvent });
       return;
     }
 
@@ -197,6 +198,60 @@ export class Runner {
     return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
   };
 
+  async sendBannerMessage(
+    message: string,
+    messageType: IMessageState['messageType'],
+    user: ISessionUser,
+  ) {
+    await MessageStateTransition.create<MessageStateTransition>({
+      senderAaid: user.aaid,
+      messageExists: true,
+      message,
+      messageType,
+    });
+  }
+
+  async removeBannerMessage(user: ISessionUser) {
+    await MessageStateTransition.create<MessageStateTransition>({
+      senderAaid: user.aaid,
+      messageExists: false,
+    });
+  }
+
+  private getMessageState = async (): Promise<IMessageState> => {
+    const state = await MessageStateTransition.findOne<MessageStateTransition>({
+      order: [['date', 'DESC']],
+    });
+    if (!state) {
+      return {
+        id: '_',
+        senderAaid: '',
+        messageExists: false,
+        message: null,
+        messageType: null,
+        date: new Date(0),
+      };
+    }
+    return state.get();
+  };
+
+  public getBannerMessage = async (): Promise<
+    Pick<IMessageState, 'messageExists' | 'message' | 'messageType'>
+  > => {
+    const state = await MessageStateTransition.findOne<MessageStateTransition>({
+      order: [['date', 'DESC']],
+      attributes: ['messageExists', 'message', 'messageType'],
+    });
+    if (!state) {
+      return {
+        messageExists: false,
+        message: null,
+        messageType: null,
+      };
+    }
+    return state.get();
+  };
+
   private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
     const pr =
       (await PullRequest.findOne<PullRequest>({
@@ -208,6 +263,7 @@ export class Runner {
         prId: landRequestOptions.prId,
         authorAaid: landRequestOptions.prAuthorAaid,
         title: landRequestOptions.prTitle,
+        targetBranch: landRequestOptions.prTargetBranch,
       }));
 
     return await LandRequest.create<LandRequest>({
@@ -270,7 +326,7 @@ export class Runner {
       'aborted',
       `Removed from queue by user "${user.aaid}" (${user.displayName})`,
     );
-    Logger.info('Removing landRequest from queue', landRequestInfo);
+    Logger.info('Removing landRequest from queue', { landRequestInfo });
     return true;
   }
 
@@ -359,12 +415,14 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
+      messageState,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
+      this.getMessageState(),
     ]);
     return {
       daysSinceLastFailure,
@@ -372,6 +430,7 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
+      messageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,

@@ -25,6 +25,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const errors: string[] = [];
       const landCheckErrors: string[] = [];
+      const bannerMessage = await runner.getBannerMessage();
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
       if (permission(permissionLevel).isAtLeast('land')) {
@@ -54,6 +55,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         canLand: errors.length === 0,
         canLandWhenAble: errors.length === landCheckErrors.length && prSettings.allowLandWhenAble,
         errors,
+        bannerMessage,
       });
     }),
   );
@@ -77,6 +79,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prTargetBranch: prInfo.targetBranch,
       };
       const positionInQueue = await runner.enqueue(landRequest);
       Logger.info('Request to land received', { landRequest, positionInQueue });
@@ -105,6 +108,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prTargetBranch: prInfo.targetBranch,
       };
 
       Logger.info('Request to land when able received', { landRequest });

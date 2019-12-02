@@ -2,6 +2,7 @@ export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
   prTitle: string;
+  prTargetBranch: string;
   triggererAaid: string;
   commit: string;
 };
@@ -54,6 +55,8 @@ export type OAuthConfig = {
 };
 
 export type Config = {
+  name?: string;
+  key?: string;
   port: number;
   baseUrl: string;
   landkidAdmins: string[];
@@ -70,5 +73,6 @@ export type RunnerState = {
   pauseState: IPauseState;
   daysSinceLastFailure: number;
   usersAllowedToLand: IPermission[];
+  messageState: IMessageState;
   bitbucketBaseUrl: string;
 };

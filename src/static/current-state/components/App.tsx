@@ -25,9 +25,7 @@ export const App: React.FunctionComponent = () => (
                 render={data => (
                   <div>
                     <CurrentState {...data} />
-
                     <RunningBuild queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
-
                     <Tabs
                       bitbucketBaseUrl={data.bitbucketBaseUrl}
                       selected={1}
@@ -35,6 +33,7 @@ export const App: React.FunctionComponent = () => (
                       queue={data.queue}
                       loggedInUser={loggedInUser}
                       paused={data.pauseState.paused}
+                      messageState={data.messageState}
                     />
                   </div>
                 )}

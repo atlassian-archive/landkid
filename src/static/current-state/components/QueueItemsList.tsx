@@ -36,6 +36,7 @@ export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = prop
           bitbucketBaseUrl={props.bitbucketBaseUrl}
           request={item.request}
           status={item}
+          key={item.requestId}
         />
       ))}
     </div>
