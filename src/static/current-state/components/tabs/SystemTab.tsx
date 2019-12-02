@@ -1,17 +1,11 @@
 import * as React from 'react';
 import { TabContent } from './TabContent';
-import { User } from '../User';
-import { PermissionControl } from '../PermissionControl';
-
-// sort by permssion descending (admin -> land -> read)
-function sortUsersByPermission(user1: IPermission, user2: IPermission) {
-  const permssionsLevels = ['read', 'land', 'admin'];
-  return permssionsLevels.indexOf(user2.mode) - permssionsLevels.indexOf(user1.mode);
-}
+import { Messenger } from './Messenger';
+import { AllowedUsers } from './AllowedUsers';
 
 const Button = (props: { onClick: () => void; error: string; children: React.ReactChild }) => (
   <div style={{ marginTop: '10px' }}>
-    <button className={`ak-button ak-button__appearance-default`} onClick={props.onClick}>
+    <button className="ak-button ak-button__appearance-default" onClick={props.onClick}>
       {props.children}
     </button>
     {props.error && <span style={{ color: 'red', marginLeft: '5px' }}>&larr; {props.error}</span>}
@@ -22,6 +16,7 @@ export type SystemTabProps = {
   allowedUsers: IPermission[];
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
+  currentMessageState: IMessageState;
 };
 
 export type SystemTabsState = {
@@ -91,7 +86,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   render() {
-    const { allowedUsers, loggedInUser } = this.props;
+    const { allowedUsers, loggedInUser, currentMessageState } = this.props;
     return (
       <TabContent>
         <div style={{ marginTop: '27px' }}>
@@ -99,7 +94,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
             <React.Fragment>
               <h3>Admin Controls</h3>
               <div
-                className={`ak-field-toggle ak-field-toggle__size-large`}
+                className="ak-field-toggle ak-field-toggle__size-large"
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
@@ -125,34 +120,10 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
               <Button onClick={this.onCancelClick} error={this.state.cancelError}>
                 Cancel Current Build
               </Button>
+              <Messenger currentMessageState={currentMessageState} />
             </React.Fragment>
           )}
-          <h3>Allowed Users</h3>
-          <ul>
-            {allowedUsers
-              .sort(sortUsersByPermission)
-              .map(({ aaid, mode, assignedByAaid, dateAssigned }) => (
-                <li key={aaid}>
-                  <User aaid={aaid}>
-                    {user => (
-                      <div
-                        title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
-                        style={{ display: 'flex', flexDirection: 'row' }}
-                      >
-                        <span style={{ display: 'inline-block', minWidth: '150px' }}>
-                          {user.displayName}
-                        </span>
-                        <PermissionControl
-                          user={user}
-                          userPermission={mode}
-                          loggedInUser={loggedInUser}
-                        />
-                      </div>
-                    )}
-                  </User>
-                </li>
-              ))}
-          </ul>
+          <AllowedUsers users={allowedUsers} loggedInUser={loggedInUser} />
           {loggedInUser.permission === 'read' && (
             <p>To get land access, you will need to ping one of the admins above</p>
           )}

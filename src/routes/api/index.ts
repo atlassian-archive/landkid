@@ -54,19 +54,6 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
-  router.post(
-    '/pause',
-    requireAuth('admin'),
-    wrap(async (req, res) => {
-      let pausedReason = 'Paused via API';
-      if (req && req.body && req.body.reason) {
-        pausedReason = String(req.body.reason);
-      }
-      runner.pause(pausedReason, req.user!);
-      res.json({ paused: true, pausedReason });
-    }),
-  );
-
   router.patch(
     '/permission/:aaid',
     requireAuth('admin'),
@@ -77,6 +64,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         return res.status(400).json({ error: 'Invalid permission mode' });
       }
       res.json(await permissionService.setPermissionForUser(userAaid, mode, req.user!));
+    }),
+  );
+
+  router.post(
+    '/pause',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      let pausedReason = 'Paused via API';
+      if (req && req.body && req.body.reason) {
+        pausedReason = String(req.body.reason);
+      }
+      runner.pause(pausedReason, req.user!);
+      res.json({ paused: true, pausedReason });
     }),
   );
 
@@ -130,6 +130,37 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       } else {
         res.status(400).json({ error: 'Request either does not exist or is not queued' });
       }
+    }),
+  );
+
+  router.post(
+    '/message',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      let message = '';
+      let type = '';
+      if (req && req.body && req.body.message && req.body.type) {
+        message = String(req.body.message);
+        type = String(req.body.type);
+      }
+      if (!message) {
+        res.status(400).json({ error: 'Cannot send an empty message' });
+      }
+      if (!['default', 'warning', 'error'].includes(type)) {
+        res.status(400).json({ error: 'Message type must be one of: default, warning, error' });
+      }
+      // @ts-ignore -- checks value of type above
+      runner.sendBannerMessage(message, type, req.user!);
+      res.json({ message });
+    }),
+  );
+
+  router.post(
+    '/remove-message',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.removeBannerMessage(req.user!);
+      res.json({ removed: true });
     }),
   );
 

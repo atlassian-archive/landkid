@@ -22,6 +22,11 @@ declare namespace BB {
     author: User;
     title: string;
     description: string;
+    destination: {
+      branch: {
+        name: string;
+      };
+    };
     created_on: string;
     state: PRState;
     task_count: number;
@@ -41,6 +46,7 @@ declare namespace BB {
     createdOn: Date;
     author: string;
     authorAaid: string;
+    targetBranch: string;
     state: PRState;
     approvals: Array<string>;
     openTasks: number;

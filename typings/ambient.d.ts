@@ -19,6 +19,7 @@ declare interface IPullRequest {
   prId: number;
   authorAaid: string;
   title: string;
+  targetBranch: string;
 }
 
 declare interface IPauseState {
@@ -26,6 +27,15 @@ declare interface IPauseState {
   pauserAaid: string;
   paused: boolean;
   reason: string | null;
+  date: Date;
+}
+
+declare interface IMessageState {
+  id: string;
+  senderAaid: string;
+  messageExists: boolean;
+  message: string | null;
+  messageType: 'default' | 'warning' | 'error' | null;
   date: Date;
 }
 

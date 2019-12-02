@@ -159,11 +159,17 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @AllowNull(false)
   @Column(Sequelize.STRING)
   title: string;
+
+  @AllowNull(false)
+  @Default('unknown')
+  @Column(Sequelize.STRING)
+  targetBranch: string;
 }
 
 @Table
 export class Permission extends Model<Permission> implements IPermission {
-  @Column(Sequelize.STRING) readonly aaid: string;
+  @Column(Sequelize.STRING)
+  readonly aaid: string;
 
   @AllowNull(false)
   @Default('read')
@@ -205,6 +211,39 @@ export class PauseStateTransition extends Model<PauseStateTransition> implements
   readonly date: Date;
 }
 
+@Table
+export class MessageStateTransition extends Model<PauseStateTransition> implements IMessageState {
+  @PrimaryKey
+  @Default(Sequelize.UUIDV4)
+  @Column(Sequelize.UUID)
+  id: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly senderAaid: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.BOOLEAN)
+  readonly messageExists: boolean;
+
+  @AllowNull(true)
+  @Column(Sequelize.STRING({ length: 2000 }))
+  readonly message: string;
+
+  @AllowNull(true)
+  @Column(
+    Sequelize.ENUM({
+      values: ['default', 'warning', 'error'],
+    }),
+  )
+  readonly messageType: IMessageState['messageType'];
+
+  @AllowNull(false)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly date: Date;
+}
+
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize(
     config.sequelize ||
@@ -218,6 +257,7 @@ export const initializeSequelize = async () => {
   sequelize.addModels([
     Installation,
     PauseStateTransition,
+    MessageStateTransition,
     Permission,
     PullRequest,
     LandRequestStatus,
@@ -229,3 +269,5 @@ export const initializeSequelize = async () => {
 
   return sequelize;
 };
+
+export { MigrationService } from './MigrationService';

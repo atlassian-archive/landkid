@@ -1,7 +1,13 @@
 import * as React from 'react';
 import { proxyRequest } from '../utils/RequestProxy';
 
-export type AppState = {
+type BannerMessage = {
+  messageExists: boolean;
+  message: string | null;
+  messageType: 'default' | 'warning' | 'error' | null;
+};
+
+type AppState = {
   curState:
     | 'checking-can-land'
     | 'cannot-land'
@@ -12,14 +18,32 @@ export type AppState = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
+  bannerMessage: BannerMessage;
 };
 
 export class App extends React.Component {
+  messageColours = {
+    default: 'transparent',
+    warning: 'orange',
+    error: 'red',
+  };
+
+  messageEmoji = {
+    default: '📢',
+    warning: '⚠️',
+    error: '❌',
+  };
+
   state: AppState = {
     curState: 'checking-can-land',
     canLand: false,
     canLandWhenAble: false,
     errors: [],
+    bannerMessage: {
+      messageExists: false,
+      message: null,
+      messageType: null,
+    },
   };
 
   async componentDidMount() {
@@ -36,18 +60,21 @@ export class App extends React.Component {
       canLand: string;
       canLandWhenAble: string;
       errors: string[];
+      bannerMessage: BannerMessage;
     };
     proxyRequest<Resp>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors }) => {
+      .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
         if (canLand) {
           return this.setState({
             curState: 'can-land',
+            bannerMessage,
           });
         }
         this.setState({
           curState: 'cannot-land',
           canLandWhenAble,
           errors,
+          bannerMessage,
         });
       })
       .catch(err => {
@@ -91,8 +118,8 @@ export class App extends React.Component {
     );
   };
 
-  render() {
-    switch (this.state.curState) {
+  renderLandState = (curState: AppState['curState']) => {
+    switch (curState) {
       case 'checking-can-land': {
         return <p>🤔 Checking Landkid permissions...</p>;
       }
@@ -170,5 +197,32 @@ export class App extends React.Component {
         return <div>👏 Pullrequest is already closed!</div>;
       }
     }
+  };
+
+  render() {
+    const {
+      curState,
+      bannerMessage: { messageExists, message, messageType },
+    } = this.state;
+    const msgType = messageType || 'default';
+    return (
+      <React.Fragment>
+        {curState !== 'checking-can-land' && messageExists ? (
+          <div
+            style={{
+              width: 'fit-content',
+              border: `2px solid ${this.messageColours[msgType]}`,
+              borderRadius: '5px',
+              padding: '6px',
+              marginBottom: '10px',
+              fontWeight: msgType === 'default' ? 'bold' : 'normal',
+            }}
+          >
+            {`${this.messageEmoji[msgType]} ${message} ${this.messageEmoji[msgType]}`}
+          </div>
+        ) : null}
+        {this.renderLandState(curState)}
+      </React.Fragment>
+    );
   }
 }
