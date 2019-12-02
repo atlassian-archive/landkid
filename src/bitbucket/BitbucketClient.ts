@@ -15,11 +15,11 @@ export class BitbucketClient {
 
   constructor(private config: Config) {}
 
-  async isAllowedToLand(pullRequestId: number) {
+  async isAllowedToLand(pullRequestId: number, permissionLevel: IPermissionMode) {
     const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
     const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
     const author = pullRequest.author;
-    let approvals = getRealApprovals(
+    const approvals = getRealApprovals(
       pullRequest.approvals,
       author,
       this.config.prSettings.canApproveOwnPullRequest,
@@ -33,14 +33,14 @@ export class BitbucketClient {
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
 
+    const { prSettings } = this.config;
+    const errors: string[] = [];
+
     Logger.info('isAllowedToLand()', {
       pullRequestId,
       approvalChecks,
-      requirements: this.config.prSettings,
+      requirements: prSettings,
     });
-
-    const { prSettings } = this.config;
-    const errors: string[] = [];
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
       errors.push(
@@ -58,7 +58,19 @@ export class BitbucketClient {
 
     if (!approvalChecks.isOpen) {
       errors.push('PR is already closed!');
+    } else if (prSettings.customChecks) {
+      const pullRequestInfo = {
+        pullRequest,
+        buildStatuses,
+        approvals,
+        permissionLevel,
+      };
+      for (const { rule } of prSettings.customChecks) {
+        const passesRule = await rule(pullRequestInfo);
+        if (typeof passesRule === 'string') errors.push(passesRule);
+      }
     }
+
     return {
       ...approvalChecks,
       errors,

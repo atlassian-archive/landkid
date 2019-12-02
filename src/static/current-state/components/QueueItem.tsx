@@ -235,10 +235,8 @@ export class QueueItem extends React.Component<QueueItemProps> {
   }
 }
 
-export function QueueItemJoined(props: QueueItemProps) {
-  return (
-    <div className={`${queueItemJoinedStyles} queue-item-joined`}>
-      <QueueItem {...props} />
-    </div>
-  );
-}
+export const QueueItemJoined: React.FunctionComponent<QueueItemProps> = props => (
+  <div className={`${queueItemJoinedStyles} queue-item-joined`}>
+    <QueueItem {...props} />
+  </div>
+);

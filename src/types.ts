@@ -13,12 +13,24 @@ export type RepoConfig = {
   uuid?: string;
 };
 
+type CustomCheck = {
+  rule: (
+    pullRequestInfo: {
+      pullRequest: BB.PullRequest;
+      buildStatuses: BB.BuildStatus[];
+      approvals: string[];
+      permissionLevel: IPermissionMode;
+    },
+  ) => Promise<true | string>;
+};
+
 export type PullRequestSettings = {
   requiredApprovals: number;
   requireClosedTasks: boolean;
   requireGreenBuild: boolean;
   canApproveOwnPullRequest: boolean;
   allowLandWhenAble: boolean;
+  customChecks?: CustomCheck[];
 };
 
 export type ApprovalChecks = {

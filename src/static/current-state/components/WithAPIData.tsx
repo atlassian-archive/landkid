@@ -2,9 +2,7 @@ import * as React from 'react';
 
 const DEFAULT_POLLING_INTERVAL = 15 * 1000; // 15 sec
 
-function defaultLoading() {
-  return <div>Loading...</div>;
-}
+const defaultLoading = () => <div>Loading...</div>;
 
 export type Props<D> = {
   endpoint: string;
@@ -25,8 +23,7 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
   state: State = {
     error: null,
     data: null,
-    poll:
-      this.props.poll === true ? DEFAULT_POLLING_INTERVAL : this.props.poll ? this.props.poll : 0,
+    poll: this.props.poll === true ? DEFAULT_POLLING_INTERVAL : this.props.poll || 0,
   };
 
   fetchData() {
@@ -39,7 +36,7 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
   componentDidMount() {
     this.fetchData();
 
-    if (this.state.poll) {
+    if (this.state.poll > 0) {
       this.interval = setInterval(this.fetchData.bind(this), this.state.poll);
     }
   }

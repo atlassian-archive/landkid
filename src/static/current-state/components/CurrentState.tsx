@@ -32,44 +32,41 @@ let styles = css({
 
 export type Props = RunnerState;
 
-export function CurrentState(props: Props) {
+export const CurrentState: React.FunctionComponent<Props> = props => {
   // const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
   const { daysSinceLastFailure, queue, pauseState } = props;
   const fancyDaysSinceLastFailure = daysSinceLastFailure === -1 ? '∞' : daysSinceLastFailure;
-  function renderStateColumns() {
-    return (
-      <div className={styles}>
-        <div className="current-state__card">
-          <h4 className="current-state__card-title">Days Since Last Accident:</h4>
-          <div className="current-state__info" title={`${fancyDaysSinceLastFailure}`}>
-            {fancyDaysSinceLastFailure} days
-          </div>
-        </div>
-        <div className="current-state__card">
-          <h4 className="current-state__card-title">Working:</h4>
-          <div className="current-state__info">
-            <Badge appearance="added">Yes</Badge>
-          </div>
-        </div>
-        <div className="current-state__card">
-          <h4 className="current-state__card-title">Queue Size:</h4>
-          <div className="current-state__info">
-            <Badge>{queue.length}</Badge>
-          </div>
+
+  const renderStateColumns = () => (
+    <div className={styles}>
+      <div className="current-state__card">
+        <h4 className="current-state__card-title">Days Since Last Accident:</h4>
+        <div className="current-state__info" title={`${fancyDaysSinceLastFailure}`}>
+          {fancyDaysSinceLastFailure} days
         </div>
       </div>
-    );
-  }
+      <div className="current-state__card">
+        <h4 className="current-state__card-title">Working:</h4>
+        <div className="current-state__info">
+          <Badge appearance="added">Yes</Badge>
+        </div>
+      </div>
+      <div className="current-state__card">
+        <h4 className="current-state__card-title">Queue Size:</h4>
+        <div className="current-state__info">
+          <Badge>{queue.length}</Badge>
+        </div>
+      </div>
+    </div>
+  );
 
-  function renderPausedPanel() {
-    return (
-      <Panel>
-        <strong>Builds are currently paused</strong>
-        <br />
-        {pauseState.reason || 'No reason was provided'}
-      </Panel>
-    );
-  }
+  const renderPausedPanel = () => (
+    <Panel>
+      <strong>Builds are currently paused</strong>
+      <br />
+      {pauseState.reason || 'No reason was provided'}
+    </Panel>
+  );
 
   return <Section>{pauseState.paused ? renderPausedPanel() : renderStateColumns()}</Section>;
-}
+};

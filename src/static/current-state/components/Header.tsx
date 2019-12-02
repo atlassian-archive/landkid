@@ -32,19 +32,17 @@ interface HeaderProps {
   user?: ISessionUser;
 }
 
-export function Header({ user }: HeaderProps) {
-  return (
-    <div className={headerStyles}>
-      <Logo />
-      {user ? (
-        <div className={userInfoStyles}>
-          <span className={userNameStyles}>{user.displayName}</span>
-          <img
-            src={`https://bitbucket.org/account/${user.username}/avatar/`}
-            className={userImgStyles}
-          />
-        </div>
-      ) : null}
-    </div>
-  );
-}
+export const Header: React.FunctionComponent<HeaderProps> = ({ user }) => (
+  <div className={headerStyles}>
+    <Logo />
+    {user ? (
+      <div className={userInfoStyles}>
+        <span className={userNameStyles}>{user.displayName}</span>
+        <img
+          src={`https://bitbucket.org/account/${user.username}/avatar/`}
+          className={userImgStyles}
+        />
+      </div>
+    ) : null}
+  </div>
+);

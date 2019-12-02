@@ -30,5 +30,20 @@ module.exports = {
     requireClosedTasks: true,
     requireGreenBuild: true,
     allowLandWhenAble: true,
+    /** What is provided to a custom rule:
+     *  {
+     *    pullRequest: BB.PullRequest -- see /src/bitbucket/types.d.ts
+     *    buildStatuses: BB.BuildStatus[] -- see /src/bitbucket/types.d.ts
+     *    approvals: string[] -- usernames of all real approvals
+     *    permissionLevel: "read" | "land" | "admin" -- permission level of the user requesting /can-land
+     *  }
+     * Return true if the rule is passed and is not blocking landing,
+     * otherwise return the error message to be displayed on the PR
+    customChecks: [
+      {
+        rule: ({ pullRequest, buildStatuses, approvals, permissionLevel }) => true,
+      },
+    ],
+    */
   },
 };

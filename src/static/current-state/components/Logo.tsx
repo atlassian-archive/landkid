@@ -10,10 +10,8 @@ let styles = css({
   flex: 1,
 });
 
-export function Logo() {
-  return (
-    <h1 className={styles}>
-      Landkid <span className="logo__secondary">Status</span>
-    </h1>
-  );
-}
+export const Logo: React.FunctionComponent = () => (
+  <h1 className={styles}>
+    Landkid <span className="logo__secondary">Status</span>
+  </h1>
+);

@@ -33,7 +33,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         if (pauseState.isPaused) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
-          const landChecks = await client.isAllowedToLand(prId);
+          const landChecks = await client.isAllowedToLand(prId, permissionLevel);
           errors.push(...landChecks.errors);
           landCheckErrors.push(...landChecks.errors);
 

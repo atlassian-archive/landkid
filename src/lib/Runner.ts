@@ -51,9 +51,16 @@ export class Runner {
         landRequest: landRequest.get(),
       });
 
+      const triggererUserMode = await permissionService.getPermissionForUser(
+        landRequest.triggererAaid,
+      );
+
       // TODO: Pass this commit in to isAllowed to land and make sure it hasnt changed
       const commit = landRequest.forCommit;
-      const isAllowedToLand = await this.client.isAllowedToLand(landRequest.pullRequestId);
+      const isAllowedToLand = await this.client.isAllowedToLand(
+        landRequest.pullRequestId,
+        triggererUserMode,
+      );
 
       if (isAllowedToLand.errors.length === 0) {
         Logger.info('Allowed to land, creating land build', {
@@ -328,7 +335,10 @@ export class Runner {
 
     for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
       const pullRequestId = landRequest.request.pullRequestId;
-      let isAllowedToLand = await this.client.isAllowedToLand(pullRequestId);
+      const triggererUserMode = await permissionService.getPermissionForUser(
+        landRequest.request.triggererAaid,
+      );
+      const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
 
       if (isAllowedToLand.errors.length === 0) {
         this.moveFromWaitingToQueue(pullRequestId);
