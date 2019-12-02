@@ -35,10 +35,11 @@ module.exports = {
      *    approvals: string[] -- usernames of all real approvals
      *    permissionLevel: "read" | "land" | "admin" -- permission level of the user requesting /can-land
      *  }
-    rules: [
+     * Return true if the rule is passed and is not blocking landing,
+     * otherwise return the error message to be displayed on the PR
+    customChecks: [
       {
         rule: ({ pullRequest, buildStatuses, approvals, permissionLevel }) => true,
-        error: 'This check will always succeed',
       },
     ],
     */

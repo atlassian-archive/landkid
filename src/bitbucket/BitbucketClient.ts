@@ -58,16 +58,17 @@ export class BitbucketClient {
 
     if (!approvalChecks.isOpen) {
       errors.push('PR is already closed!');
-    } else if (prSettings.rules) {
+    } else if (prSettings.customChecks) {
       const pullRequestInfo = {
         pullRequest,
         buildStatuses,
         approvals,
         permissionLevel,
       };
-      errors.push(
-        ...prSettings.rules.filter(({ rule }) => !rule(pullRequestInfo)).map(({ error }) => error),
-      );
+      for (const { rule } of prSettings.customChecks) {
+        const passesRule = await rule(pullRequestInfo);
+        if (typeof passesRule === 'string') errors.push(passesRule);
+      }
     }
 
     return {
