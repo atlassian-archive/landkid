@@ -61,9 +61,33 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       const userAaid = req.params.aaid;
       const mode = req.body.mode;
       if (['read', 'land', 'admin'].indexOf(mode) === -1) {
-        return res.status(400).json({ error: 'Invalid permission mode' });
+        res.status(400).json({ error: 'Invalid permission mode' });
       }
       res.json(await permissionService.setPermissionForUser(userAaid, mode, req.user!));
+    }),
+  );
+
+  router.patch(
+    '/note/:aaid',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const userAaid = req.params.aaid;
+      const note = req.body.note;
+      if (!note) {
+        res.status(400).json({ error: 'Note can not be empty' });
+      }
+      await permissionService.setNoteForUser(userAaid, note, req.user!);
+      res.json({ message: `Added note to user ${userAaid}` });
+    }),
+  );
+
+  router.delete(
+    '/note/:aaid',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const userAaid = req.params.aaid;
+      await permissionService.removeUserNote(userAaid);
+      res.json({ message: `Removed note from user ${userAaid}` });
     }),
   );
 

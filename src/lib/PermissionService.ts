@@ -1,4 +1,4 @@
-import { Permission } from '../db';
+import { Permission, UserNote } from '../db';
 import { config } from './Config';
 import { Logger } from './Logger';
 
@@ -34,6 +34,39 @@ class PermissionService {
       aaid,
       mode,
       assignedByAaid: setter.aaid,
+    });
+  };
+
+  getNotes = async (): Promise<IUserNote[]> => {
+    return UserNote.findAll<UserNote>();
+  };
+
+  setNoteForUser = async (aaid: string, note: string, setter: ISessionUser): Promise<void> => {
+    Logger.info('Setting user note', { aaid, note, setter });
+    (await UserNote.update(
+      {
+        note,
+        setByAaid: setter.aaid,
+      },
+      {
+        where: {
+          aaid,
+        },
+      },
+    ))[0] > 0 || // Check if a row was updated, otherwise create a new row
+      (await UserNote.create<UserNote>({
+        aaid,
+        note,
+        setByAaid: setter.aaid,
+      }));
+  };
+
+  removeUserNote = async (aaid: string): Promise<void> => {
+    Logger.info('Removing user note', { aaid });
+    await UserNote.destroy({
+      where: {
+        aaid,
+      },
     });
   };
 }

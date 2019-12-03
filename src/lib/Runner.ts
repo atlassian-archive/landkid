@@ -10,6 +10,7 @@ import {
   PauseStateTransition,
   PullRequest,
   Permission,
+  UserNote,
   LandRequestStatus,
   MessageStateTransition,
 } from '../db';
@@ -346,7 +347,7 @@ export class Runner {
     }
   }
 
-  private getUsersPermissions = async (requestingUser: ISessionUser): Promise<IPermission[]> => {
+  private getUsersPermissions = async (requestingUser: ISessionUser): Promise<UserState[]> => {
     // TODO: Figure out how to use distinct
     const perms = await Permission.findAll<Permission>({
       order: [['dateAssigned', 'DESC']],
@@ -363,23 +364,37 @@ export class Runner {
       }
     }
 
-    // Now we need to filter to only show the records that the requesting user is allowed to see
-    const allowedToLand: RunnerState['usersAllowedToLand'] = [];
+    const aaidNotes: Record<string, string> = {};
     const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
-    for (const aaid of Object.keys(aaidPerms)) {
-      // admins see all users
-      if (requestingUserMode === 'admin') {
-        allowedToLand.push(aaidPerms[aaid]);
-        // land users can see land and admin users
-      } else if (requestingUserMode === 'land' && aaidPerms[aaid].mode !== 'read') {
-        allowedToLand.push(aaidPerms[aaid]);
-        // read users can only see admins
-      } else if (requestingUserMode === 'read' && aaidPerms[aaid].mode === 'admin') {
-        allowedToLand.push(aaidPerms[aaid]);
+    if (requestingUserMode === 'admin') {
+      const notes = await UserNote.findAll<UserNote>();
+      for (const note of notes) {
+        aaidNotes[note.aaid] = note.note;
       }
     }
 
-    return allowedToLand;
+    // Now we need to filter to only show the records that the requesting user is allowed to see
+    const users: UserState[] = [];
+    for (const aaid of Object.keys(aaidPerms)) {
+      // admins see all users
+      if (requestingUserMode === 'admin') {
+        users.push({
+          aaid,
+          mode: aaidPerms[aaid].mode,
+          dateAssigned: aaidPerms[aaid].dateAssigned,
+          assignedByAaid: aaidPerms[aaid].assignedByAaid,
+          note: aaidNotes[aaid],
+        });
+        // land users can see land and admin users
+      } else if (requestingUserMode === 'land' && aaidPerms[aaid].mode !== 'read') {
+        users.push(aaidPerms[aaid]);
+        // read users can only see admins
+      } else if (requestingUserMode === 'read' && aaidPerms[aaid].mode === 'admin') {
+        users.push(aaidPerms[aaid]);
+      }
+    }
+
+    return users;
   };
 
   private getDatesSinceLastFailures = async (): Promise<number> => {
@@ -413,7 +428,7 @@ export class Runner {
       daysSinceLastFailure,
       pauseState,
       queue,
-      usersAllowedToLand,
+      users,
       waitingToQueue,
       messageState,
     ] = await Promise.all([
@@ -424,11 +439,22 @@ export class Runner {
       this.queue.getStatusesForWaitingRequests(),
       this.getMessageState(),
     ]);
+    Logger.info('current-state:', {
+      daysSinceLastFailure,
+      pauseState,
+      queue,
+      users,
+      waitingToQueue,
+      messageState,
+      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
+        this.config.repoConfig.repoName
+      }`,
+    });
     return {
       daysSinceLastFailure,
       pauseState,
       queue,
-      usersAllowedToLand,
+      users,
       waitingToQueue,
       messageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${

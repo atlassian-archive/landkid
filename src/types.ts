@@ -72,7 +72,7 @@ export type RunnerState = {
   waitingToQueue: Array<IStatusUpdate>;
   pauseState: IPauseState;
   daysSinceLastFailure: number;
-  usersAllowedToLand: IPermission[];
+  users: UserState[];
   messageState: IMessageState;
   bitbucketBaseUrl: string;
 };

@@ -187,6 +187,22 @@ export class Permission extends Model<Permission> implements IPermission {
 }
 
 @Table
+export class UserNote extends Model<UserNote> implements IUserNote {
+  @PrimaryKey
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly aaid: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  note: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  setByAaid: string;
+}
+
+@Table
 export class PauseStateTransition extends Model<PauseStateTransition> implements IPauseState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
@@ -259,6 +275,7 @@ export const initializeSequelize = async () => {
     PauseStateTransition,
     MessageStateTransition,
     Permission,
+    UserNote,
     PullRequest,
     LandRequestStatus,
     LandRequest,
