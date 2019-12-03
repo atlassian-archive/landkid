@@ -439,17 +439,6 @@ export class Runner {
       this.queue.getStatusesForWaitingRequests(),
       this.getMessageState(),
     ]);
-    Logger.info('current-state:', {
-      daysSinceLastFailure,
-      pauseState,
-      queue,
-      users,
-      waitingToQueue,
-      messageState,
-      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
-        this.config.repoConfig.repoName
-      }`,
-    });
     return {
       daysSinceLastFailure,
       pauseState,
