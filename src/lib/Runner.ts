@@ -218,7 +218,7 @@ export class Runner {
     });
   }
 
-  private getMessageState = async (): Promise<IMessageState> => {
+  public getBannerMessage = async (): Promise<IMessageState> => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
     });
@@ -230,23 +230,6 @@ export class Runner {
         message: null,
         messageType: null,
         date: new Date(0),
-      };
-    }
-    return state.get();
-  };
-
-  public getBannerMessage = async (): Promise<
-    Pick<IMessageState, 'messageExists' | 'message' | 'messageType'>
-  > => {
-    const state = await MessageStateTransition.findOne<MessageStateTransition>({
-      order: [['date', 'DESC']],
-      attributes: ['messageExists', 'message', 'messageType'],
-    });
-    if (!state) {
-      return {
-        messageExists: false,
-        message: null,
-        messageType: null,
       };
     }
     return state.get();
@@ -415,14 +398,14 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
-      messageState,
+      bannerMessageState,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
-      this.getMessageState(),
+      this.getBannerMessage(),
     ]);
     return {
       daysSinceLastFailure,
@@ -430,7 +413,7 @@ export class Runner {
       queue,
       usersAllowedToLand,
       waitingToQueue,
-      messageState,
+      bannerMessageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,

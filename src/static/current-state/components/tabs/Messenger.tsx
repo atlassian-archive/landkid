@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export type MessengerProps = {
-  currentMessageState: IMessageState;
+  bannerMessageState: IMessageState;
 };
 
 type MessengerState = {
@@ -43,7 +43,7 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
 
   render() {
     const {
-      currentMessageState: { messageExists, message, messageType },
+      bannerMessageState: { messageExists, message, messageType },
     } = this.props;
     const msgType = messageType || 'default';
     return (
