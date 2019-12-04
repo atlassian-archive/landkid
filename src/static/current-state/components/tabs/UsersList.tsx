@@ -9,8 +9,12 @@ const noteButton = css({
   border: 'none',
   padding: '0px',
   verticalAlign: 'middle',
+  color: 'darkgray',
   ':focus': { outline: 'none' },
-  ':hover': { cursor: 'pointer' },
+  ':hover': {
+    cursor: 'pointer',
+    color: 'black',
+  },
 });
 
 const noteSpan = css({
