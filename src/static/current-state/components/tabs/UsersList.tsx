@@ -20,15 +20,14 @@ const noteButton = css({
 const noteSpan = css({
   marginLeft: '5px',
   marginBottom: '1px',
-  fontSize: '0.7rem',
   color: 'darkgray',
   fontStyle: 'italic',
   verticalAlign: 'middle',
 });
 
 const icon = css({
-  height: '12px',
-  width: '12px',
+  height: '15px',
+  width: '15px',
 });
 
 type NoteManagerProps = {
