@@ -42,7 +42,6 @@ class PermissionService {
   };
 
   setNoteForUser = async (aaid: string, note: string, setter: ISessionUser): Promise<void> => {
-    Logger.info('Setting user note', { aaid, note, setter });
     (await UserNote.update(
       {
         note,
@@ -62,7 +61,6 @@ class PermissionService {
   };
 
   removeUserNote = async (aaid: string): Promise<void> => {
-    Logger.info('Removing user note', { aaid });
     await UserNote.destroy({
       where: {
         aaid,
