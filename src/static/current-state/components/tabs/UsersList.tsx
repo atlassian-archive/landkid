@@ -45,7 +45,7 @@ class NoteManager extends React.Component<NoteManagerProps, NoteManagerState> {
   };
 
   addNote = () => {
-    const note = window.prompt('What would you like the note to be?');
+    const note = window.prompt('What would you like the note to be?', this.state.note);
     if (note === null) return;
     fetch(`/api/note/${this.props.aaid}`, {
       method: 'PATCH',
