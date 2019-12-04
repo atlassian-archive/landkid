@@ -29,11 +29,11 @@ export class Runner {
     }, timeBetweenChecksMins * 60 * 1000);
   }
 
-  async getRunning() {
+  getRunning = async () => {
     return this.queue.maybeGetStatusForRunningRequest();
-  }
+  };
 
-  async next() {
+  next = async () => {
     await withLock('Runner:next', async () => {
       const running = await this.getRunning();
       Logger.info('Next() called', {
@@ -84,7 +84,7 @@ export class Runner {
         this.next();
       }
     });
-  }
+  };
 
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
@@ -137,7 +137,7 @@ export class Runner {
     this.next();
   };
 
-  async cancelCurrentlyRunningBuild(user: ISessionUser) {
+  cancelCurrentlyRunningBuild = async (user: ISessionUser) => {
     const running = await this.getRunning();
     if (!running) return;
 
@@ -149,24 +149,24 @@ export class Runner {
     if (running.request.buildId) {
       this.client.stopLandBuild(running.request.buildId);
     }
-  }
+  };
 
-  async pause(reason: string, user: ISessionUser) {
+  pause = async (reason: string, user: ISessionUser) => {
     await PauseStateTransition.create<PauseStateTransition>({
       paused: true,
       reason,
       pauserAaid: user.aaid,
     });
-  }
+  };
 
-  async unpause(user: ISessionUser) {
+  unpause = async (user: ISessionUser) => {
     await PauseStateTransition.create<PauseStateTransition>({
       paused: false,
       pauserAaid: user.aaid,
     });
-  }
+  };
 
-  private getPauseState = async (): Promise<IPauseState> => {
+  getPauseState = async (): Promise<IPauseState> => {
     const state = await PauseStateTransition.findOne<PauseStateTransition>({
       order: [['date', 'DESC']],
     });
@@ -182,43 +182,27 @@ export class Runner {
     return state.get();
   };
 
-  public isPaused = async (): Promise<
-    | {
-        isPaused: true;
-        reason: string;
-      }
-    | {
-        isPaused: false;
-      }
-  > => {
-    const state = await PauseStateTransition.findOne<PauseStateTransition>({
-      order: [['date', 'DESC']],
-    });
-    if (!state) return { isPaused: false };
-    return state.paused ? { isPaused: true, reason: state.reason } : { isPaused: false };
-  };
-
-  async sendBannerMessage(
+  sendBannerMessage = async (
     message: string,
     messageType: IMessageState['messageType'],
     user: ISessionUser,
-  ) {
+  ) => {
     await MessageStateTransition.create<MessageStateTransition>({
       senderAaid: user.aaid,
       messageExists: true,
       message,
       messageType,
     });
-  }
+  };
 
-  async removeBannerMessage(user: ISessionUser) {
+  removeBannerMessage = async (user: ISessionUser) => {
     await MessageStateTransition.create<MessageStateTransition>({
       senderAaid: user.aaid,
       messageExists: false,
     });
-  }
+  };
 
-  public getBannerMessage = async (): Promise<IMessageState> => {
+  getBannerMessageState = async (): Promise<IMessageState> => {
     const state = await MessageStateTransition.findOne<MessageStateTransition>({
       order: [['date', 'DESC']],
     });
@@ -235,7 +219,7 @@ export class Runner {
     return state.get();
   };
 
-  private async createRequestFromOptions(landRequestOptions: LandRequestOptions) {
+  private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
     const pr =
       (await PullRequest.findOne<PullRequest>({
         where: {
@@ -254,9 +238,9 @@ export class Runner {
       pullRequestId: pr.prId,
       forCommit: landRequestOptions.commit,
     });
-  }
+  };
 
-  async removeLandRequestByPullRequestId(pullRequestId: number, user: ISessionUser) {
+  removeLandRequestByPullRequestId = async (pullRequestId: number, user: ISessionUser) => {
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
@@ -265,26 +249,26 @@ export class Runner {
     for (const request of requests) {
       await request.setStatus('aborted', `Cancelled by user: "${user.aaid}" (${user.displayName})`);
     }
-  }
+  };
 
-  async enqueue(landRequestOptions: LandRequestOptions): Promise<void> {
+  enqueue = async (landRequestOptions: LandRequestOptions): Promise<void> => {
     // TODO: Ensure no land request is pending for this PR
-    if ((await this.isPaused()).isPaused) return;
+    if ((await this.getPauseState()).paused) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
-  }
+  };
 
-  async addToWaitingToLand(landRequestOptions: LandRequestOptions) {
+  addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
     // TODO: Ensure no land request is pending for this PR
-    if ((await this.isPaused()).isPaused) return;
+    if ((await this.getPauseState()).paused) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 
     this.checkWaitingLandRequests();
-  }
+  };
 
-  async moveFromWaitingToQueue(pullRequestId: number) {
+  moveFromWaitingToQueue = async (pullRequestId: number) => {
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
@@ -299,9 +283,9 @@ export class Runner {
     Logger.info('Moving landRequests from waiting to queue', { requests });
 
     this.next();
-  }
+  };
 
-  async removeLandRequestFromQueue(requestId: number, user: ISessionUser): Promise<boolean> {
+  removeLandRequestFromQueue = async (requestId: number, user: ISessionUser): Promise<boolean> => {
     const landRequestInfo = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestInfo) return false;
 
@@ -311,9 +295,9 @@ export class Runner {
     );
     Logger.info('Removing landRequest from queue', { landRequestInfo });
     return true;
-  }
+  };
 
-  async checkWaitingLandRequests() {
+  checkWaitingLandRequests = async () => {
     Logger.info('Checking for waiting landrequests ready to queue');
 
     for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
@@ -327,7 +311,7 @@ export class Runner {
         this.moveFromWaitingToQueue(pullRequestId);
       }
     }
-  }
+  };
 
   private getUsersPermissions = async (requestingUser: ISessionUser): Promise<IPermission[]> => {
     // TODO: Figure out how to use distinct
@@ -378,20 +362,20 @@ export class Runner {
     return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
   };
 
-  async getHistory(page: number) {
+  getHistory = async (page: number) => {
     return this.history.getHistory(page);
-  }
+  };
 
-  async getInstallationIfExists() {
+  getInstallationIfExists = async () => {
     const install = await Installation.findOne();
     return install;
-  }
+  };
 
-  async deleteInstallation() {
+  deleteInstallation = async () => {
     await Installation.truncate();
-  }
+  };
 
-  async getState(requestingUser: ISessionUser): Promise<RunnerState> {
+  getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
     const [
       daysSinceLastFailure,
       pauseState,
@@ -405,7 +389,7 @@ export class Runner {
       this.queue.getStatusesForQueuedRequests(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
-      this.getBannerMessage(),
+      this.getBannerMessageState(),
     ]);
     return {
       daysSinceLastFailure,
@@ -418,5 +402,5 @@ export class Runner {
         this.config.repoConfig.repoName
       }`,
     };
-  }
+  };
 }
