@@ -42,22 +42,12 @@ class PermissionService {
   };
 
   setNoteForUser = async (aaid: string, note: string, setter: ISessionUser): Promise<void> => {
-    (await UserNote.update(
-      {
-        note,
-        setByAaid: setter.aaid,
-      },
-      {
-        where: {
-          aaid,
-        },
-      },
-    ))[0] > 0 || // Check if a row was updated, otherwise create a new row
-      (await UserNote.create<UserNote>({
-        aaid,
-        note,
-        setByAaid: setter.aaid,
-      }));
+    const noteExists = await UserNote.count<UserNote>({ where: { aaid } });
+    if (noteExists) {
+      await UserNote.update<UserNote>({ note, setByAaid: setter.aaid }, { where: { aaid } });
+    } else {
+      await UserNote.create<UserNote>({ aaid, note, setByAaid: setter.aaid });
+    }
   };
 
   removeUserNote = async (aaid: string): Promise<void> => {
