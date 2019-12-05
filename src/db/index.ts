@@ -120,15 +120,7 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
   @AllowNull(false)
   @Column(
     Sequelize.ENUM({
-      values: [
-        'will-queue-when-ready',
-        'created',
-        'queued',
-        'running',
-        'success',
-        'fail',
-        'aborted',
-      ],
+      values: ['will-queue-when-ready', 'created', 'queued', 'running', 'success', 'fail', 'aborted'],
     }),
   )
   readonly state: IStatusUpdate['state'];

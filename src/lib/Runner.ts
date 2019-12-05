@@ -52,16 +52,11 @@ export class Runner {
         landRequest: landRequest.get(),
       });
 
-      const triggererUserMode = await permissionService.getPermissionForUser(
-        landRequest.triggererAaid,
-      );
+      const triggererUserMode = await permissionService.getPermissionForUser(landRequest.triggererAaid);
 
       // TODO: Pass this commit in to isAllowed to land and make sure it hasnt changed
       const commit = landRequest.forCommit;
-      const isAllowedToLand = await this.client.isAllowedToLand(
-        landRequest.pullRequestId,
-        triggererUserMode,
-      );
+      const isAllowedToLand = await this.client.isAllowedToLand(landRequest.pullRequestId, triggererUserMode);
 
       if (isAllowedToLand.errors.length === 0) {
         Logger.info('Allowed to land, creating land build', {
@@ -96,9 +91,8 @@ export class Runner {
 
     if (running.request.buildId !== statusEvent.buildId) {
       return Logger.warn(
-        `StatusEvent buildId doesn't match currently running buildId – ${
-          statusEvent.buildId
-        } !== ${running.request.buildId || ''}`,
+        `StatusEvent buildId doesn't match currently running buildId – ${statusEvent.buildId} !== ${running.request
+          .buildId || ''}`,
         { statusEvent, running },
       );
     }
@@ -142,10 +136,7 @@ export class Runner {
     const running = await this.getRunning();
     if (!running) return;
 
-    await running.request.setStatus(
-      'aborted',
-      `Cancelled by user "${user.aaid}" (${user.displayName})`,
-    );
+    await running.request.setStatus('aborted', `Cancelled by user "${user.aaid}" (${user.displayName})`);
 
     if (running.request.buildId) {
       this.client.stopLandBuild(running.request.buildId);
@@ -183,11 +174,7 @@ export class Runner {
     return state.get();
   };
 
-  sendBannerMessage = async (
-    message: string,
-    messageType: IMessageState['messageType'],
-    user: ISessionUser,
-  ) => {
+  sendBannerMessage = async (message: string, messageType: IMessageState['messageType'], user: ISessionUser) => {
     await MessageStateTransition.create<MessageStateTransition>({
       senderAaid: user.aaid,
       messageExists: true,
@@ -303,9 +290,7 @@ export class Runner {
 
     for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
       const pullRequestId = landRequest.request.pullRequestId;
-      const triggererUserMode = await permissionService.getPermissionForUser(
-        landRequest.request.triggererAaid,
-      );
+      const triggererUserMode = await permissionService.getPermissionForUser(landRequest.request.triggererAaid);
       const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
 
       if (isAllowedToLand.errors.length === 0) {
@@ -323,10 +308,7 @@ export class Runner {
     // Need to get only the latest record for each user
     const aaidPerms: Record<string, Permission> = {};
     for (const perm of perms) {
-      if (
-        !aaidPerms[perm.aaid] ||
-        aaidPerms[perm.aaid].dateAssigned.getTime() < perm.dateAssigned.getTime()
-      ) {
+      if (!aaidPerms[perm.aaid] || aaidPerms[perm.aaid].dateAssigned.getTime() < perm.dateAssigned.getTime()) {
         aaidPerms[perm.aaid] = perm;
       }
     }
@@ -391,14 +373,7 @@ export class Runner {
   };
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
-    const [
-      daysSinceLastFailure,
-      pauseState,
-      queue,
-      users,
-      waitingToQueue,
-      bannerMessageState,
-    ] = await Promise.all([
+    const [daysSinceLastFailure, pauseState, queue, users, waitingToQueue, bannerMessageState] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.queue.getStatusesForQueuedRequests(),
@@ -413,9 +388,7 @@ export class Runner {
       users,
       waitingToQueue,
       bannerMessageState,
-      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
-        this.config.repoConfig.repoName
-      }`,
+      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${this.config.repoConfig.repoName}`,
     };
   };
 }

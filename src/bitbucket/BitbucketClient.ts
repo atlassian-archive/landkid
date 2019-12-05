@@ -19,16 +19,11 @@ export class BitbucketClient {
     const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
     const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
     const author = pullRequest.author;
-    const approvals = getRealApprovals(
-      pullRequest.approvals,
-      author,
-      this.config.prSettings.canApproveOwnPullRequest,
-    );
+    const approvals = getRealApprovals(pullRequest.approvals, author, this.config.prSettings.canApproveOwnPullRequest);
 
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
-      isGreen:
-        buildStatuses.every(status => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
+      isGreen: buildStatuses.every(status => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
@@ -43,9 +38,7 @@ export class BitbucketClient {
     });
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
-      errors.push(
-        'Pull Request needs all tasks completed (you might need to open and reclose them!)',
-      );
+      errors.push('Pull Request needs all tasks completed (you might need to open and reclose them!)');
     }
 
     if (prSettings.requiredApprovals && !approvalChecks.isApproved) {

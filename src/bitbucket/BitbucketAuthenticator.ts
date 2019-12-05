@@ -28,10 +28,7 @@ class BitbucketAuthenticator {
     };
   };
 
-  getAuthConfig = async (
-    request: jwtTools.Request,
-    baseConfig?: AxiosRequestConfig,
-  ): Promise<AxiosRequestConfig> => {
+  getAuthConfig = async (request: jwtTools.Request, baseConfig?: AxiosRequestConfig): Promise<AxiosRequestConfig> => {
     const install = await Installation.findOne<Installation>();
     let authHeaders: any;
     if (!install) {

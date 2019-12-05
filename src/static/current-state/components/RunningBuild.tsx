@@ -23,11 +23,7 @@ export const RunningBuild: React.FunctionComponent<Props> = props => {
   return (
     <Section>
       <h3 style={{ marginBottom: '18px' }}>Running Build</h3>
-      <QueueItem
-        request={running.request}
-        status={running}
-        bitbucketBaseUrl={props.bitbucketBaseUrl}
-      />
+      <QueueItem request={running.request} status={running} bitbucketBaseUrl={props.bitbucketBaseUrl} />
     </Section>
   );
 };

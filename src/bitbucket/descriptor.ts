@@ -1,7 +1,6 @@
 import { config } from '../lib/Config';
 
-export const getAppKey = () =>
-  `${config.key || 'landkid'}-${process.env.LANDKID_DEPLOYMENT || 'local'}`;
+export const getAppKey = () => `${config.key || 'landkid'}-${process.env.LANDKID_DEPLOYMENT || 'local'}`;
 
 export const makeDescriptor = () => ({
   name: `${config.name || 'Landkid'} ${(process.env.LANDKID_DEPLOYMENT || 'local').toUpperCase()}`,
@@ -46,8 +45,7 @@ export const makeDescriptor = () => ({
             process.env.LANDKID_DEPLOYMENT !== 'prod' ? ` (${process.env.LANDKID_DEPLOYMENT})` : ''
           }`,
         },
-        url:
-          '/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}',
+        url: '/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}',
         location: 'org.bitbucket.pullrequest.overview.informationPanel',
         conditions: [
           {

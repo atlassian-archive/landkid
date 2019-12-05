@@ -8,13 +8,7 @@ type BannerMessage = {
 };
 
 type AppState = {
-  curState:
-    | 'checking-can-land'
-    | 'cannot-land'
-    | 'queued'
-    | 'can-land'
-    | 'pr-closed'
-    | 'unknown-error';
+  curState: 'checking-can-land' | 'cannot-land' | 'queued' | 'can-land' | 'pr-closed' | 'unknown-error';
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
@@ -128,11 +122,7 @@ export class App extends React.Component {
           <div>
             <p>Your PR is ready to land!</p>
             <div style={{ marginTop: '15px' }}>
-              <button
-                type="button"
-                className="ak-button ak-button__appearance-primary"
-                onClick={this.onLandClicked}
-              >
+              <button type="button" className="ak-button ak-button__appearance-primary" onClick={this.onLandClicked}>
                 Land
               </button>
             </div>

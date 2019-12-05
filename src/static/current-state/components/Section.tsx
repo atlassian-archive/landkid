@@ -15,10 +15,7 @@ export type Props = {
 };
 
 export const Section: React.FunctionComponent<Props> = ({ children, important, last }) => (
-  <div
-    className={important ? importantStyles : styles}
-    style={{ paddingBottom: last ? '45px' : 0 }}
-  >
+  <div className={important ? importantStyles : styles} style={{ paddingBottom: last ? '45px' : 0 }}>
     {children}
   </div>
 );

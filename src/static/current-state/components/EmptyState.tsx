@@ -8,6 +8,4 @@ let emptyStyles = css({
   textAlign: 'center',
 });
 
-export const EmptyState: React.FunctionComponent = ({ children }) => (
-  <div className={emptyStyles}>{children}</div>
-);
+export const EmptyState: React.FunctionComponent = ({ children }) => <div className={emptyStyles}>{children}</div>;

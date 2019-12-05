@@ -1,76 +1,85 @@
 <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Landkid Status</title>
+    <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
+    <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
+    <style>
+      :root {
+        --main-text-color: #344563;
+        --secondary-text-color: #97a0af;
+        --n0-color: #fff;
+        --n10-color: #fafbfc;
+        --n20-color: #f4f5f7;
+        --n30-color: #ebecf0;
+        --n40-color: #dfe1e5;
+        --n300-color: #5e6c84;
+        --n400-color: #505f79;
+        --n500-color: #42526e;
+        --n600-color: #344563;
+        --n800-color: #172b4d;
+        --b50-color: #deebff;
+        --b400-color: #0052cc;
+        --b500-color: #0747a6;
+        --r50-color: #ffebe5;
+        --r300-color: #ff5630;
+        --r500-color: #bf2600;
+        --g50-color: #e3fcef;
+        --g500-color: #006644;
+        --y50-color: #fffae5;
+        --p50-color: #eae6ff;
+        --p500-color: #403294;
+      }
 
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Landkid Status</title>
-  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
-  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
-  <style>
-    :root {
-      --main-text-color: #344563;
-      --secondary-text-color: #97A0AF;
-      --n0-color: #fff;
-      --n10-color: #FAFBFC;
-      --n20-color: #F4F5F7;
-      --n30-color: #EBECF0;
-      --n40-color: #DFE1E5;
-      --n300-color: #5E6C84;
-      --n400-color: #505F79;
-      --n500-color: #42526E;
-      --n600-color: #344563;
-      --n800-color: #172B4D;
-      --b50-color: #DEEBFF;
-      --b400-color: #0052CC;
-      --b500-color: #0747A6;
-      --r50-color: #FFEBE5;
-      --r300-color: #FF5630;
-      --r500-color: #BF2600;
-      --g50-color: #E3FCEF;
-      --g500-color: #006644;
-      --y50-color: #FFFAE5;
-      --p50-color: #EAE6FF;
-      --p500-color: #403294;
-    }
+      body {
+        color: var(--main-text-color);
+        font-size: 14px;
+        padding: 36px;
+        max-width: 100%;
+        min-width: 480px;
+        box-sizing: border-box;
+      }
 
-    body {
-      color: var(--main-text-color);
-      font-size: 14px;
-      padding: 36px;
-      max-width: 100%;
-      min-width: 480px;
-      box-sizing: border-box;
-    }
+      table {
+        table-layout: auto;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+      }
 
-    table {
-      table-layout: auto;
-      border-collapse: separate;
-      border-spacing: 0 5px;
-    }
+      h3 {
+        font-weight: 400;
+      }
 
-    h3 {
-      font-weight: 400;
-    }
+      #app {
+        max-width: 880px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
 
-    #app {
-      max-width: 880px;
-      margin: 0 auto;
-    }
-  </style>
-</head>
-
-<body>
-  <svg width="0" height="0" style="position:absolute">
-    <symbol viewBox="0 0 24 24" id="ak-icon-add">
-      <path d="M13 11V3.993A.997.997 0 0 0 12 3c-.556 0-1 .445-1 .993V11H3.993A.997.997 0 0 0 3 12c0 .557.445 1 .993 1H11v7.007c0 .548.448.993 1 .993.556 0 1-.445 1-.993V13h7.007A.997.997 0 0 0 21 12c0-.556-.445-1-.993-1H13z" fill="currentColor" fill-rule="evenodd"/>
-    </symbol>
-    <symbol viewBox="0 0 24 24" id="ak-icon-cross">
-      <path d="M12 10.586L6.707 5.293a1 1 0 0 0-1.414 1.414L10.586 12l-5.293 5.293a1 1 0 0 0 1.414 1.414L12 13.414l5.293 5.293a1 1 0 0 0 1.414-1.414L13.414 12l5.293-5.293a1 1 0 1 0-1.414-1.414L12 10.586z" fill="currentColor"/>
-    </symbol>
-    <symbol viewBox="0 0 24 24" id="ak-icon-edit">
-      <path d="M4.02 19.23a1 1 0 0 0 1.18 1.18l3.81-.78-4.21-4.21-.78 3.81zm5.921-2.62l-2.12-2.12L16.306 6h.002l2.121 2.121-8.489 8.49zm9.903-9.903l-2.12-2.122A1.997 1.997 0 0 0 16.308 4c-.512 0-1.024.195-1.415.585l-9.757 9.758 4.95 4.95 9.757-9.758a2 2 0 0 0 0-2.828z" fill="currentColor" fill-rule="evenodd"/>
-    </symbol>
-  </svg>
-  <div id="app">Loading...</div>
-</body>
-
+  <body>
+    <svg width="0" height="0" style="position:absolute">
+      <symbol viewBox="0 0 24 24" id="ak-icon-add">
+        <path
+          d="M13 11V3.993A.997.997 0 0 0 12 3c-.556 0-1 .445-1 .993V11H3.993A.997.997 0 0 0 3 12c0 .557.445 1 .993 1H11v7.007c0 .548.448.993 1 .993.556 0 1-.445 1-.993V13h7.007A.997.997 0 0 0 21 12c0-.556-.445-1-.993-1H13z"
+          fill="currentColor"
+          fill-rule="evenodd"
+        />
+      </symbol>
+      <symbol viewBox="0 0 24 24" id="ak-icon-cross">
+        <path
+          d="M12 10.586L6.707 5.293a1 1 0 0 0-1.414 1.414L10.586 12l-5.293 5.293a1 1 0 0 0 1.414 1.414L12 13.414l5.293 5.293a1 1 0 0 0 1.414-1.414L13.414 12l5.293-5.293a1 1 0 1 0-1.414-1.414L12 10.586z"
+          fill="currentColor"
+        />
+      </symbol>
+      <symbol viewBox="0 0 24 24" id="ak-icon-edit">
+        <path
+          d="M4.02 19.23a1 1 0 0 0 1.18 1.18l3.81-.78-4.21-4.21-.78 3.81zm5.921-2.62l-2.12-2.12L16.306 6h.002l2.121 2.121-8.489 8.49zm9.903-9.903l-2.12-2.122A1.997 1.997 0 0 0 16.308 4c-.512 0-1.024.195-1.415.585l-9.757 9.758 4.95 4.95 9.757-9.758a2 2 0 0 0 0-2.828z"
+          fill="currentColor"
+          fill-rule="evenodd"
+        />
+      </symbol>
+    </svg>
+    <div id="app">Loading...</div>
+  </body>
 </html>
