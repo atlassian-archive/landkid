@@ -140,7 +140,9 @@ export const UsersList: React.FunctionComponent<Props> = props => (
                   </td>
                   <td style={{ width: '100%' }}>
                     <span style={{ verticalAlign: 'middle' }}>{user.displayName}</span>
-                    {mode === 'admin' && <NoteManager aaid={aaid} note={note} />}
+                    {props.loggedInUser.permission === 'admin' && (
+                      <NoteManager aaid={aaid} note={note} />
+                    )}
                   </td>
                 </React.Fragment>
               )}
