@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TabContent } from './TabContent';
 import { Messenger } from './Messenger';
-import { AllowedUsers } from './AllowedUsers';
+import { UsersList } from './UsersList';
 
 export type ButtonProps = {
   onClick: () => void;
@@ -18,7 +18,7 @@ const Button: React.FunctionComponent<ButtonProps> = props => (
 );
 
 export type SystemTabProps = {
-  allowedUsers: IPermission[];
+  users: UserState[];
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
   bannerMessageState: IMessageState;
@@ -91,7 +91,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   render() {
-    const { allowedUsers, loggedInUser, bannerMessageState } = this.props;
+    const { users, loggedInUser, bannerMessageState } = this.props;
     return (
       <TabContent>
         <div style={{ marginTop: '27px' }}>
@@ -128,7 +128,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
               <Messenger bannerMessageState={bannerMessageState} />
             </React.Fragment>
           )}
-          <AllowedUsers users={allowedUsers} loggedInUser={loggedInUser} />
+          <UsersList users={users} loggedInUser={loggedInUser} />
           {loggedInUser.permission === 'read' && (
             <p>To get land access, you will need to ping one of the admins above</p>
           )}

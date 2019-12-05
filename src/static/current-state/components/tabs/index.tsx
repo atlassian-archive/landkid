@@ -78,7 +78,7 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = props => {
 
 export type TabsProps = {
   selected: number;
-  allowedUsers: IPermission[];
+  users: UserState[];
   queue: IStatusUpdate[];
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
@@ -113,7 +113,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
   render() {
     const { selected } = this.state;
     const {
-      allowedUsers,
+      users,
       bitbucketBaseUrl,
       queue,
       loggedInUser,
@@ -126,7 +126,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
         <TabsControls selectTab={this.onTabSelected} selected={selected} />
         {selected === 0 ? (
           <SystemTab
-            allowedUsers={allowedUsers}
+            users={users}
             loggedInUser={loggedInUser}
             defaultPaused={paused}
             bannerMessageState={bannerMessageState}

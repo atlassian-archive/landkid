@@ -29,7 +29,7 @@ export const App: React.FunctionComponent = () => (
                     <Tabs
                       bitbucketBaseUrl={data.bitbucketBaseUrl}
                       selected={1}
-                      allowedUsers={data.usersAllowedToLand}
+                      users={data.users}
                       queue={data.queue}
                       loggedInUser={loggedInUser}
                       paused={data.pauseState.paused}

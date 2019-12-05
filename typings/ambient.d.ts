@@ -65,6 +65,16 @@ declare interface IPermission {
   assignedByAaid: string;
 }
 
+declare interface IUserNote {
+  aaid: string;
+  note: string;
+  setByAaid: string;
+}
+
+declare interface UserState extends IPermission {
+  note?: string;
+}
+
 declare namespace Express {
   interface Request {
     user?: ISessionUser;
