@@ -24,13 +24,7 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
         clientID: oAuthConfig.key,
         clientSecret: oAuthConfig.secret,
       },
-      async (
-        accessToken: string,
-        refreshToken: string,
-        results: any,
-        profile: any,
-        verified: VerifyCallback,
-      ) => {
+      async (accessToken: string, refreshToken: string, results: any, profile: any, verified: VerifyCallback) => {
         let userInfo: ISessionUser;
         try {
           const userResponse = await axios.get('https://api.bitbucket.org/2.0/user', {

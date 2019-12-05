@@ -162,20 +162,14 @@ export class QueueItem extends React.Component<QueueItemProps> {
     if (!status) return null;
 
     const displayTargetBranch =
-      pullRequest.targetBranch &&
-      status &&
-      ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
+      pullRequest.targetBranch && status && ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
 
     return (
-      <a
-        className={`${queueItemStyles} queue-item`}
-        href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
-      >
+      <a className={`${queueItemStyles} queue-item`} href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}>
         <ak-grid layout="fluid">
           <ak-grid-column size={status.state === 'queued' ? 11 : 12}>
             <div className="queue-item__title">
-              <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
-              {pullRequest.title}
+              <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a> {pullRequest.title}
             </div>
             <div className="queue-item__status-line">
               <StatusItem title="Status:">
@@ -211,9 +205,7 @@ export class QueueItem extends React.Component<QueueItemProps> {
 
               {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
                 <StatusItem title="Duration:">
-                  <Lozenge appearance="new">
-                    {duration(+new Date(created), +new Date(status.date))}
-                  </Lozenge>
+                  <Lozenge appearance="new">{duration(+new Date(created), +new Date(status.date))}</Lozenge>
                 </StatusItem>
               ) : null}
             </div>

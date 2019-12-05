@@ -7,13 +7,9 @@ export function authRoutes() {
   const router = express();
 
   router.get('/', passport.authenticate('bitbucket'));
-  router.get(
-    '/callback',
-    passport.authenticate('bitbucket', { failureRedirect: '/auth' }),
-    (req, res) => {
-      res.redirect('/current-state');
-    },
-  );
+  router.get('/callback', passport.authenticate('bitbucket', { failureRedirect: '/auth' }), (req, res) => {
+    res.redirect('/current-state');
+  });
 
   router.get(
     '/whoami',
@@ -21,9 +17,7 @@ export function authRoutes() {
       res.json({
         loggedIn: !!req.user,
         user: req.user,
-        permission: req.user
-          ? await permissionService.getPermissionForUser(req.user.aaid)
-          : 'read',
+        permission: req.user ? await permissionService.getPermissionForUser(req.user.aaid) : 'read',
       });
     }),
   );

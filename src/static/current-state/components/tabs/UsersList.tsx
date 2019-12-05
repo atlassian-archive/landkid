@@ -121,34 +121,26 @@ export const UsersList: React.FunctionComponent<Props> = props => (
   <React.Fragment>
     <h3>Users</h3>
     <table>
-      {props.users
-        .sort(sortUsersByPermission)
-        .map(({ aaid, mode, assignedByAaid, dateAssigned, note }) => (
-          <tr
-            key={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
-            title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
-          >
-            <User aaid={aaid}>
-              {user => (
-                <React.Fragment>
-                  <td>
-                    <PermissionControl
-                      user={user}
-                      userPermission={mode}
-                      loggedInUser={props.loggedInUser}
-                    />
-                  </td>
-                  <td style={{ width: '100%' }}>
-                    <span style={{ verticalAlign: 'middle' }}>{user.displayName}</span>
-                    {props.loggedInUser.permission === 'admin' && (
-                      <NoteManager aaid={aaid} note={note} />
-                    )}
-                  </td>
-                </React.Fragment>
-              )}
-            </User>
-          </tr>
-        ))}
+      {props.users.sort(sortUsersByPermission).map(({ aaid, mode, assignedByAaid, dateAssigned, note }) => (
+        <tr
+          key={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+          title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
+        >
+          <User aaid={aaid}>
+            {user => (
+              <React.Fragment>
+                <td>
+                  <PermissionControl user={user} userPermission={mode} loggedInUser={props.loggedInUser} />
+                </td>
+                <td style={{ width: '100%' }}>
+                  <span style={{ verticalAlign: 'middle' }}>{user.displayName}</span>
+                  {props.loggedInUser.permission === 'admin' && <NoteManager aaid={aaid} note={note} />}
+                </td>
+              </React.Fragment>
+            )}
+          </User>
+        </tr>
+      ))}
     </table>
   </React.Fragment>
 );

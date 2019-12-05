@@ -38,10 +38,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ user }) => (
     {user ? (
       <div className={userInfoStyles}>
         <span className={userNameStyles}>{user.displayName}</span>
-        <img
-          src={`https://bitbucket.org/account/${user.username}/avatar/`}
-          className={userImgStyles}
-        />
+        <img src={`https://bitbucket.org/account/${user.username}/avatar/`} className={userImgStyles} />
       </div>
     ) : null}
   </div>

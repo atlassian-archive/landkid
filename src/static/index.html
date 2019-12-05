@@ -1,207 +1,209 @@
 <html>
-
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Landkid Landing Page</title>
-  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
-  <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
-  <style>
-    :root {
-      --main-text-color: #344563;
-    }
-
-    body {
-      color: var(--main-text-color);
-      font-size: 1.1rem;
-      padding: 36px;
-      max-width: 100%;
-      min-width: 480px;
-      box-sizing: border-box;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      padding: 8 0 8 0;
-    }
-
-    h1 {
-      text-transform: uppercase;
-      font-weight: 400;
-      flex: 1;
-      font-size: 3.5rem;
-      transition: color 0.5s ease;
-    }
-
-    #page {
-      max-width: 880px;
-      margin: 0 auto;
-    }
-
-    .circle-button {
-      margin: auto;
-      margin-top: 50px;
-      display: block;
-      position: relative;
-      height: 150px;
-      width: 150px;
-      line-height: 150px;
-      border-radius: 50%;
-      color: white;
-      background: #0052CC;
-      text-align: center;
-      text-decoration: none;
-      font-size: 3rem;
-    }
-
-    .circle-button:hover {
-      background: #0747A6;
-      text-decoration: none;
-      color: white;
-    }
-
-    .circle-button:focus {
-      outline: 0;
-    }
-
-    .circle-border {
-      position: absolute;
-      background: transparent;
-      border-radius: 50%;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
-    }
-
-    .circle-border.inner {
-      top: -7;
-      bottom: -7;
-      left: -7;
-      right: -7;
-      border-left: 4px dashed green;
-      animation-name: RotateClockwise;
-      animation-duration: 8s;
-    }
-
-    .circle-border.outer {
-      top: -15;
-      bottom: -15;
-      left: -15;
-      right: -15;
-      border-right: 4px dashed red;
-      animation-name: RotateAnticlockwise;
-      animation-duration: 20s;
-    }
-
-    @keyframes RotateClockwise {
-      from {
-        transform: rotate(0deg);
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Landkid Landing Page</title>
+    <link rel="stylesheet" href="https://unpkg.com/@atlaskit/css-reset@1.1.6" />
+    <link rel="stylesheet" href="https://unpkg.com/@atlaskit/reduced-ui-pack@8.4.0/dist/bundle.css" />
+    <style>
+      :root {
+        --main-text-color: #344563;
       }
-      to {
-        transform: rotate(360deg);
+
+      body {
+        color: var(--main-text-color);
+        font-size: 1.1rem;
+        padding: 36px;
+        max-width: 100%;
+        min-width: 480px;
+        box-sizing: border-box;
       }
-    }
 
-    @keyframes RotateAnticlockwise {
-      from {
-        transform: rotate(360deg);
+      header {
+        display: flex;
+        align-items: center;
+        padding: 8 0 8 0;
       }
-      to {
-        transform: rotate(0deg);
+
+      h1 {
+        text-transform: uppercase;
+        font-weight: 400;
+        flex: 1;
+        font-size: 3.5rem;
+        transition: color 0.5s ease;
       }
-    }
 
-    .message {
-      margin-top: 50px;
-      text-align: center;
-      color: red;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #liability {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      color: gray;
-      font-size: 0.5rem;
-    }
-  </style>
-  <script>
-    function randomColor() {
-      var hex = ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      var color = '#';
-      for (var i = 0; i < 6; i++) {
-        color += hex[Math.floor(Math.random() * hex.length)];
+      #page {
+        max-width: 880px;
+        margin: 0 auto;
       }
-      document.getElementById('landkid-header').style = 'color: ' + color;
-    }
 
-    setInterval(randomColor, 800);
+      .circle-button {
+        margin: auto;
+        margin-top: 50px;
+        display: block;
+        position: relative;
+        height: 150px;
+        width: 150px;
+        line-height: 150px;
+        border-radius: 50%;
+        color: white;
+        background: #0052cc;
+        text-align: center;
+        text-decoration: none;
+        font-size: 3rem;
+      }
 
-    setTimeout(function() {
-      var hurryUp = document.getElementById('hurry-up');
-      hurryUp.classList.remove('hidden');
-    }, 60000);
+      .circle-button:hover {
+        background: #0747a6;
+        text-decoration: none;
+        color: white;
+      }
 
-    function cheats() {
-      alert('Did you actually expect that to do something? 🤦‍');
-    }
+      .circle-button:focus {
+        outline: 0;
+      }
 
-    var allowedKeys = {
-      37: 'left',
-      38: 'up',
-      39: 'right',
-      40: 'down',
-      65: 'a',
-      66: 'b'
-    };
-    var konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'b', 'a'];
-    var konamiCodePosition = 0;
-    document.addEventListener('keydown', function(e) {
-      var key = allowedKeys[e.keyCode];
-      var requiredKey = konamiCode[konamiCodePosition];
-      if (key == requiredKey) {
-        konamiCodePosition++;
-        if (konamiCodePosition == konamiCode.length) {
-          cheats();
+      .circle-border {
+        position: absolute;
+        background: transparent;
+        border-radius: 50%;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+      }
+
+      .circle-border.inner {
+        top: -7;
+        bottom: -7;
+        left: -7;
+        right: -7;
+        border-left: 4px dashed green;
+        animation-name: RotateClockwise;
+        animation-duration: 8s;
+      }
+
+      .circle-border.outer {
+        top: -15;
+        bottom: -15;
+        left: -15;
+        right: -15;
+        border-right: 4px dashed red;
+        animation-name: RotateAnticlockwise;
+        animation-duration: 20s;
+      }
+
+      @keyframes RotateClockwise {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes RotateAnticlockwise {
+        from {
+          transform: rotate(360deg);
+        }
+        to {
+          transform: rotate(0deg);
+        }
+      }
+
+      .message {
+        margin-top: 50px;
+        text-align: center;
+        color: red;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #liability {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        color: gray;
+        font-size: 0.5rem;
+      }
+    </style>
+    <script>
+      function randomColor() {
+        var hex = ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+          color += hex[Math.floor(Math.random() * hex.length)];
+        }
+        document.getElementById('landkid-header').style = 'color: ' + color;
+      }
+
+      setInterval(randomColor, 800);
+
+      setTimeout(function() {
+        var hurryUp = document.getElementById('hurry-up');
+        hurryUp.classList.remove('hidden');
+      }, 60000);
+
+      function cheats() {
+        alert('Did you actually expect that to do something? 🤦‍');
+      }
+
+      var allowedKeys = {
+        37: 'left',
+        38: 'up',
+        39: 'right',
+        40: 'down',
+        65: 'a',
+        66: 'b',
+      };
+      var konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'b', 'a'];
+      var konamiCodePosition = 0;
+      document.addEventListener('keydown', function(e) {
+        var key = allowedKeys[e.keyCode];
+        var requiredKey = konamiCode[konamiCodePosition];
+        if (key == requiredKey) {
+          konamiCodePosition++;
+          if (konamiCodePosition == konamiCode.length) {
+            cheats();
+            konamiCodePosition = 0;
+          }
+        } else {
           konamiCodePosition = 0;
         }
-      } else {
-        konamiCodePosition = 0;
-      }
-    });
-  </script>
-</head>
+      });
+    </script>
+  </head>
 
-<body>
-  <div id="page">
-    <header>
-      <marquee behavior="alternate" scrollamount="15"><h1 id="landkid-header">Landkid ⛰️🧒</h1></marquee>
-    </header>
+  <body>
+    <div id="page">
+      <header>
+        <marquee behavior="alternate" scrollamount="15"><h1 id="landkid-header">Landkid ⛰️🧒</h1></marquee>
+      </header>
 
-    <p>Landkid helps you avoid merge hell when merging pull requests.</p>
+      <p>Landkid helps you avoid merge hell when merging pull requests.</p>
 
-    <p>
-      In a nut shell it basically:
-      <ul>
-        <li>Creates a merge queue preventing more than one person merging at a time</li>
-        <li>Rebases your branch build on lastest master so that you
-          <strong>know</strong> master will be green when you merge</li>
-      </ul>
+      <div>
+        In a nut shell it basically:
+        <ul>
+          <li>Creates a merge queue preventing more than one person merging at a time</li>
+          <li>
+            Rebases your branch build on lastest master so that you <strong>know</strong> master will be green when you
+            merge
+          </li>
+        </ul>
+      </div>
+
+      <a class="circle-button" href="/current-state">
+        <div class="circle-border inner"></div>
+        <div class="circle-border outer"></div>
+        GO
+      </a>
+
+      <p id="hurry-up" class="message hidden">😡 What are you still doing here, go check out Landkid!! 😡</p>
+    </div>
+
+    <p id="liability">
+      Jack Gardner accepts no liability for any damages incurred from viewing the content of this page.
     </p>
-
-    <a class="circle-button" href="/current-state">
-      <div class="circle-border inner"></div>
-      <div class="circle-border outer"></div>
-      GO
-    </a>
-
-    <p id="hurry-up" class="message hidden">😡 What are you still doing here, go check out Landkid!! 😡</p>
-  </div>
-
-  <p id="liability">Jack Gardner accepts no liability for any damages incurred from viewing the content of this page.</p>
-</body>
-
+  </body>
 </html>

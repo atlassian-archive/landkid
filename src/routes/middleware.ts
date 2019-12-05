@@ -17,8 +17,7 @@ export const wrap = (fn: express.RequestHandler): express.RequestHandler => {
 const modeHierarchy: IPermissionMode[] = ['read', 'land', 'admin'];
 
 export const permission = (userMode: IPermissionMode) => ({
-  isAtLeast: (mode: IPermissionMode) =>
-    modeHierarchy.indexOf(userMode) >= modeHierarchy.indexOf(mode),
+  isAtLeast: (mode: IPermissionMode) => modeHierarchy.indexOf(userMode) >= modeHierarchy.indexOf(mode),
 });
 
 export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHandler =>

@@ -24,11 +24,7 @@ class PermissionService {
     return permission.mode;
   };
 
-  setPermissionForUser = async (
-    aaid: string,
-    mode: IPermissionMode,
-    setter: ISessionUser,
-  ): Promise<void> => {
+  setPermissionForUser = async (aaid: string, mode: IPermissionMode, setter: ISessionUser): Promise<void> => {
     Logger.info('Setting user permission', { aaid, mode, setter });
     await Permission.create({
       aaid,

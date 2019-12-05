@@ -8,6 +8,4 @@ let styles = css({
   padding: '8px',
 });
 
-export const Panel: React.FunctionComponent = ({ children }) => (
-  <div className={styles}>{children}</div>
-);
+export const Panel: React.FunctionComponent = ({ children }) => <div className={styles}>{children}</div>;

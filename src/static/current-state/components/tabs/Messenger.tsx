@@ -50,9 +50,7 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
       <ak-grid style={{ marginLeft: '-15px' }}>
         <ak-grid-column size={6}>
           <div className="ak-field-group" style={{ width: '400px' }}>
-            <h4 style={{ marginBottom: '5px' }}>
-              Banner Message to be displayed on Pull Requests:
-            </h4>
+            <h4 style={{ marginBottom: '5px' }}>Banner Message to be displayed on Pull Requests:</h4>
             <textarea
               className="ak-field-textarea"
               rows={5}
