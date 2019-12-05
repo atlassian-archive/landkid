@@ -23,7 +23,7 @@ export class MigrationService {
   }
 
   private logEvent(event: string) {
-    return (name: string, migration: Umzug.Migration) => console.log(`${name} ${event}`);
+    return (name: string) => console.log(`${name} ${event}`);
   }
 
   async logStatus() {
@@ -49,6 +49,7 @@ export class MigrationService {
 
 if (require.main === module) {
   const config = require(resolve(process.cwd(), 'config.js')) as Config;
+
   // Connect to DB
   const sequelize = new Sequelize(
     config.sequelize || {

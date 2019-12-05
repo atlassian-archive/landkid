@@ -21,7 +21,7 @@ export type SystemTabProps = {
   allowedUsers: IPermission[];
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
-  currentMessageState: IMessageState;
+  bannerMessageState: IMessageState;
 };
 
 export type SystemTabsState = {
@@ -91,7 +91,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   render() {
-    const { allowedUsers, loggedInUser, currentMessageState } = this.props;
+    const { allowedUsers, loggedInUser, bannerMessageState } = this.props;
     return (
       <TabContent>
         <div style={{ marginTop: '27px' }}>
@@ -125,7 +125,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
               <Button onClick={this.onCancelClick} error={this.state.cancelError}>
                 Cancel Current Build
               </Button>
-              <Messenger currentMessageState={currentMessageState} />
+              <Messenger bannerMessageState={bannerMessageState} />
             </React.Fragment>
           )}
           <AllowedUsers users={allowedUsers} loggedInUser={loggedInUser} />

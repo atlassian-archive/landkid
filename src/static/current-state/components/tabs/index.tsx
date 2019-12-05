@@ -83,7 +83,7 @@ export type TabsProps = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
   paused: boolean;
-  messageState: IMessageState;
+  bannerMessageState: IMessageState;
 };
 
 type TabsState = {
@@ -118,7 +118,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       queue,
       loggedInUser,
       paused,
-      messageState,
+      bannerMessageState,
     } = this.props;
 
     return (
@@ -129,7 +129,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             allowedUsers={allowedUsers}
             loggedInUser={loggedInUser}
             defaultPaused={paused}
-            currentMessageState={messageState}
+            bannerMessageState={bannerMessageState}
           />
         ) : null}
         {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
