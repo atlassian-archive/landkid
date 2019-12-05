@@ -160,8 +160,7 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @Column(Sequelize.STRING)
   title: string;
 
-  @AllowNull(false)
-  @Default('unknown')
+  @AllowNull(true)
   @Column(Sequelize.STRING)
   targetBranch: string;
 }

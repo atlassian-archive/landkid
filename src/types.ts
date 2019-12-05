@@ -73,6 +73,6 @@ export type RunnerState = {
   pauseState: IPauseState;
   daysSinceLastFailure: number;
   users: UserState[];
-  messageState: IMessageState;
+  bannerMessageState: IMessageState;
   bitbucketBaseUrl: string;
 };

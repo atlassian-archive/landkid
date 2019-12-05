@@ -19,7 +19,7 @@ declare interface IPullRequest {
   prId: number;
   authorAaid: string;
   title: string;
-  targetBranch: string;
+  targetBranch?: string;
 }
 
 declare interface IPauseState {

@@ -18,7 +18,7 @@ export class BitbucketAPI {
     const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on Master`;
     const data = {
       close_source_branch: true,
-      message: message,
+      message,
       merge_strategy: 'merge_commit',
     };
 

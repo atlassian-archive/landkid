@@ -125,7 +125,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   aborted: 'Aborted',
 };
 
-const targetBranchToAppearance = (branch: string) =>
+const targetBranchToAppearance = (branch?: string) =>
   branch === 'master' ? 'moved' : branch === 'develop' ? 'new' : 'default';
 
 const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
@@ -162,9 +162,9 @@ export class QueueItem extends React.Component<QueueItemProps> {
     if (!status) return null;
 
     const displayTargetBranch =
+      pullRequest.targetBranch &&
       status &&
-      ['will-queue-when-ready', 'queued', 'running'].includes(status.state) &&
-      pullRequest.targetBranch !== 'unknown';
+      ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
 
     return (
       <a

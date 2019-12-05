@@ -33,7 +33,7 @@ export const App: React.FunctionComponent = () => (
                       queue={data.queue}
                       loggedInUser={loggedInUser}
                       paused={data.pauseState.paused}
-                      messageState={data.messageState}
+                      bannerMessageState={data.bannerMessageState}
                     />
                   </div>
                 )}
