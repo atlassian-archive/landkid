@@ -46,11 +46,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 
   @AllowNull(true)
   @Column(Sequelize.INTEGER)
-  buildId: number | null;
-
-  @AllowNull(true)
-  @Column(Sequelize.STRING)
-  dependsOn: string | null;
+  buildId: number;
 
   @AllowNull(false)
   @Column(Sequelize.STRING)
@@ -119,7 +115,7 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
 
   @AllowNull(true)
   @Column(Sequelize.STRING)
-  readonly reason: string | null;
+  readonly reason: string;
 
   @AllowNull(false)
   @Column(
@@ -147,6 +143,10 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
 
   @ForeignKey(() => LandRequest)
   requestId: string;
+
+  @AllowNull(true)
+  @Column(Sequelize.STRING)
+  dependsOn: string;
 }
 
 @Table
@@ -231,7 +231,7 @@ export class PauseStateTransition extends Model<PauseStateTransition> implements
 }
 
 @Table
-export class MessageStateTransition extends Model<PauseStateTransition> implements IMessageState {
+export class MessageStateTransition extends Model<MessageStateTransition> implements IMessageState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)

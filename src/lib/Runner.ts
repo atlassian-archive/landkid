@@ -36,20 +36,17 @@ export class Runner {
 
   next = async () => {
     await withLock('Runner:next', async () => {
-      const running = await this.getRunning();
+      let running = await this.getRunning();
       const queued = await this.queue.getStatusesForQueuedRequests();
       Logger.info('Next() called', {
         running: running,
         queued: queued,
       });
 
-      // don't exit early anymore
-      // if (running) return;
-
       // check if there is something else in the queue
-      const maxConcurrentBuilds = 2;
+      const maxConcurrentBuilds = 3;
       for (const queuedStatus of queued) {
-        if (this.getRunning.length >= maxConcurrentBuilds) {
+        if (running.length >= maxConcurrentBuilds) {
           Logger.info('Not adding new builds from queue, running at maxConcurrentBuilds', {
             maxConcurrentBuilds,
           });
@@ -83,13 +80,13 @@ export class Runner {
           await landRequest.save();
 
           Logger.info('Land build now running', { running: landRequest.get() });
+          running.push(queuedStatus);
         } else {
           Logger.info('Land request is not allowed to land', {
             ...isAllowedToLand,
             ...landRequest.get(),
           });
           await landRequest.setStatus('fail', 'Land request did not pass land checks');
-          this.next();
         }
       }
     });

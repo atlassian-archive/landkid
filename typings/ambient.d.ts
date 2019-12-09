@@ -19,7 +19,7 @@ declare interface IPullRequest {
   prId: number;
   authorAaid: string;
   title: string;
-  targetBranch?: string;
+  targetBranch: string | null;
 }
 
 declare interface IPauseState {
@@ -47,6 +47,7 @@ declare interface IStatusUpdate {
   requestId: string;
   isLatest: boolean;
   request: ILandRequest;
+  dependsOn: string | null;
 }
 
 declare interface ISessionUser {

@@ -3,7 +3,7 @@ import { RunnerState } from '../../../types';
 import { Section } from './Section';
 import { WithAPIData } from './WithAPIData';
 import { CurrentState } from './CurrentState';
-import { RunningBuild } from './RunningBuild';
+import { RunningBuilds } from './RunningBuilds';
 import { Tabs } from './tabs';
 import { Header } from './Header';
 
@@ -25,7 +25,7 @@ export const App: React.FunctionComponent = () => (
                 render={data => (
                   <div>
                     <CurrentState {...data} />
-                    <RunningBuild queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
+                    <RunningBuilds queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
                     <Tabs
                       bitbucketBaseUrl={data.bitbucketBaseUrl}
                       selected={1}

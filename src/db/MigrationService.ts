@@ -1,7 +1,7 @@
 import { resolve } from 'path';
-import { Sequelize } from 'sequelize';
+// import { Sequelize } from 'sequelize';
 import * as Umzug from 'umzug';
-import { Config } from '../types';
+// import { Config } from '../types';
 
 export class MigrationService {
   migrator: Umzug.Umzug;
@@ -13,7 +13,7 @@ export class MigrationService {
       migrations: {
         params: [sequelize.getQueryInterface(), sequelize.constructor],
         path: resolve(__dirname, 'migrations'),
-        pattern: /^\d{2}__[^ /]+?\.[jt]s$/,
+        pattern: /^\d{2}__[^ /]+?\.js$/,
       },
     });
     this.migrator.on('migrating', this.logEvent('migrating'));
@@ -48,39 +48,40 @@ export class MigrationService {
 }
 
 if (require.main === module) {
-  const config = require(resolve(process.cwd(), 'config.js')) as Config;
+  console.log('This script currently only works programmatically');
+  // const config = require(resolve(process.cwd(), 'config.js')) as Config;
 
-  // Connect to DB
-  const sequelize = new Sequelize(
-    config.sequelize || {
-      dialect: 'sqlite',
-      storage: resolve(__dirname, '../../db.sqlite'),
-      logging: false,
-      operatorsAliases: false,
-    },
-  );
+  // // Connect to DB
+  // const sequelize = new Sequelize(
+  //   config.sequelize || {
+  //     dialect: 'sqlite',
+  //     storage: resolve(__dirname, '../../db.sqlite'),
+  //     logging: false,
+  //     operatorsAliases: false,
+  //   },
+  // );
 
-  const migrator = new MigrationService(sequelize);
+  // const migrator = new MigrationService(sequelize);
 
-  const cmd = (process.argv[2] || '').trim();
+  // const cmd = (process.argv[2] || '').trim();
 
-  switch (cmd) {
-    case 'status':
-      migrator.logStatus();
-      break;
+  // switch (cmd) {
+  //   case 'status':
+  //     migrator.logStatus();
+  //     break;
 
-    case 'up':
-    case 'migrate':
-      migrator.up();
-      break;
+  //   case 'up':
+  //   case 'migrate':
+  //     migrator.up();
+  //     break;
 
-    case 'down':
-    case 'revert':
-      migrator.down();
-      break;
+  //   case 'down':
+  //   case 'revert':
+  //     migrator.down();
+  //     break;
 
-    default:
-      console.log('Usage:\n    $ node ./tools/migrate.js <up | down | status>');
-      process.exit(1);
-  }
+  //   default:
+  //     console.log('Usage:\n    $ node ./tools/migrate.js <up | down | status>');
+  //     process.exit(1);
+  // }
 }

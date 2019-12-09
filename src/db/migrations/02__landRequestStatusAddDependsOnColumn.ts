@@ -2,9 +2,9 @@ import { QueryInterface, DataTypes } from 'sequelize';
 
 export default {
   up: function(query: QueryInterface, Sequelize: DataTypes) {
-    return query.describeTable('LandRequest').then((table: any) => {
+    return query.describeTable('LandRequestStatus').then((table: any) => {
       if (table.dependsOn) return;
-      return query.addColumn('LandRequest', 'dependsOn', {
+      return query.addColumn('LandRequestStatus', 'dependsOn', {
         type: Sequelize.STRING,
         allowNull: true,
       });

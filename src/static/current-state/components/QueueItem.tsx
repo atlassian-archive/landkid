@@ -136,6 +136,7 @@ export type QueueItemProps = {
   request: ILandRequest;
   status: IStatusUpdate | null;
   bitbucketBaseUrl: string;
+  queue?: IStatusUpdate[];
 };
 
 export class QueueItem extends React.Component<QueueItemProps> {
@@ -157,14 +158,15 @@ export class QueueItem extends React.Component<QueueItemProps> {
       bitbucketBaseUrl,
       request: { buildId, pullRequestId, pullRequest, created },
       status,
+      queue,
     } = this.props;
 
     if (!status) return null;
 
-    const displayTargetBranch =
-      pullRequest.targetBranch &&
-      status &&
-      ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
+    // const displayTargetBranch =
+    //   pullRequest.targetBranch &&
+    //   status &&
+    //   ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
 
     return (
       <a
@@ -194,7 +196,7 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </Lozenge>
               </StatusItem>
 
-              {displayTargetBranch ? (
+              {pullRequest.targetBranch ? (
                 <StatusItem title="Target Branch:">
                   <Lozenge
                     appearance={targetBranchToAppearance(pullRequest.targetBranch)}
@@ -217,6 +219,19 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </StatusItem>
               ) : null}
             </div>
+            {status.dependsOn && queue ? (
+              <div className="queue-item__status-line">
+                <StatusItem title="Build depends on:">
+                  {status.dependsOn
+                    .split(',')
+                    .map(depId => {
+                      const depItem = queue.find(item => item.requestId === depId);
+                      return depItem ? `#${depItem.request.pullRequestId}` : 'ERR';
+                    })
+                    .join(', ')}
+                </StatusItem>
+              </div>
+            ) : null}
           </ak-grid-column>
           {status.state === 'queued' ? (
             <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
