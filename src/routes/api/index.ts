@@ -188,5 +188,20 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.post(
+    '/create-fake',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      let prId = '';
+      let commit = '';
+      if (req && req.body && req.body.prId && req.body.commit) {
+        prId = req.body.prId;
+        commit = req.body.commit;
+      }
+      const fakeLandRequst = await runner.addFakeLandRequest(prId, commit);
+      res.json({ fakeLandRequst });
+    }),
+  );
+
   return router;
 }

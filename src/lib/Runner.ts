@@ -110,6 +110,12 @@ export class Runner {
         try {
           const pullRequestId = running.request.pullRequestId;
           Logger.info('Attempting merge pull request', { pullRequestId, running });
+          if (running.request.triggererAaid === 'fake-aaid') {
+            Logger.info('status event was for a fake build, skipping the merge');
+            await running.request.setStatus('success');
+            this.next();
+            return;
+          }
           await this.client.mergePullRequest(pullRequestId);
           await running.request.setStatus('success');
         } catch (err) {
@@ -388,6 +394,21 @@ export class Runner {
 
   deleteInstallation = async () => {
     await Installation.truncate();
+  };
+
+  addFakeLandRequest = async (prIdStr: string, commit: string) => {
+    const prId = parseInt(prIdStr, 10);
+    const landRequest: LandRequestOptions = {
+      prId,
+      triggererAaid: 'fake-aaid',
+      commit,
+      prTitle: 'Fake PR title',
+      prAuthorAaid: 'faka-landing-aaid',
+      prTargetBranch: 'fake-branch-name',
+    };
+    await this.enqueue(landRequest);
+
+    return landRequest;
   };
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
