@@ -54,8 +54,8 @@ export class LandRequestQueue {
     return requestStatus;
   };
 
-  public maybeGetStatusForRunningRequest = async (): Promise<LandRequestStatus | null> => {
-    const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+  public maybeGetStatusForRunningRequests = async (): Promise<LandRequestStatus[] | null> => {
+    const runningLandRequests = await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: 'running',
@@ -67,9 +67,9 @@ export class LandRequestQueue {
         },
       ],
     });
-    if (!requestStatus) return null;
+    if (!runningLandRequests) return null;
 
-    return requestStatus;
+    return runningLandRequests;
   };
 
   public maybeGetStatusForQueuedRequestById = async (

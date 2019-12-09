@@ -31,131 +31,133 @@ export class Runner {
   }
 
   getRunning = async () => {
-    return this.queue.maybeGetStatusForRunningRequest();
+    return this.queue.maybeGetStatusForRunningRequests();
   };
 
   next = async () => {
     await withLock('Runner:next', async () => {
       const running = await this.getRunning();
+      const queued = await this.queue.getStatusesForQueuedRequests();
       Logger.info('Next() called', {
         running: running,
-        queue: this.queue,
+        queued: queued,
       });
 
-      if (running) return;
+      // don't exit early anymore
+      // if (running) return;
 
       // check if there is something else in the queue
-      const landRequestInfo = await this.queue.maybeGetStatusForNextRequestInQueue();
-      if (!landRequestInfo) return;
-      const landRequest = landRequestInfo.request;
-      Logger.info('Checking if still allowed to land...', {
-        landRequest: landRequest.get(),
-      });
-
-      const triggererUserMode = await permissionService.getPermissionForUser(
-        landRequest.triggererAaid,
-      );
-
-      // TODO: Pass this commit in to isAllowed to land and make sure it hasnt changed
-      const commit = landRequest.forCommit;
-      const isAllowedToLand = await this.client.isAllowedToLand(
-        landRequest.pullRequestId,
-        triggererUserMode,
-      );
-
-      if (isAllowedToLand.errors.length === 0) {
-        Logger.info('Allowed to land, creating land build', {
+      const maxConcurrentBuilds = 2;
+      for (const queuedStatus of queued) {
+        if (this.getRunning.length >= maxConcurrentBuilds) {
+          Logger.info('Not adding new builds from queue, running at maxConcurrentBuilds', {
+            maxConcurrentBuilds,
+          });
+          break;
+        }
+        const landRequest = queuedStatus.request;
+        Logger.info('Checking if still allowed to land...', {
           landRequest: landRequest.get(),
         });
-        const buildId = await this.client.createLandBuild(commit);
-        if (!buildId) return;
 
-        await landRequest.setStatus('running');
+        const triggererUserMode = await permissionService.getPermissionForUser(
+          landRequest.triggererAaid,
+        );
+        const commit = landRequest.forCommit;
 
-        landRequest.buildId = buildId;
-        await landRequest.save();
+        const isAllowedToLand = await this.client.isAllowedToLand(
+          landRequest.pullRequestId,
+          triggererUserMode,
+        );
 
-        Logger.info('Land build now running', { running: landRequest.get() });
-      } else {
-        Logger.info('Land request is not allowed to land', {
-          ...isAllowedToLand,
-          ...landRequest.get(),
-        });
-        await landRequest.setStatus('fail', 'Land request did not pass land checks');
-        this.next();
+        if (isAllowedToLand.errors.length === 0) {
+          Logger.info('Allowed to land, creating land build', {
+            landRequest: landRequest.get(),
+          });
+          const buildId = await this.client.createLandBuild(commit);
+          if (!buildId) return;
+
+          await landRequest.setStatus('running');
+
+          landRequest.buildId = buildId;
+          await landRequest.save();
+
+          Logger.info('Land build now running', { running: landRequest.get() });
+        } else {
+          Logger.info('Land request is not allowed to land', {
+            ...isAllowedToLand,
+            ...landRequest.get(),
+          });
+          await landRequest.setStatus('fail', 'Land request did not pass land checks');
+          this.next();
+        }
       }
     });
   };
 
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
-    const running = await this.getRunning();
-    if (!running) {
-      Logger.info('No build running, status event is irrelevant', { statusEvent });
-      return;
-    }
-
-    if (running.request.buildId !== statusEvent.buildId) {
-      return Logger.warn(
-        `StatusEvent buildId doesn't match currently running buildId – ${
-          statusEvent.buildId
-        } !== ${running.request.buildId || ''}`,
-        { statusEvent, running },
-      );
-    }
-
-    Logger.info('Build status update', { statusEvent, running });
-
-    switch (statusEvent.buildStatus) {
-      case 'SUCCESSFUL': {
-        try {
-          const pullRequestId = running.request.pullRequestId;
-          Logger.info('Attempting merge pull request', { pullRequestId, running });
-          if (running.request.triggererAaid === 'fake-aaid') {
-            Logger.info('status event was for a fake build, skipping the merge');
-            await running.request.setStatus('success');
-            this.next();
-            return;
-          }
-          await this.client.mergePullRequest(pullRequestId);
-          await running.request.setStatus('success');
-        } catch (err) {
-          await running.request.setStatus('fail', 'Unable to merge pull request');
-        }
-        break;
-      }
-      case 'FAILED': {
-        Logger.error('Land build failed', {
-          running: running.get(),
-          statusEvent,
-        });
-        await running.request.setStatus('fail', 'Landkid build failed');
-        break;
-      }
-      case 'STOPPED': {
-        Logger.warn('Land build has been stopped', {
-          running: running.get(),
-          statusEvent,
-        });
-        await running.request.setStatus('aborted', 'Landkid pipelines build was stopped');
-        break;
-      }
-    }
-
-    this.next();
+    // const running = await this.getRunning();
+    // if (!running) {
+    //   Logger.info('No build running, status event is irrelevant', { statusEvent });
+    //   return;
+    // }
+    // if (running.request.buildId !== statusEvent.buildId) {
+    //   return Logger.warn(
+    //     `StatusEvent buildId doesn't match currently running buildId – ${
+    //       statusEvent.buildId
+    //     } !== ${running.request.buildId || ''}`,
+    //     { statusEvent, running },
+    //   );
+    // }
+    // Logger.info('Build status update', { statusEvent, running });
+    // switch (statusEvent.buildStatus) {
+    //   case 'SUCCESSFUL': {
+    //     try {
+    //       const pullRequestId = running.request.pullRequestId;
+    //       Logger.info('Attempting merge pull request', { pullRequestId, running });
+    //       if (running.request.triggererAaid === 'fake-aaid') {
+    //         Logger.info('status event was for a fake build, skipping the merge');
+    //         await running.request.setStatus('success');
+    //         this.next();
+    //         return;
+    //       }
+    //       await this.client.mergePullRequest(pullRequestId);
+    //       await running.request.setStatus('success');
+    //     } catch (err) {
+    //       await running.request.setStatus('fail', 'Unable to merge pull request');
+    //     }
+    //     break;
+    //   }
+    //   case 'FAILED': {
+    //     Logger.error('Land build failed', {
+    //       running: running.get(),
+    //       statusEvent,
+    //     });
+    //     await running.request.setStatus('fail', 'Landkid build failed');
+    //     break;
+    //   }
+    //   case 'STOPPED': {
+    //     Logger.warn('Land build has been stopped', {
+    //       running: running.get(),
+    //       statusEvent,
+    //     });
+    //     await running.request.setStatus('aborted', 'Landkid pipelines build was stopped');
+    //     break;
+    //   }
+    // }
+    // this.next();
   };
 
   cancelCurrentlyRunningBuild = async (user: ISessionUser) => {
-    const running = await this.getRunning();
-    if (!running) return;
-
-    await running.request.setStatus(
-      'aborted',
-      `Cancelled by user "${user.aaid}" (${user.displayName})`,
-    );
-
-    if (running.request.buildId) {
-      this.client.stopLandBuild(running.request.buildId);
-    }
+    // const running = await this.getRunning();
+    // if (!running) return;
+    // await running.request.setStatus(
+    //   'aborted',
+    //   `Cancelled by user "${user.aaid}" (${user.displayName})`,
+    // );
+    // if (running.request.buildId) {
+    //   this.client.stopLandBuild(running.request.buildId);
+    // }
   };
 
   pause = async (reason: string, user: ISessionUser) => {

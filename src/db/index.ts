@@ -48,6 +48,10 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   buildId: number | null;
 
+  @AllowNull(true)
+  @Column(Sequelize.STRING)
+  dependsOn: string | null;
+
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly forCommit: string;
