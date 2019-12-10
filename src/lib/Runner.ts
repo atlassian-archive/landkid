@@ -56,7 +56,14 @@ export class Runner {
     if (isAllowedToLand.errors.length === 0) {
       Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
       const running = await this.getRunning();
-      const dependencies = running.map(queueItem => queueItem.request.id).join(',');
+      // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
+      // as yourself
+      const dependencies = running
+        .filter(
+          build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+        )
+        .map(queueItem => queueItem.request.id)
+        .join(',');
       Logger.info('getting dependencies', { dependencies });
 
       const buildId = await this.client.createLandBuild(commit);
@@ -84,6 +91,7 @@ export class Runner {
         } else if (landRequest.state === 'queued') {
           return await this.moveFromQueueToRunning(landRequest.request);
         }
+        // todo: rest of state transitions
       }
 
       // check if there is something else in the queue
