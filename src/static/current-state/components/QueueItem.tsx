@@ -170,7 +170,16 @@ export class QueueItem extends React.Component<QueueItemProps> {
     if (dependsOn && queue) {
       dependsOn.split(',').forEach(depId => {
         const depItem = queue.find(item => item.requestId === depId);
-        depItem && dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
+        if (!depItem) {
+          console.error(
+            `Cannot find dependency PR with target branch ${
+              pullRequest.targetBranch
+            } and request id ${status.requestId}`,
+          );
+          dependsOnPRs.push('??');
+        } else {
+          dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
+        }
       });
     }
 
