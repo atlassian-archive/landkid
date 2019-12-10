@@ -74,7 +74,9 @@ export class Runner {
       landRequest.buildId = buildId;
       landRequest.dependsOn = dependencies;
       await landRequest.save();
+      return true;
     }
+    return false;
   };
 
   // Next must always return early if ever doing a single state transition
@@ -86,51 +88,49 @@ export class Runner {
       for (const landRequest of queue) {
         if (landRequest.state === 'awaiting-merge') {
           const dependencies = await landRequest.request.getDependencies();
-          console.log('wants to merge, getting deps');
-          console.log(dependencies);
+          if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
+            Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
+              dependencies,
+              landRequest,
+            });
+            continue; // break out of the current iteration of the for loop, but continue
+          }
+
+          // Just testing code, don't merge fake PR's just mark the request as successful
+          if (landRequest.request.triggererAaid === 'fake-aaid') {
+            Logger.info('Found fake landRequest ready to merge, marking successful', {
+              landRequest,
+            });
+            return landRequest.request.setStatus('success');
+          }
+          // Try to merge PR
+          try {
+            const pullRequestId = landRequest.request.pullRequestId;
+            Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
+            await this.client.mergePullRequest(pullRequestId);
+            Logger.info('Successfully merged PR', { pullRequestId });
+            return await landRequest.request.setStatus('success');
+          } catch (err) {
+            return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
+          }
         } else if (landRequest.state === 'queued') {
-          return await this.moveFromQueueToRunning(landRequest.request);
+          const movedState = await this.moveFromQueueToRunning(landRequest.request);
+          // if the landrequest was able to mvoe from queued to running, exit early, otherwise, keep
+          // checking the rest of the queue
+          if (movedState) return;
         }
-        // todo: rest of state transitions
       }
-
-      // check if there is something else in the queue
-      // const maxConcurrentBuilds = 2;
-      // for (const queuedStatus of queued) {
-      //   if (this.getRunningOld.length >= maxConcurrentBuilds) {
-      //     Logger.info('Not adding new builds from queue, running at maxConcurrentBuilds', {
-      //       maxConcurrentBuilds,
-      //     });
-      //     break;
-      //   }
-      //   const landRequest = queuedStatus.request;
-      //   Logger.info('Checking if still allowed to land...', {
-      //     landRequest: landRequest.get(),
-      //   });
-
-      //   const commit = landRequest.forCommit;
-
-      //     Logger.info('Land build now running', { running: landRequest.get() });
-      //   } else {
-      //     Logger.info('Land request is not allowed to land', {
-      //       ...isAllowedToLand,
-      //       ...landRequest.get(),
-      //     });
-      //     await landRequest.setStatus('fail', 'Land request did not pass land checks');
-      //     // this.next();
-      //   }
-      // }
     });
   };
 
   // onStatusUpdate only updates status' for landrequests, never moves a state and always exits early
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
-    const queue = await this.queue.getQueue();
-    if (queue.length) {
+    const running = await this.getRunning();
+    if (!running.length) {
       Logger.info('No builds running, status event is irrelevant', { statusEvent });
       return;
     }
-    for (const landRequest of queue) {
+    for (const landRequest of running) {
       if (statusEvent.buildId !== landRequest.request.buildId) continue; // check next landRequest
       switch (statusEvent.buildStatus) {
         case 'SUCCESSFUL':
@@ -282,7 +282,7 @@ export class Runner {
     this.checkWaitingLandRequests();
   };
 
-  moveFromWaitingToQueue = async (pullRequestId: number) => {
+  moveFromWaitingToQueued = async (pullRequestId: number) => {
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
@@ -322,7 +322,7 @@ export class Runner {
       const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
 
       if (isAllowedToLand.errors.length === 0) {
-        this.moveFromWaitingToQueue(pullRequestId);
+        this.moveFromWaitingToQueued(pullRequestId);
       }
     }
   };
