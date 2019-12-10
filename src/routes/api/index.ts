@@ -194,11 +194,16 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       let prId = '';
       let commit = '';
-      if (req && req.body && req.body.prId && req.body.commit) {
+      let branch = '';
+      if (req && req.body && req.body.prId) {
         prId = req.body.prId;
-        commit = req.body.commit;
+        commit = req.body.commit || 'fake-commit';
+        branch = req.body.branch || 'fake-branch';
+      } else {
+        return res.status(400).json({ err: 'req.body.prId expected' });
       }
-      const fakeLandRequst = await runner.addFakeLandRequest(prId, commit);
+      Logger.info('creating fake', { prId, commit, branch });
+      const fakeLandRequst = await runner.addFakeLandRequest(prId, commit, branch);
       res.json({ fakeLandRequst });
     }),
   );

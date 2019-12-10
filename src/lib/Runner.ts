@@ -403,15 +403,15 @@ export class Runner {
     await Installation.truncate();
   };
 
-  addFakeLandRequest = async (prIdStr: string, commit: string) => {
+  addFakeLandRequest = async (prIdStr: string, commit: string, branch: string) => {
     const prId = parseInt(prIdStr, 10);
     const landRequest: LandRequestOptions = {
       prId,
       triggererAaid: 'fake-aaid',
-      commit,
+      commit: commit || 'fake-commit',
       prTitle: 'Fake PR title',
       prAuthorAaid: 'faka-landing-aaid',
-      prTargetBranch: 'fake-branch-name',
+      prTargetBranch: branch || 'fake-branch-name',
     };
     await this.enqueue(landRequest);
 
