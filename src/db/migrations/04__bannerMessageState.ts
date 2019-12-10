@@ -2,15 +2,20 @@ import { QueryInterface, DataTypes } from 'sequelize';
 
 export default {
   up: function(query: QueryInterface, Sequelize: DataTypes) {
-    return query.dropTable('PauseStateTransition').then(() =>
-      query.createTable('PauseState', {
-        pauserAaid: {
+    return query.dropTable('MessageStateTransition').then(() =>
+      query.createTable('BannerMessageState', {
+        senderAaid: {
           type: Sequelize.STRING,
+          primaryKey: true,
           allowNull: false,
         },
-        reason: {
+        message: {
           type: Sequelize.STRING({ length: 2000 }),
-          allowNull: true,
+          allowNull: false,
+        },
+        messageType: {
+          type: Sequelize.ENUM({ values: ['default', 'warning', 'error'] }),
+          allowNull: false,
         },
         date: {
           type: Sequelize.DATE,
@@ -21,23 +26,27 @@ export default {
     );
   },
   down: function(query: QueryInterface, Sequelize: DataTypes) {
-    return query.dropTable('PauseState').then(() =>
-      query.createTable('PauseStateTransition', {
+    return query.dropTable('BannerMessageState').then(() =>
+      query.createTable('MessageStateTransition', {
         id: {
           type: Sequelize.UUID,
           primaryKey: true,
           defaultValue: Sequelize.UUIDV4,
         },
-        pauserAaid: {
+        senderAaid: {
           type: Sequelize.STRING,
           allowNull: false,
         },
-        paused: {
+        messageExists: {
           type: Sequelize.BOOLEAN,
           allowNull: false,
         },
-        reason: {
+        message: {
           type: Sequelize.STRING({ length: 2000 }),
+          allowNull: true,
+        },
+        messageType: {
+          type: Sequelize.ENUM({ values: ['default', 'warning', 'error'] }),
           allowNull: true,
         },
         date: {

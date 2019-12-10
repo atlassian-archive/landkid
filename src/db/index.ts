@@ -249,6 +249,7 @@ export class UserNote extends Model<UserNote> implements IUserNote {
 
 @Table
 export class PauseState extends Model<PauseState> implements IPauseState {
+  @PrimaryKey
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly pauserAaid: string;
@@ -265,6 +266,7 @@ export class PauseState extends Model<PauseState> implements IPauseState {
 
 @Table
 export class BannerMessageState extends Model<BannerMessageState> implements IMessageState {
+  @PrimaryKey
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly senderAaid: string;
