@@ -3,7 +3,7 @@ import { QueryInterface, DataTypes } from 'sequelize';
 export default {
   up: function(query: QueryInterface, Sequelize: DataTypes) {
     return query.dropTable('MessageStateTransition').then(() =>
-      query.createTable('MessageState', {
+      query.createTable('BannerMessageState', {
         senderAaid: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -25,7 +25,7 @@ export default {
     );
   },
   down: function(query: QueryInterface, Sequelize: DataTypes) {
-    return query.dropTable('MessageState').then(() =>
+    return query.dropTable('BannerMessageState').then(() =>
       query.createTable('MessageStateTransition', {
         id: {
           type: Sequelize.UUID,

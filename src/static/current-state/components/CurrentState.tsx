@@ -64,9 +64,9 @@ export const CurrentState: React.FunctionComponent<Props> = props => {
     <Panel>
       <strong>Builds are currently paused</strong>
       <br />
-      {pauseState.reason || 'No reason was provided'}
+      {pauseState ? pauseState.reason : 'No reason was provided'}
     </Panel>
   );
 
-  return <Section>{pauseState.paused ? renderPausedPanel() : renderStateColumns()}</Section>;
+  return <Section>{pauseState ? renderPausedPanel() : renderStateColumns()}</Section>;
 };

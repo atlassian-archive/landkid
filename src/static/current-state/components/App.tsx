@@ -32,7 +32,7 @@ export const App: React.FunctionComponent = () => (
                       users={data.users}
                       queue={data.queue}
                       loggedInUser={loggedInUser}
-                      paused={data.pauseState.paused}
+                      paused={data.pauseState !== null}
                       bannerMessageState={data.bannerMessageState}
                     />
                   </div>

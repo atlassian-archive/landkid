@@ -108,7 +108,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/unpause',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      await runner.unpause(req.user!);
+      await runner.unpause();
       res.json({ paused: false });
     }),
   );
@@ -188,7 +188,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/remove-message',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      await runner.removeBannerMessage(req.user!);
+      await runner.removeBannerMessage();
       res.json({ removed: true });
     }),
   );

@@ -70,9 +70,9 @@ export type Config = {
 export type RunnerState = {
   queue: IStatusUpdate[];
   waitingToQueue: IStatusUpdate[];
-  pauseState: IPauseState;
+  pauseState: IPauseState | null;
   daysSinceLastFailure: number;
   users: UserState[];
-  bannerMessageState: IMessageState;
+  bannerMessageState: IMessageState | null;
   bitbucketBaseUrl: string;
 };

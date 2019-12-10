@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export type MessengerProps = {
-  bannerMessageState: IMessageState;
+  bannerMessageState: IMessageState | null;
 };
 
 type MessengerState = {
@@ -42,10 +42,8 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
   };
 
   render() {
-    const {
-      bannerMessageState: { messageExists, message, messageType },
-    } = this.props;
-    const msgType = messageType || 'default';
+    const { bannerMessageState } = this.props;
+    const msgType = bannerMessageState ? bannerMessageState.messageType : 'default';
     return (
       <ak-grid style={{ marginLeft: '-15px' }}>
         <ak-grid-column size={6}>
@@ -89,7 +87,7 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
             </button>
           </div>
         </ak-grid-column>
-        {messageExists ? (
+        {bannerMessageState ? (
           <ak-grid-column size={5}>
             <h4 style={{ marginTop: '20px' }}>Current Banner Message:</h4>
             <div
@@ -102,7 +100,9 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
                 fontWeight: msgType === 'default' ? 'bold' : 'normal',
               }}
             >
-              {`${this.messageEmoji[msgType]} ${message} ${this.messageEmoji[msgType]}`}
+              {`${this.messageEmoji[msgType]} ${bannerMessageState.message} ${
+                this.messageEmoji[msgType]
+              }`}
             </div>
             <button
               className="ak-button ak-button__appearance-default"
