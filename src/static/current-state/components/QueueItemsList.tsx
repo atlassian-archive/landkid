@@ -25,9 +25,7 @@ export type QueueItemsListProps = {
 
 export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = props => {
   const { queue, fading, renderEmpty, running } = props;
-  const filteredQueue = queue.filter(item =>
-    running ? item.state === 'running' : item.state !== 'running',
-  );
+  const filteredQueue = queue.filter(item => running || item.state !== 'running');
   if (!filteredQueue.length) {
     return renderEmpty ? renderEmpty() : <EmptyState>Empty...</EmptyState>;
   }

@@ -163,10 +163,13 @@ export class QueueItem extends React.Component<QueueItemProps> {
 
     if (!status) return null;
 
-    // const displayTargetBranch =
-    //   pullRequest.targetBranch &&
-    //   status &&
-    //   ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
+    const dependsOn: string[] = [];
+    if (status.dependsOn && queue) {
+      status.dependsOn.split(',').forEach(depId => {
+        const depItem = queue.find(item => item.requestId === depId);
+        depItem && dependsOn.push(`#${depItem.request.pullRequestId}`);
+      });
+    }
 
     return (
       <a
@@ -219,17 +222,9 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </StatusItem>
               ) : null}
             </div>
-            {status.dependsOn && queue ? (
+            {dependsOn.length > 0 ? (
               <div className="queue-item__status-line">
-                <StatusItem title="Build depends on:">
-                  {status.dependsOn
-                    .split(',')
-                    .map(depId => {
-                      const depItem = queue.find(item => item.requestId === depId);
-                      return depItem ? `#${depItem.request.pullRequestId}` : 'ERR';
-                    })
-                    .join(', ')}
-                </StatusItem>
+                <StatusItem title="Build depends on:">{dependsOn.join(', ')}</StatusItem>
               </div>
             ) : null}
           </ak-grid-column>
