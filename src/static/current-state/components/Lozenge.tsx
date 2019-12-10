@@ -5,7 +5,7 @@ import { LozengeAppearance } from './types';
 
 let styles = css({
   boxSizing: 'border-box',
-  display: 'block',
+  display: 'inline-block',
   fontSize: '11px',
   fontWeight: '700',
   lineHeight: '1',

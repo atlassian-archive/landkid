@@ -128,7 +128,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
 const targetBranchToAppearance = (branch?: string) =>
   branch === 'master' ? 'moved' : branch === 'develop' ? 'new' : 'default';
 
-const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
+// const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
 
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
@@ -138,7 +138,17 @@ export type QueueItemProps = {
   bitbucketBaseUrl: string;
 };
 
-export class QueueItem extends React.Component<QueueItemProps> {
+type QueueItemState = {
+  landRequestInfo: {
+    statuses: IStatusUpdate[];
+  } | null;
+};
+
+export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
+  state: QueueItemState = {
+    landRequestInfo: null,
+  };
+
   handleRemoveClick = () => {
     fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' })
       .then(response => response.json())
@@ -152,10 +162,16 @@ export class QueueItem extends React.Component<QueueItemProps> {
       });
   };
 
+  displayMoreInfo = () => {
+    fetch(`/api/landrequest/${this.props.request.id}`, { method: 'GET' })
+      .then(response => response.json())
+      .then(landRequestInfo => this.setState({ landRequestInfo }));
+  };
+
   render() {
     const {
       bitbucketBaseUrl,
-      request: { buildId, pullRequestId, pullRequest, created },
+      request: { /*buildId,*/ pullRequestId, pullRequest, created },
       status,
     } = this.props;
 
@@ -167,12 +183,12 @@ export class QueueItem extends React.Component<QueueItemProps> {
       ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
 
     return (
-      <a
+      <div
         className={`${queueItemStyles} queue-item`}
-        href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
+        // href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
       >
         <ak-grid layout="fluid">
-          <ak-grid-column size={status.state === 'queued' ? 11 : 12}>
+          <ak-grid-column size={11}>
             <div className="queue-item__title">
               <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
               {pullRequest.title}
@@ -218,8 +234,8 @@ export class QueueItem extends React.Component<QueueItemProps> {
               ) : null}
             </div>
           </ak-grid-column>
-          {status.state === 'queued' ? (
-            <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
+          <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
+            {status.state === 'queued' ? (
               <button
                 className="ak-button ak-button__appearance-default"
                 style={{ float: 'right' }}
@@ -227,10 +243,37 @@ export class QueueItem extends React.Component<QueueItemProps> {
               >
                 Remove
               </button>
-            </ak-grid-column>
-          ) : null}
+            ) : null}
+            <button
+              className="ak-button ak-button__appearance-default"
+              style={{ float: 'right' }}
+              onClick={this.displayMoreInfo}
+            >
+              MOAR
+            </button>
+          </ak-grid-column>
         </ak-grid>
-      </a>
+        {this.state.landRequestInfo ? (
+          <div className="queue-item__status-line">
+            {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
+              <StatusItem
+                title={
+                  index === 0
+                    ? 'Status History:'
+                    : `-- ${duration(
+                        +new Date(statuses[index - 1].date),
+                        +new Date(status.date),
+                      )} -->`
+                }
+              >
+                <Lozenge appearance={landStatusToAppearance[status.state]}>
+                  {landStatusToNiceString[status.state]}
+                </Lozenge>
+              </StatusItem>
+            ))}
+          </div>
+        ) : null}
+      </div>
     );
   }
 }
