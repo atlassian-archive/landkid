@@ -103,6 +103,27 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       );
     });
   };
+
+  getDependencies = async () => {
+    const dependsOnStr = this.dependsOn;
+    if (!dependsOnStr) return [];
+    const dependsOnArr = dependsOnStr.split(',');
+    const dependsOnLandRequests = await LandRequest.findAll({
+      where: {
+        id: dependsOnArr,
+      },
+      include: [
+        {
+          model: LandRequestStatus,
+          where: {
+            isLatest: true,
+          },
+        },
+      ],
+    });
+
+    return dependsOnLandRequests;
+  };
 }
 
 @Table
@@ -126,9 +147,10 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
     Sequelize.ENUM({
       values: [
         'will-queue-when-ready',
-        'created',
+        'created', // actually not used - remove
         'queued',
         'running',
+        'awaiting-merge',
         'success',
         'fail',
         'aborted',
