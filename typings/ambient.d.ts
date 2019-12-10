@@ -13,6 +13,7 @@ declare interface ILandRequest {
   forCommit: string;
   created: Date;
   pullRequest: IPullRequest;
+  dependsOn: string | null;
 }
 
 declare interface IPullRequest {
@@ -42,12 +43,18 @@ declare interface IMessageState {
 declare interface IStatusUpdate {
   id: string;
   date: Date;
-  state: 'will-queue-when-ready' | 'queued' | 'running' | 'success' | 'fail' | 'aborted';
+  state:
+    | 'will-queue-when-ready'
+    | 'queued'
+    | 'running'
+    | 'awaiting-merge'
+    | 'success'
+    | 'fail'
+    | 'aborted';
   reason: string | null;
   requestId: string;
   isLatest: boolean;
   request: ILandRequest;
-  dependsOn: string | null;
 }
 
 declare interface ISessionUser {

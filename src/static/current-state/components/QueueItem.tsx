@@ -100,6 +100,7 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
 
 const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
   'will-queue-when-ready': 'new',
+  'awaiting-merge': 'new',
   queued: 'new',
   running: 'inprogress',
   success: 'success',
@@ -109,6 +110,7 @@ const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> 
 
 const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Waiting to Land',
+  'awaiting-merge': 'Awaiting Merge',
   queued: 'In Queue',
   running: 'Running',
   success: 'Succeeded',
@@ -118,6 +120,7 @@ const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
 
 const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Told To Land When Ready',
+  'awaiting-merge': 'Told to Merge',
   queued: 'Told To Land',
   running: 'Started',
   success: 'Succeeded',
@@ -156,18 +159,18 @@ export class QueueItem extends React.Component<QueueItemProps> {
   render() {
     const {
       bitbucketBaseUrl,
-      request: { buildId, pullRequestId, pullRequest, created },
+      request: { buildId, pullRequestId, pullRequest, created, dependsOn },
       status,
       queue,
     } = this.props;
 
     if (!status) return null;
 
-    const dependsOn: string[] = [];
-    if (status.dependsOn && queue) {
-      status.dependsOn.split(',').forEach(depId => {
+    const dependsOnPRs: string[] = [];
+    if (dependsOn && queue) {
+      dependsOn.split(',').forEach(depId => {
         const depItem = queue.find(item => item.requestId === depId);
-        depItem && dependsOn.push(`#${depItem.request.pullRequestId}`);
+        depItem && dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
       });
     }
 
@@ -222,9 +225,9 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </StatusItem>
               ) : null}
             </div>
-            {dependsOn.length > 0 ? (
+            {dependsOnPRs.length > 0 ? (
               <div className="queue-item__status-line">
-                <StatusItem title="Build depends on:">{dependsOn.join(', ')}</StatusItem>
+                <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
               </div>
             ) : null}
           </ak-grid-column>

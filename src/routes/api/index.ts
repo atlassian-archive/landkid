@@ -117,7 +117,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/cancel-current',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      await runner.cancelCurrentlyRunningBuild(req.user!);
+      await runner.cancelTopOfTheQueueBuild(req.user!);
       res.json({ cancelled: true });
     }),
   );
