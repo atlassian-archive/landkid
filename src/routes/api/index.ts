@@ -194,7 +194,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       if (req && req.body && req.body.prId) {
         Logger.info('creating fake', { prId: req.body.prId });
-        const fakeLandRequst = await runner.addFakeLandRequest(req.body.prId, req.params.aaid);
+        const fakeLandRequst = await runner.addFakeLandRequest(req.body.prId, req.user!.aaid);
         if (!fakeLandRequst) {
           res.status(400).json({ err: 'Could not find PR with that ID' });
         } else {
