@@ -175,7 +175,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   render() {
     const {
       bitbucketBaseUrl,
-      request: { /*buildId,*/ dependsOn, pullRequestId, pullRequest, created },
+      request: { /*buildId,*/ dependsOn, pullRequestId, pullRequest },
       status,
       queue,
     } = this.props;
@@ -242,13 +242,13 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
                 {distanceInWords(status.date, { addSuffix: true })}
               </StatusItem>
 
-              {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
+              {/* {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
                 <StatusItem title="Duration:">
                   <Lozenge appearance="new">
                     {duration(+new Date(created), +new Date(status.date))}
                   </Lozenge>
                 </StatusItem>
-              ) : null}
+              ) : null} */}
             </div>
             {dependsOnPRs.length > 0 ? (
               <div className="queue-item__status-line">
@@ -276,16 +276,13 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </ak-grid-column>
         </ak-grid>
         {this.state.landRequestInfo ? (
-          <div className="queue-item__status-line">
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
             {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
               <StatusItem
                 title={
                   index === 0
                     ? 'Status History:'
-                    : `-- ${duration(
-                        +new Date(statuses[index - 1].date),
-                        +new Date(status.date),
-                      )} -->`
+                    : `— ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
                 }
               >
                 <Lozenge appearance={landStatusToAppearance[status.state]}>

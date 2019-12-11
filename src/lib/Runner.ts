@@ -31,7 +31,7 @@ export class Runner {
 
     setInterval(() => {
       this.next();
-    }, 15);
+    }, 15 * 1000); // 15s
   }
 
   // old function, will remove once not used
@@ -83,6 +83,10 @@ export class Runner {
       await landRequest.save();
       return true;
     }
+    Logger.error('LandRequest no longer passes land checks', {
+      errors: isAllowedToLand.errors,
+      landRequest,
+    });
     return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
   };
 
