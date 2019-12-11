@@ -188,11 +188,21 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
-  router.get(
-    '/landrequest/:id',
-    requireAuth('read'),
+  router.post(
+    '/create-fake',
+    requireAuth('admin'),
     wrap(async (req, res) => {
-      res.json({ statuses: await runner.getLandRequestStatuses(req.params.id) });
+      if (req && req.body && req.body.prId) {
+        Logger.info('creating fake', { prId: req.body.prId });
+        const fakeLandRequst = await runner.addFakeLandRequest(req.body.prId, req.params.aaid);
+        if (!fakeLandRequst) {
+          res.status(400).json({ err: 'Could not find PR with that ID' });
+        } else {
+          res.json({ fakeLandRequst });
+        }
+      } else {
+        return res.status(400).json({ err: 'req.body.prId expected' });
+      }
     }),
   );
 
