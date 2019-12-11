@@ -188,5 +188,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.get(
+    '/landrequest/:id',
+    requireAuth('read'),
+    wrap(async (req, res) => {
+      res.json({ statuses: await runner.getLandRequestStatuses(req.params.id) });
+    }),
+  );
+
   return router;
 }

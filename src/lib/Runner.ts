@@ -337,6 +337,16 @@ export class Runner {
     }
   };
 
+  getLandRequestStatuses = async (requestId: number): Promise<LandRequestStatus[]> => {
+    const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+      where: {
+        requestId,
+      },
+      order: [['date', 'ASC']],
+    });
+    return landRequestStatuses;
+  };
+
   private getUsersPermissions = async (requestingUser: ISessionUser): Promise<UserState[]> => {
     // TODO: Figure out how to use distinct
     const perms = await Permission.findAll<Permission>({
