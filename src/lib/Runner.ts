@@ -28,6 +28,10 @@ export class Runner {
     setInterval(() => {
       this.checkWaitingLandRequests();
     }, timeBetweenChecksMins * 60 * 1000);
+
+    setInterval(() => {
+      this.next();
+    }, 15);
   }
 
   // old function, will remove once not used
