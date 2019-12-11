@@ -46,7 +46,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 
   @AllowNull(true)
   @Column(Sequelize.INTEGER)
-  buildId: number | null;
+  buildId: number;
 
   @AllowNull(false)
   @Column(Sequelize.STRING)
@@ -62,6 +62,10 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 
   @BelongsTo(() => PullRequest)
   pullRequest: PullRequest;
+
+  @AllowNull(true)
+  @Column(Sequelize.STRING)
+  dependsOn: string;
 
   getStatus = async () => {
     return await LandRequestStatus.findOne<LandRequestStatus>({
@@ -99,6 +103,46 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       );
     });
   };
+
+  getDependencies = async () => {
+    const dependsOnStr = this.dependsOn;
+    if (!dependsOnStr) return [];
+    const dependsOnArr = dependsOnStr.split(',');
+    const dependsOnLandRequests = await LandRequest.findAll({
+      where: {
+        id: dependsOnArr,
+      },
+      include: [
+        {
+          model: LandRequestStatus,
+          where: {
+            isLatest: true,
+          },
+        },
+      ],
+    });
+
+    return dependsOnLandRequests;
+  };
+
+  hasFailedDependency = async () => {
+    const dependsOnStr = this.dependsOn;
+    if (!dependsOnStr) return false;
+    const dependsOnArr = dependsOnStr.split(',');
+    const failedDependencies = await LandRequestStatus.findAll({
+      where: {
+        isLatest: true,
+        requestId: {
+          $in: dependsOnArr,
+        },
+        state: {
+          $in: ['failed', 'aborted'],
+        },
+      },
+    });
+
+    return failedDependencies.length !== 0;
+  };
 }
 
 @Table
@@ -115,16 +159,17 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
 
   @AllowNull(true)
   @Column(Sequelize.STRING)
-  readonly reason: string | null;
+  readonly reason: string;
 
   @AllowNull(false)
   @Column(
     Sequelize.ENUM({
       values: [
         'will-queue-when-ready',
-        'created',
+        'created', // actually not used - remove
         'queued',
         'running',
+        'awaiting-merge',
         'success',
         'fail',
         'aborted',
@@ -227,7 +272,7 @@ export class PauseStateTransition extends Model<PauseStateTransition> implements
 }
 
 @Table
-export class MessageStateTransition extends Model<PauseStateTransition> implements IMessageState {
+export class MessageStateTransition extends Model<MessageStateTransition> implements IMessageState {
   @PrimaryKey
   @Default(Sequelize.UUIDV4)
   @Column(Sequelize.UUID)

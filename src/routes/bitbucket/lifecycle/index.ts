@@ -48,7 +48,7 @@ export function lifecycleRoutes(runner: Runner) {
       });
 
       const [queued, waiting] = await Promise.all([
-        runner.queue.getStatusesForQueuedRequests(),
+        runner.queue.getQueue(),
         runner.queue.getStatusesForWaitingRequests(),
       ]);
       for (const status of [...queued, ...waiting]) {

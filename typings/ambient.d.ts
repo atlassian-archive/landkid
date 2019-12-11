@@ -13,13 +13,14 @@ declare interface ILandRequest {
   forCommit: string;
   created: Date;
   pullRequest: IPullRequest;
+  dependsOn: string | null;
 }
 
 declare interface IPullRequest {
   prId: number;
   authorAaid: string;
   title: string;
-  targetBranch?: string;
+  targetBranch: string | null;
 }
 
 declare interface IPauseState {
@@ -42,7 +43,14 @@ declare interface IMessageState {
 declare interface IStatusUpdate {
   id: string;
   date: Date;
-  state: 'will-queue-when-ready' | 'queued' | 'running' | 'success' | 'fail' | 'aborted';
+  state:
+    | 'will-queue-when-ready'
+    | 'queued'
+    | 'running'
+    | 'awaiting-merge'
+    | 'success'
+    | 'fail'
+    | 'aborted';
   reason: string | null;
   requestId: string;
   isLatest: boolean;

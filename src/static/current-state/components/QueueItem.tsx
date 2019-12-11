@@ -100,6 +100,7 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
 
 const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
   'will-queue-when-ready': 'new',
+  'awaiting-merge': 'new',
   queued: 'new',
   running: 'inprogress',
   success: 'success',
@@ -109,6 +110,7 @@ const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> 
 
 const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Waiting to Land',
+  'awaiting-merge': 'Awaiting Merge',
   queued: 'In Queue',
   running: 'Running',
   success: 'Succeeded',
@@ -118,6 +120,7 @@ const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
 
 const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Told To Land When Ready',
+  'awaiting-merge': 'Told to Merge',
   queued: 'Told To Land',
   running: 'Started',
   success: 'Succeeded',
@@ -136,6 +139,7 @@ export type QueueItemProps = {
   request: ILandRequest;
   status: IStatusUpdate | null;
   bitbucketBaseUrl: string;
+  queue?: IStatusUpdate[];
 };
 
 type QueueItemState = {
@@ -171,16 +175,29 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   render() {
     const {
       bitbucketBaseUrl,
-      request: { /*buildId,*/ pullRequestId, pullRequest },
+      request: { /*buildId,*/ dependsOn, pullRequestId, pullRequest },
       status,
+      queue,
     } = this.props;
 
     if (!status) return null;
 
-    const displayTargetBranch =
-      pullRequest.targetBranch &&
-      status &&
-      ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
+    const dependsOnPRs: string[] = [];
+    if (dependsOn && queue) {
+      dependsOn.split(',').forEach(depId => {
+        const depItem = queue.find(item => item.requestId === depId);
+        if (!depItem) {
+          console.error(
+            `Cannot find dependency PR with target branch ${
+              pullRequest.targetBranch
+            } and request id ${status.requestId}`,
+          );
+          dependsOnPRs.push('??');
+        } else {
+          dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
+        }
+      });
+    }
 
     return (
       <div
@@ -210,7 +227,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
                 </Lozenge>
               </StatusItem>
 
-              {displayTargetBranch ? (
+              {pullRequest.targetBranch ? (
                 <StatusItem title="Target Branch:">
                   <Lozenge
                     appearance={targetBranchToAppearance(pullRequest.targetBranch)}
@@ -233,6 +250,11 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
                 </StatusItem>
               ) : null} */}
             </div>
+            {dependsOnPRs.length > 0 ? (
+              <div className="queue-item__status-line">
+                <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
+              </div>
+            ) : null}
           </ak-grid-column>
           <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
             {status.state === 'queued' ? (
