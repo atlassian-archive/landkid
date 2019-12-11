@@ -124,6 +124,25 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 
     return dependsOnLandRequests;
   };
+
+  hasFailedDependency = async () => {
+    const dependsOnStr = this.dependsOn;
+    if (!dependsOnStr) return false;
+    const dependsOnArr = dependsOnStr.split(',');
+    const failedDependencies = await LandRequestStatus.findAll({
+      where: {
+        isLatest: true,
+        requestId: {
+          $in: dependsOnArr,
+        },
+        state: {
+          $in: ['failed', 'aborted'],
+        },
+      },
+    });
+
+    return failedDependencies.length !== 0;
+  };
 }
 
 @Table

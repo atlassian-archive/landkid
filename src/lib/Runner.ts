@@ -64,19 +64,45 @@ export class Runner {
         )
         .map(queueItem => queueItem.request.id)
         .join(',');
-      Logger.info('getting dependencies', { dependencies });
 
       const buildId = await this.client.createLandBuild(commit);
-      if (!buildId) return; // TODO: this should be an error? o.O
+      if (!buildId) {
+        return await landRequest.setStatus('fail', 'Unable to create land build in Pipelines');
+      }
 
+      Logger.info('LandRequest now running', { dependencies, landRequest, buildId });
       await landRequest.setStatus('running');
 
+      // Todo: these should really be functions on landRequest
       landRequest.buildId = buildId;
       landRequest.dependsOn = dependencies;
       await landRequest.save();
       return true;
     }
-    return false;
+    return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
+  };
+
+  attemptToMoveFromAwaitingMerge = async (landRequest: LandRequestStatus) => {
+    const dependencies = await landRequest.request.getDependencies();
+
+    if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
+      Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
+        dependencies,
+        landRequest,
+      });
+      return false; // did not move state, return false
+    }
+
+    // Try to merge PR
+    try {
+      const pullRequestId = landRequest.request.pullRequestId;
+      Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
+      await this.client.mergePullRequest(pullRequestId);
+      Logger.info('Successfully merged PR', { pullRequestId });
+      return await landRequest.request.setStatus('success');
+    } catch (err) {
+      return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
+    }
   };
 
   // Next must always return early if ever doing a single state transition
@@ -86,40 +112,24 @@ export class Runner {
       Logger.info('Next() called', { queue });
 
       for (const landRequest of queue) {
+        // Check for this _before_ looking at the state so that we don't have to wait until
+        if (await landRequest.request.hasFailedDependency()) {
+          await landRequest.request.setStatus('fail', 'Failed due to failed dependency build');
+          return await landRequest.request.setStatus('queued');
+        }
         if (landRequest.state === 'awaiting-merge') {
-          const dependencies = await landRequest.request.getDependencies();
-          if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
-            Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
-              dependencies,
-              landRequest,
-            });
-            continue; // break out of the current iteration of the for loop, but continue
-          }
-
-          // Just testing code, don't merge fake PR's just mark the request as successful
-          if (landRequest.request.triggererAaid === 'fake-aaid') {
-            Logger.info('Found fake landRequest ready to merge, marking successful', {
-              landRequest,
-            });
-            return landRequest.request.setStatus('success');
-          }
-          // Try to merge PR
-          try {
-            const pullRequestId = landRequest.request.pullRequestId;
-            Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
-            await this.client.mergePullRequest(pullRequestId);
-            Logger.info('Successfully merged PR', { pullRequestId });
-            return await landRequest.request.setStatus('success');
-          } catch (err) {
-            return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
-          }
+          const didChangeState = await this.attemptToMoveFromAwaitingMerge(landRequest);
+          // if we moved, we need to exit early, otherwise, just keep checking the queue
+          if (didChangeState) return this.next();
         } else if (landRequest.state === 'queued') {
           const movedState = await this.moveFromQueueToRunning(landRequest.request);
-          // if the landrequest was able to mvoe from queued to running, exit early, otherwise, keep
+          // if the landrequest was able to move from queued to running, exit early, otherwise, keep
           // checking the rest of the queue
-          if (movedState) return;
+          if (movedState) return this.next();
         }
+        // otherwise, we must just be running, nothing to do here
       }
+      //
     });
   };
 
@@ -135,16 +145,16 @@ export class Runner {
       switch (statusEvent.buildStatus) {
         case 'SUCCESSFUL':
           Logger.info('Moving landRequest to awaiting-merge state', { landRequest });
-          return await landRequest.request.setStatus('awaiting-merge');
+          await landRequest.request.setStatus('awaiting-merge');
+          return this.next();
         case 'FAILED':
           Logger.info('Moving landRequest to failed state', { landRequest });
-          return await landRequest.request.setStatus('fail', 'Landkid build failed');
+          await landRequest.request.setStatus('fail', 'Landkid build failed');
+          return this.next();
         case 'STOPPED':
           Logger.info('Moving landRequest to aborted state', { landRequest });
-          return await landRequest.request.setStatus(
-            'aborted',
-            'Landkid pipelines build was stopped',
-          );
+          await landRequest.request.setStatus('aborted', 'Landkid pipelines build was stopped');
+          return this.next();
         default:
           Logger.info('Dont know what to do with build status, ignoring', { statusEvent });
           break;
@@ -401,21 +411,6 @@ export class Runner {
 
   deleteInstallation = async () => {
     await Installation.truncate();
-  };
-
-  addFakeLandRequest = async (prIdStr: string, commit: string, branch: string) => {
-    const prId = parseInt(prIdStr, 10);
-    const landRequest: LandRequestOptions = {
-      prId,
-      triggererAaid: 'fake-aaid',
-      commit: commit || 'fake-commit',
-      prTitle: 'Fake PR title',
-      prAuthorAaid: 'faka-landing-aaid',
-      prTargetBranch: branch || 'fake-branch-name',
-    };
-    await this.enqueue(landRequest);
-
-    return landRequest;
   };
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
