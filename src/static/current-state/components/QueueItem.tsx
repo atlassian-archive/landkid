@@ -145,7 +145,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
 const targetBranchToAppearance = (branch?: string) =>
   branch === 'master' ? 'moved' : branch === 'develop' ? 'new' : 'default';
 
-// const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
+const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/home#!/results/${id}`;
 
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
@@ -207,10 +207,21 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
       );
   };
 
-  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[]) => {
+  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[], bitbucketBaseUrl: string) => {
     if (this.state.landRequestInfo === null) return null;
+
+    const buildId = status.request.buildId;
+    const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
+
     return (
       <React.Fragment>
+        {buildId ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Pipelines link:">
+              <a href={buildUrl}>#{buildId}</a>
+            </StatusItem>
+          </div>
+        ) : null}
         <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
           {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
             <StatusItem
@@ -246,7 +257,6 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   render() {
     const { bitbucketBaseUrl, queue } = this.props;
     const { status } = this.state;
-    // TODO use buildId to make a new url
     const {
       request: { dependsOn, pullRequestId, pullRequest },
     } = status;
@@ -265,10 +275,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     }
 
     return (
-      <div
-        className={`${queueItemStyles} queue-item`}
-        // href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
-      >
+      <div className={`${queueItemStyles} queue-item`}>
         <ak-grid layout="fluid">
           <ak-grid-column size={status.state === 'queued' || status.state === 'running' ? 11 : 12}>
             <div className="queue-item__title">
@@ -347,7 +354,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             <StatusItem title={this.state.landRequestInfo ? 'Show less' : 'Show more...'} />
           </div>
         </div>
-        {this.renderMoreInfo(status, dependsOnPRs)}
+        {this.renderMoreInfo(status, dependsOnPRs, bitbucketBaseUrl)}
       </div>
     );
   }
