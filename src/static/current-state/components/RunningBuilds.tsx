@@ -8,7 +8,7 @@ export type Props = {
 };
 
 function findRunning(updates: IStatusUpdate[]) {
-  return updates.filter(update => update.state === 'running');
+  return updates.filter(update => ['running', 'awaiting-merge'].includes(update.state));
 }
 
 export const RunningBuilds: React.FunctionComponent<Props> = props => {
@@ -37,7 +37,11 @@ export const RunningBuilds: React.FunctionComponent<Props> = props => {
       <h3>Running Builds</h3>
       {Object.keys(groupedByTargetBranch).map(branch => (
         <div style={{ paddingTop: '27px' }}>
-          <QueueItemsList bitbucketBaseUrl={props.bitbucketBaseUrl} queue={props.queue} running />
+          <QueueItemsList
+            bitbucketBaseUrl={props.bitbucketBaseUrl}
+            queue={groupedByTargetBranch[branch]}
+            running
+          />
         </div>
       ))}
     </Section>
