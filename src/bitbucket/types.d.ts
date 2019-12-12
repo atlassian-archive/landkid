@@ -22,6 +22,11 @@ declare namespace BB {
     author: User;
     title: string;
     description: string;
+    source: {
+      commit: {
+        hash: string;
+      };
+    };
     destination: {
       branch: {
         name: string;
@@ -47,6 +52,7 @@ declare namespace BB {
     author: string;
     authorAaid: string;
     targetBranch: string;
+    commit: string;
     state: PRState;
     approvals: Array<string>;
     openTasks: number;

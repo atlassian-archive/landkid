@@ -37,7 +37,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errors.push(...landChecks.errors);
           landCheckErrors.push(...landChecks.errors);
 
-          const queued = await runner.queue.getStatusesForQueuedRequests();
+          const queued = await runner.queue.getQueue();
           const waiting = await runner.queue.getStatusesForWaitingRequests();
 
           for (const queueItem of [...queued, ...waiting]) {

@@ -49,7 +49,7 @@ export class BitbucketPipelinesAPI {
     };
   };
 
-  public createLandBuild = async (commit: string) => {
+  public createLandBuild = async (commit: string, depCommits: string) => {
     Logger.info('Creating land build for commit', { commit });
     const data = {
       target: {
@@ -57,6 +57,12 @@ export class BitbucketPipelinesAPI {
         selector: { type: 'custom', pattern: 'landkid' },
         type: 'pipeline_commit_target',
       },
+      variables: [
+        {
+          key: 'LANDKID_DEPENDENCY_COMMITS',
+          value: depCommits,
+        },
+      ],
     };
     const endpoint = `${this.apiBaseUrl}/pipelines/`;
     const resp = await axios.post(

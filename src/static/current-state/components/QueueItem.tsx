@@ -61,6 +61,13 @@ let queueItemStyles = css({
     lineHeight: '1.33333',
     marginRight: '6px',
   },
+
+  '& .queue-item__clickable': {
+    userSelect: 'none',
+    '&:hover': {
+      cursor: 'pointer',
+    },
+  },
 });
 
 let queueItemJoinedStyles = css({
@@ -77,6 +84,13 @@ let queueItemJoinedStyles = css({
     left: '50%',
     marginLeft: '-1px',
   },
+});
+
+let icon = css({
+  height: '11px',
+  width: '11px',
+  marginBottom: '-1px',
+  paddingRight: '2px',
 });
 
 let duration = (start: number, end: number) => {
@@ -100,6 +114,7 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
 
 const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
   'will-queue-when-ready': 'new',
+  'awaiting-merge': 'new',
   queued: 'new',
   running: 'inprogress',
   success: 'success',
@@ -109,6 +124,7 @@ const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> 
 
 const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Waiting to Land',
+  'awaiting-merge': 'Awaiting Merge',
   queued: 'In Queue',
   running: 'Running',
   success: 'Succeeded',
@@ -118,6 +134,7 @@ const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
 
 const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Told To Land When Ready',
+  'awaiting-merge': 'Told to Merge',
   queued: 'Told To Land',
   running: 'Started',
   success: 'Succeeded',
@@ -133,14 +150,26 @@ const buildUrlFromId = (base: string, id: number) => `${base}/addon/pipelines/ho
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
 export type QueueItemProps = {
-  request: ILandRequest;
-  status: IStatusUpdate | null;
+  status: IStatusUpdate;
   bitbucketBaseUrl: string;
+  queue?: IStatusUpdate[];
 };
 
-export class QueueItem extends React.Component<QueueItemProps> {
+type QueueItemState = {
+  status: IStatusUpdate;
+  landRequestInfo: {
+    statuses: IStatusUpdate[];
+  } | null;
+};
+
+export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
+  state: QueueItemState = {
+    status: this.props.status,
+    landRequestInfo: null,
+  };
+
   handleRemoveClick = () => {
-    fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' })
+    fetch(`/api/remove/${this.props.status.requestId}`, { method: 'POST' })
       .then(response => response.json())
       .then(json => {
         if (json.error) {
@@ -152,27 +181,103 @@ export class QueueItem extends React.Component<QueueItemProps> {
       });
   };
 
-  render() {
-    const {
-      bitbucketBaseUrl,
-      request: { buildId, pullRequestId, pullRequest, created },
-      status,
-    } = this.props;
+  handleCancelClick = () => {
+    fetch(`/api/cancel/${this.props.status.requestId}`, { method: 'POST' })
+      .then(response => response.json())
+      .then(json => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          location.reload();
+        }
+      });
+  };
 
-    if (!status) return null;
+  displayMoreInfo = () => {
+    fetch(`/api/landrequest/${this.props.status.requestId}`, { method: 'GET' })
+      .then(response => response.json())
+      .then(landRequestInfo =>
+        this.setState({
+          status: landRequestInfo.statuses.find(
+            (status: IStatusUpdate) => status.isLatest === true,
+          ),
+          landRequestInfo,
+        }),
+      );
+  };
 
-    const displayTargetBranch =
-      pullRequest.targetBranch &&
-      status &&
-      ['will-queue-when-ready', 'queued', 'running'].includes(status.state);
+  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[], bitbucketBaseUrl: string) => {
+    if (this.state.landRequestInfo === null) return null;
+
+    const buildId = status.request.buildId;
+    const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
 
     return (
-      <a
-        className={`${queueItemStyles} queue-item`}
-        href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
-      >
+      <React.Fragment>
+        {buildId ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Pipelines link:">
+              <a href={buildUrl}>#{buildId}</a>
+            </StatusItem>
+          </div>
+        ) : null}
+        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
+            <StatusItem
+              title={
+                index === 0
+                  ? 'Status History:'
+                  : `— ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
+              }
+            >
+              <Lozenge
+                appearance={landStatusToAppearance[status.state]}
+                title={status.reason || undefined}
+              >
+                {landStatusToNiceString[status.state]}
+              </Lozenge>
+            </StatusItem>
+          ))}
+        </div>
+        {status.reason ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Reason:">{status.reason}</StatusItem>
+          </div>
+        ) : null}
+        {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
+          </div>
+        ) : null}
+      </React.Fragment>
+    );
+  };
+
+  render() {
+    const { bitbucketBaseUrl, queue } = this.props;
+    const { status } = this.state;
+    const {
+      request: { dependsOn, pullRequestId, pullRequest },
+    } = status;
+
+    const dependsOnPRs: string[] = [];
+    if (dependsOn && queue) {
+      dependsOn.split(',').forEach(depId => {
+        const depItem = queue.find(item => item.requestId === depId);
+        if (!depItem) {
+          console.error(`Cannot find dependency PR with request id ${status.requestId}`);
+          dependsOnPRs.push('??');
+        } else {
+          dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
+        }
+      });
+    }
+
+    return (
+      <div className={`${queueItemStyles} queue-item`}>
         <ak-grid layout="fluid">
-          <ak-grid-column size={status.state === 'queued' ? 11 : 12}>
+          <ak-grid-column size={status.state === 'queued' || status.state === 'running' ? 11 : 12}>
             <div className="queue-item__title">
               <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
               {pullRequest.title}
@@ -194,7 +299,7 @@ export class QueueItem extends React.Component<QueueItemProps> {
                 </Lozenge>
               </StatusItem>
 
-              {displayTargetBranch ? (
+              {pullRequest.targetBranch ? (
                 <StatusItem title="Target Branch:">
                   <Lozenge
                     appearance={targetBranchToAppearance(pullRequest.targetBranch)}
@@ -208,29 +313,49 @@ export class QueueItem extends React.Component<QueueItemProps> {
               <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
                 {distanceInWords(status.date, { addSuffix: true })}
               </StatusItem>
-
-              {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
-                <StatusItem title="Duration:">
-                  <Lozenge appearance="new">
-                    {duration(+new Date(created), +new Date(status.date))}
-                  </Lozenge>
-                </StatusItem>
-              ) : null}
             </div>
+
+            {(status.state === 'queued' || status.state === 'running') &&
+            dependsOnPRs.length > 0 ? (
+              <div className="queue-item__status-line">
+                <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
+              </div>
+            ) : null}
           </ak-grid-column>
-          {status.state === 'queued' ? (
+
+          {['queued', 'running'].includes(status.state) ? (
             <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
               <button
                 className="ak-button ak-button__appearance-default"
                 style={{ float: 'right' }}
-                onClick={this.handleRemoveClick}
+                onClick={() =>
+                  status.state === 'queued' ? this.handleRemoveClick() : this.handleCancelClick()
+                }
               >
-                Remove
+                {status.state === 'queued' ? 'Remove' : 'Cancel'}
               </button>
             </ak-grid-column>
           ) : null}
         </ak-grid>
-      </a>
+
+        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <div
+            className="queue-item__clickable"
+            style={{ width: '95px' }}
+            onClick={() =>
+              this.state.landRequestInfo
+                ? this.setState({ landRequestInfo: null })
+                : this.displayMoreInfo()
+            }
+          >
+            <svg focusable="false" className={icon}>
+              <use xlinkHref={`#ak-icon-${this.state.landRequestInfo ? 'cross' : 'add'}`} />
+            </svg>
+            <StatusItem title={this.state.landRequestInfo ? 'Show less' : 'Show more...'} />
+          </div>
+        </div>
+        {this.renderMoreInfo(status, dependsOnPRs, bitbucketBaseUrl)}
+      </div>
     );
   }
 }

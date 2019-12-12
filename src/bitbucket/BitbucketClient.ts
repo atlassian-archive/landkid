@@ -77,8 +77,8 @@ export class BitbucketClient {
     };
   }
 
-  createLandBuild(commit: string) {
-    return this.pipelines.createLandBuild(commit);
+  createLandBuild(commit: string, depCommits: string) {
+    return this.pipelines.createLandBuild(commit, depCommits);
   }
 
   async stopLandBuild(buildId: number) {

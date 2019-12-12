@@ -79,6 +79,7 @@ export class BitbucketAPI {
       createdOn: new Date(data.created_on),
       author: data.author.account_id,
       authorAaid: data.author.uuid,
+      commit: data.source.commit.hash,
       targetBranch: data.destination.branch.name,
       state: data.state,
       approvals: approvals,

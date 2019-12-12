@@ -68,8 +68,8 @@ export type Config = {
 };
 
 export type RunnerState = {
-  queue: Array<IStatusUpdate>;
-  waitingToQueue: Array<IStatusUpdate>;
+  queue: IStatusUpdate[];
+  waitingToQueue: IStatusUpdate[];
   pauseState: IPauseState;
   daysSinceLastFailure: number;
   users: UserState[];
