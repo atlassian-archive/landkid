@@ -219,5 +219,14 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.delete(
+    '/delete-history',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      await runner.clearHistory();
+      res.json({ response: 'You better be sure about this captain... Done!' });
+    }),
+  );
+
   return router;
 }

@@ -471,6 +471,13 @@ export class Runner {
     await Installation.truncate();
   };
 
+  clearHistory = async () => {
+    Logger.info('Clearing LandRequest History');
+    await LandRequestStatus.truncate();
+    await LandRequest.truncate();
+    await PullRequest.truncate();
+  };
+
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
     const [
       daysSinceLastFailure,
