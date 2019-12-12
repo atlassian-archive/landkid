@@ -16,6 +16,8 @@ import {
 } from '../db';
 import { permissionService } from './PermissionService';
 
+const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -357,6 +359,14 @@ export class Runner {
       const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
 
       if (isAllowedToLand.errors.length === 0) {
+        const queue = await this.getQueue();
+        const existingBuild = queue.find(
+          q => q.request.pullRequestId === landRequest.request.pullRequestId,
+        );
+        if (existingBuild) {
+          await landRequest.request.setStatus('aborted', 'Already have existing Land build');
+          continue;
+        }
         this.moveFromWaitingToQueued(pullRequestId);
       }
     }
