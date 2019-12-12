@@ -3,20 +3,6 @@ import { TabContent } from './TabContent';
 import { Messenger } from './Messenger';
 import { UsersList } from './UsersList';
 
-export type ButtonProps = {
-  onClick: () => void;
-  error: string;
-};
-
-const Button: React.FunctionComponent<ButtonProps> = props => (
-  <div style={{ marginTop: '10px' }}>
-    <button className="ak-button ak-button__appearance-default" onClick={props.onClick}>
-      {props.children}
-    </button>
-    {props.error && <span style={{ color: 'red', marginLeft: '5px' }}>&larr; {props.error}</span>}
-  </div>
-);
-
 export type SystemTabProps = {
   users: UserState[];
   loggedInUser: ISessionUser;
@@ -26,8 +12,6 @@ export type SystemTabProps = {
 
 export type SystemTabsState = {
   paused: boolean;
-  nextError: string;
-  cancelError: string;
 };
 
 export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> {
@@ -35,12 +19,10 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     super(props);
     this.state = {
       paused: props.defaultPaused,
-      nextError: '',
-      cancelError: '',
     };
   }
 
-  onPauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  handlePauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     if (checked) {
       const reason = window.prompt(
@@ -64,26 +46,13 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     }
   };
 
-  onNextClick = () => {
+  handleNextClick = () => {
     fetch('/api/next', { method: 'POST' })
       .then(response => response.json())
       .then(json => {
         if (json.error) {
           console.error(json.error);
-          this.setState({ nextError: json.error });
-        } else {
-          location.reload();
-        }
-      });
-  };
-
-  onCancelClick = () => {
-    fetch('/api/cancel-current', { method: 'POST' })
-      .then(response => response.json())
-      .then(json => {
-        if (json.error) {
-          console.error(json.error);
-          this.setState({ cancelError: json.error });
+          window.alert(json.error);
         } else {
           location.reload();
         }
@@ -115,16 +84,18 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   id="pause-toggle"
                   value="pause-toggle"
                   checked={this.state.paused}
-                  onChange={this.onPauseChange}
+                  onChange={this.handlePauseChange}
                 />
                 <label htmlFor="pause-toggle">Option</label>
               </div>
-              <Button onClick={this.onNextClick} error={this.state.nextError}>
-                Next Build
-              </Button>
-              <Button onClick={this.onCancelClick} error={this.state.cancelError}>
-                Cancel Current Build
-              </Button>
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  className="ak-button ak-button__appearance-default"
+                  onClick={this.handleNextClick}
+                >
+                  Next Build
+                </button>
+              </div>
               <Messenger bannerMessageState={bannerMessageState} />
             </React.Fragment>
           )}

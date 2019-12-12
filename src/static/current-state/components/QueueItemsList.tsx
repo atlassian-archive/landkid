@@ -36,7 +36,6 @@ export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = prop
         running && index === 0 ? (
           <QueueItem
             bitbucketBaseUrl={props.bitbucketBaseUrl}
-            request={item.request}
             status={item}
             key={item.requestId}
             queue={queue}
@@ -44,7 +43,6 @@ export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = prop
         ) : (
           <QueueItemJoined
             bitbucketBaseUrl={props.bitbucketBaseUrl}
-            request={item.request}
             status={item}
             key={item.requestId}
             queue={queue}

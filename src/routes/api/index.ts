@@ -113,15 +113,6 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
-  router.post(
-    '/cancel-current',
-    requireAuth('admin'),
-    wrap(async (req, res) => {
-      await runner.cancelTopOfTheQueueBuild(req.user!);
-      res.json({ cancelled: true });
-    }),
-  );
-
   /**
    * This is a magic endpoint that allows us to call next() if landkid hangs
    */
@@ -147,12 +138,26 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/remove/:id',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      const requestID = req.params.id;
-      const success = await runner.removeLandRequestFromQueue(requestID, req.user!);
+      const requestId = req.params.id;
+      const success = await runner.removeLandRequestFromQueue(requestId, req.user!);
       if (success) {
         res.json({ message: 'Request removed from queue' });
       } else {
         res.status(400).json({ error: 'Request either does not exist or is not queued' });
+      }
+    }),
+  );
+
+  router.post(
+    '/cancel/:id',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const requestId = req.params.id;
+      const success = await runner.cancelRunningBuild(requestId, req.user!);
+      if (success) {
+        res.json({ message: 'Running build cancelled' });
+      } else {
+        res.status(400).json({ error: 'Request either does not exist or is not running' });
       }
     }),
   );

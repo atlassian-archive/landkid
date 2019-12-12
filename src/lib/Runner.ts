@@ -182,16 +182,21 @@ export class Runner {
     }
   };
 
-  cancelTopOfTheQueueBuild = async (user: ISessionUser) => {
+  cancelRunningBuild = async (requestId: string, user: ISessionUser): Promise<boolean> => {
     const running = await this.getRunningOld();
-    if (!running || !running.length) return;
-    const topOfTheQueue = running[0];
-    await topOfTheQueue.request.setStatus(
+    if (!running || !running.length) return false;
+
+    const landRequestStatus = running.find(status => status.requestId === requestId);
+    if (!landRequestStatus) return false;
+
+    await landRequestStatus.request.setStatus(
       'aborted',
       `Cancelled by user "${user.aaid}" (${user.displayName})`,
     );
-    if (topOfTheQueue.request.buildId) {
-      this.client.stopLandBuild(topOfTheQueue.request.buildId);
+    if (landRequestStatus.request.buildId) {
+      return await this.client.stopLandBuild(landRequestStatus.request.buildId);
+    } else {
+      return false;
     }
   };
 
@@ -329,15 +334,15 @@ export class Runner {
     this.next();
   };
 
-  removeLandRequestFromQueue = async (requestId: number, user: ISessionUser): Promise<boolean> => {
-    const landRequestInfo = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
-    if (!landRequestInfo) return false;
+  removeLandRequestFromQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
+    const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
+    if (!landRequestStatus) return false;
 
-    await landRequestInfo.request.setStatus(
+    await landRequestStatus.request.setStatus(
       'aborted',
       `Removed from queue by user "${user.aaid}" (${user.displayName})`,
     );
-    Logger.info('Removing landRequest from queue', { landRequestInfo });
+    Logger.info('Removing landRequest from queue', { landRequestStatus });
     return true;
   };
 
@@ -380,6 +385,12 @@ export class Runner {
         requestId,
       },
       order: [['date', 'ASC']],
+      include: [
+        {
+          model: LandRequest,
+          include: [PullRequest],
+        },
+      ],
     });
     return landRequestStatuses;
   };
