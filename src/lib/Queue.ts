@@ -93,11 +93,11 @@ export class LandRequestQueue {
   };
 
   public maybeGetStatusForQueuedRequestById = async (
-    requestId: number,
+    requestId: string,
   ): Promise<LandRequestStatus | null> => {
     const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
-        requestId: requestId,
+        requestId,
         isLatest: true,
         state: 'queued',
       },

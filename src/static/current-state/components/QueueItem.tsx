@@ -150,13 +150,13 @@ const targetBranchToAppearance = (branch?: string) =>
 const prUrlFromId = (base: string, id: number) => `${base}/pull-requests/${id}`;
 
 export type QueueItemProps = {
-  request: ILandRequest;
-  status: IStatusUpdate | null;
+  status: IStatusUpdate;
   bitbucketBaseUrl: string;
   queue?: IStatusUpdate[];
 };
 
 type QueueItemState = {
+  status: IStatusUpdate;
   landRequestInfo: {
     statuses: IStatusUpdate[];
   } | null;
@@ -164,11 +164,25 @@ type QueueItemState = {
 
 export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   state: QueueItemState = {
+    status: this.props.status,
     landRequestInfo: null,
   };
 
   handleRemoveClick = () => {
-    fetch(`/api/remove/${this.props.request.id}`, { method: 'POST' })
+    fetch(`/api/remove/${this.props.status.requestId}`, { method: 'POST' })
+      .then(response => response.json())
+      .then(json => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          location.reload();
+        }
+      });
+  };
+
+  handleCancelClick = () => {
+    fetch(`/api/cancel/${this.props.status.requestId}`, { method: 'POST' })
       .then(response => response.json())
       .then(json => {
         if (json.error) {
@@ -181,9 +195,16 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   };
 
   displayMoreInfo = () => {
-    fetch(`/api/landrequest/${this.props.request.id}`, { method: 'GET' })
+    fetch(`/api/landrequest/${this.props.status.requestId}`, { method: 'GET' })
       .then(response => response.json())
-      .then(landRequestInfo => this.setState({ landRequestInfo }));
+      .then(landRequestInfo =>
+        this.setState({
+          status: landRequestInfo.statuses.find(
+            (status: IStatusUpdate) => status.isLatest === true,
+          ),
+          landRequestInfo,
+        }),
+      );
   };
 
   renderMoreInfo = (status: IStatusUpdate, dependsOn: string[]) => {
@@ -223,14 +244,12 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   };
 
   render() {
+    const { bitbucketBaseUrl, queue } = this.props;
+    const { status } = this.state;
+    // TODO use buildId to make a new url
     const {
-      bitbucketBaseUrl,
-      request: { /*buildId,*/ dependsOn, pullRequestId, pullRequest },
-      status,
-      queue,
-    } = this.props;
-
-    if (!status) return null;
+      request: { dependsOn, pullRequestId, pullRequest },
+    } = status;
 
     const dependsOnPRs: string[] = [];
     if (dependsOn && queue) {
@@ -251,7 +270,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
         // href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
       >
         <ak-grid layout="fluid">
-          <ak-grid-column size={status.state === 'queued' ? 11 : 12}>
+          <ak-grid-column size={status.state === 'queued' || status.state === 'running' ? 11 : 12}>
             <div className="queue-item__title">
               <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
               {pullRequest.title}
@@ -287,33 +306,31 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
               <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
                 {distanceInWords(status.date, { addSuffix: true })}
               </StatusItem>
-
-              {/* {['success', 'fail', 'aborted'].indexOf(status.state) !== -1 ? (
-                <StatusItem title="Duration:">
-                  <Lozenge appearance="new">
-                    {duration(+new Date(created), +new Date(status.date))}
-                  </Lozenge>
-                </StatusItem>
-              ) : null} */}
             </div>
-            {['running', 'awaiting-merge'].includes(status.state) && dependsOnPRs.length > 0 ? (
+
+            {(status.state === 'queued' || status.state === 'running') &&
+            dependsOnPRs.length > 0 ? (
               <div className="queue-item__status-line">
                 <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
               </div>
             ) : null}
           </ak-grid-column>
-          {status.state === 'queued' ? (
+
+          {['queued', 'running'].includes(status.state) ? (
             <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
               <button
                 className="ak-button ak-button__appearance-default"
                 style={{ float: 'right' }}
-                onClick={this.handleRemoveClick}
+                onClick={() =>
+                  status.state === 'queued' ? this.handleRemoveClick() : this.handleCancelClick()
+                }
               >
-                Remove
+                {status.state === 'queued' ? 'Remove' : 'Cancel'}
               </button>
             </ak-grid-column>
           ) : null}
         </ak-grid>
+
         <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
           <div
             className="queue-item__clickable"
