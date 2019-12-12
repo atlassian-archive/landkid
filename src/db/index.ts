@@ -125,9 +125,9 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
     return dependsOnLandRequests;
   };
 
-  hasFailedDependency = async () => {
+  getFailedDependencies = async () => {
     const dependsOnStr = this.dependsOn;
-    if (!dependsOnStr) return false;
+    if (!dependsOnStr) return [];
     const dependsOnArr = dependsOnStr.split(',');
     const failedDependencies = await LandRequestStatus.findAll({
       where: {
@@ -139,9 +139,10 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
           $in: ['fail', 'aborted'],
         },
       },
+      include: [{ model: LandRequest }],
     });
 
-    return failedDependencies.length !== 0;
+    return failedDependencies;
   };
 }
 

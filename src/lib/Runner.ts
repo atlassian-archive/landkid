@@ -121,9 +121,12 @@ export class Runner {
 
       for (const landRequest of queue) {
         // Check for this _before_ looking at the state so that we don't have to wait until
-        if (await landRequest.request.hasFailedDependency()) {
+        const failedDeps = await landRequest.request.getFailedDependencies();
+        if (failedDeps.length !== 0) {
           Logger.info('LandRequest failed due to failing dependency');
-          await landRequest.request.setStatus('fail', 'Failed due to failed dependency build');
+          const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
+          const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
+          await landRequest.request.setStatus('fail', failReason);
           await landRequest.request.update({ dependsOn: null });
           // await landRequest.request.save();
           return await landRequest.request.setStatus('queued');
