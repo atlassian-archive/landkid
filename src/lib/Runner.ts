@@ -16,7 +16,7 @@ import {
 } from '../db';
 import { permissionService } from './PermissionService';
 
-const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
+// const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
 export class Runner {
   constructor(
@@ -58,6 +58,17 @@ export class Runner {
       landRequest.pullRequestId,
       triggererUserMode,
     );
+
+    // ToDo: Extra checks, should probably not be here, but this will do for now
+    const currentPrInfo = await this.client.bitbucket.getPullRequest(landRequest.pullRequestId);
+    const targetBranchMatches = currentPrInfo.targetBranch === landRequest.pullRequest.targetBranch;
+    const commitMatches = currentPrInfo.commit === landRequest.forCommit;
+    if (!targetBranchMatches) {
+      return landRequest.setStatus('aborted', 'Target branch changed between landing and running');
+    }
+    if (!commitMatches) {
+      return landRequest.setStatus('aborted', 'PR commit changed between landing and running');
+    }
 
     if (isAllowedToLand.errors.length === 0) {
       Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
@@ -271,18 +282,22 @@ export class Runner {
   };
 
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
-    const pr =
-      (await PullRequest.findOne<PullRequest>({
-        where: {
-          prId: landRequestOptions.prId,
-        },
-      })) ||
-      (await PullRequest.create<PullRequest>({
+    let pr = await PullRequest.findOne<PullRequest>({
+      where: {
+        prId: landRequestOptions.prId,
+      },
+    });
+    if (!pr) {
+      pr = await PullRequest.create<PullRequest>({
         prId: landRequestOptions.prId,
         authorAaid: landRequestOptions.prAuthorAaid,
         title: landRequestOptions.prTitle,
-        targetBranch: landRequestOptions.prTargetBranch,
-      }));
+      });
+    }
+    // Unfortunately, because we decided to make PR id's be the primary key, we need this
+    // hack to update target branches in case a PR relands with a new target branch
+    pr.targetBranch = landRequestOptions.prTargetBranch;
+    await pr.save();
 
     return await LandRequest.create<LandRequest>({
       triggererAaid: landRequestOptions.triggererAaid,
