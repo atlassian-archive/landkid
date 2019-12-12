@@ -13,32 +13,37 @@ export class LandRequestHistory {
       order: [['date', 'DESC']],
       limit: PAGE_LEN,
       offset: actualPage * PAGE_LEN,
-      attributes: ['requestId'],
+      include: [
+        {
+          model: LandRequest,
+          include: [PullRequest],
+        },
+      ],
     });
 
     // Now we need to fetch all the associated data for those requests
-    const allHistoryData = await LandRequest.findAll<LandRequest>({
-      where: {
-        id: {
-          $in: latestLandRequestStatuses.rows.map(s => s.requestId),
-        },
-      },
-      order: [['created', 'DESC']],
-      include: [PullRequest, LandRequestStatus],
-    });
+    // const allHistoryData = await LandRequest.findAll<LandRequest>({
+    //   where: {
+    //     id: {
+    //       $in: latestLandRequestStatuses.rows.map(s => s.requestId),
+    //     },
+    //   },
+    //   order: [['created', 'DESC']],
+    //   include: [PullRequest, LandRequestStatus],
+    // });
 
     // Just need to slightly transform the shape to match HistoryItem
-    const transformedHistory = allHistoryData.map(data => {
-      const { statuses: statusEvents, ...request } = data.get();
+    // const transformedHistory = allHistoryData.map(data => {
+    //   const { statuses: statusEvents, ...request } = data.get();
 
-      return {
-        statusEvents,
-        request,
-      };
-    });
+    //   return {
+    //     statusEvents,
+    //     request,
+    //   };
+    // });
 
     return {
-      history: transformedHistory,
+      history: latestLandRequestStatuses.rows,
       count: latestLandRequestStatuses.count,
       pageLen: PAGE_LEN,
     };

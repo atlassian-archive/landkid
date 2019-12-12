@@ -89,13 +89,13 @@ declare namespace Express {
   }
 }
 
-declare interface HistoryItem {
-  request: ILandRequest;
-  statusEvents: Array<IStatusUpdate>;
-}
+// declare interface HistoryItem {
+//   request: ILandRequest;
+//   statusEvents: Array<IStatusUpdate>;
+// }
 
 declare type HistoryResponse = {
-  history: HistoryItem[];
+  history: IStatusUpdate[];
   count: number;
   pageLen: number;
 };
