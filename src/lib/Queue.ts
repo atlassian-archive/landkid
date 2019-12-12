@@ -20,7 +20,7 @@ export class LandRequestQueue {
   // returns the list of queued, running and awaiting-merge items as these are the actual "queue" per se
   // all the status' we display on the frontend
   public getQueue = async (): Promise<LandRequestStatus[]> => {
-    return await LandRequestStatus.findAll<LandRequestStatus>({
+    const queue = await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {
@@ -35,6 +35,13 @@ export class LandRequestQueue {
         },
       ],
     });
+    const sortedQueue = [...queue].sort((a, b) => {
+      if (b.state === 'awaiting-merge' && a.state !== 'awaiting-merge') {
+        return 1;
+      }
+      return 0;
+    });
+    return sortedQueue;
   };
 
   // returns builds that are running or awaiting-merge, used to find the dependencies of a request

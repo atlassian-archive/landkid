@@ -122,7 +122,10 @@ export class Runner {
       for (const landRequest of queue) {
         // Check for this _before_ looking at the state so that we don't have to wait until
         if (await landRequest.request.hasFailedDependency()) {
+          Logger.info('LandRequest failed due to failing dependency');
           await landRequest.request.setStatus('fail', 'Failed due to failed dependency build');
+          await landRequest.request.update({ dependsOn: null });
+          // await landRequest.request.save();
           return await landRequest.request.setStatus('queued');
         }
         if (landRequest.state === 'awaiting-merge') {
