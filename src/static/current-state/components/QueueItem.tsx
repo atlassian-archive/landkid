@@ -208,9 +208,11 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             </StatusItem>
           ))}
         </div>
-        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
-          <StatusItem title="Reason:">{status.reason}</StatusItem>
-        </div>
+        {status.reason ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Reason:">{status.reason}</StatusItem>
+          </div>
+        ) : null}
         {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
           <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
             <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
