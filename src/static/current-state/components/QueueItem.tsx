@@ -61,6 +61,13 @@ let queueItemStyles = css({
     lineHeight: '1.33333',
     marginRight: '6px',
   },
+
+  '& .queue-item__clickable': {
+    userSelect: 'none',
+    '&:hover': {
+      cursor: 'pointer',
+    },
+  },
 });
 
 let queueItemJoinedStyles = css({
@@ -77,6 +84,13 @@ let queueItemJoinedStyles = css({
     left: '50%',
     marginLeft: '-1px',
   },
+});
+
+let icon = css({
+  height: '11px',
+  width: '11px',
+  marginBottom: '-1px',
+  paddingRight: '2px',
 });
 
 let duration = (start: number, end: number) => {
@@ -172,6 +186,40 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
       .then(landRequestInfo => this.setState({ landRequestInfo }));
   };
 
+  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[]) => {
+    if (this.state.landRequestInfo === null) return null;
+    return (
+      <React.Fragment>
+        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
+            <StatusItem
+              title={
+                index === 0
+                  ? 'Status History:'
+                  : `— ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
+              }
+            >
+              <Lozenge
+                appearance={landStatusToAppearance[status.state]}
+                title={status.reason || undefined}
+              >
+                {landStatusToNiceString[status.state]}
+              </Lozenge>
+            </StatusItem>
+          ))}
+        </div>
+        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <StatusItem title="Reason:">{status.reason}</StatusItem>
+        </div>
+        {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
+          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+            <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
+          </div>
+        ) : null}
+      </React.Fragment>
+    );
+  };
+
   render() {
     const {
       bitbucketBaseUrl,
@@ -187,11 +235,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
       dependsOn.split(',').forEach(depId => {
         const depItem = queue.find(item => item.requestId === depId);
         if (!depItem) {
-          console.error(
-            `Cannot find dependency PR with target branch ${
-              pullRequest.targetBranch
-            } and request id ${status.requestId}`,
-          );
+          console.error(`Cannot find dependency PR with request id ${status.requestId}`);
           dependsOnPRs.push('??');
         } else {
           dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
@@ -205,7 +249,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
         // href={buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#'}
       >
         <ak-grid layout="fluid">
-          <ak-grid-column size={11}>
+          <ak-grid-column size={status.state === 'queued' ? 11 : 12}>
             <div className="queue-item__title">
               <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
               {pullRequest.title}
@@ -250,14 +294,14 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
                 </StatusItem>
               ) : null} */}
             </div>
-            {dependsOnPRs.length > 0 ? (
+            {['running', 'awaiting-merge'].includes(status.state) && dependsOnPRs.length > 0 ? (
               <div className="queue-item__status-line">
                 <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
               </div>
             ) : null}
           </ak-grid-column>
-          <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
-            {status.state === 'queued' ? (
+          {status.state === 'queued' ? (
+            <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
               <button
                 className="ak-button ak-button__appearance-default"
                 style={{ float: 'right' }}
@@ -265,33 +309,26 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
               >
                 Remove
               </button>
-            ) : null}
-            <button
-              className="ak-button ak-button__appearance-default"
-              style={{ float: 'right' }}
-              onClick={this.displayMoreInfo}
-            >
-              MOAR
-            </button>
-          </ak-grid-column>
+            </ak-grid-column>
+          ) : null}
         </ak-grid>
-        {this.state.landRequestInfo ? (
-          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
-            {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
-              <StatusItem
-                title={
-                  index === 0
-                    ? 'Status History:'
-                    : `— ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
-                }
-              >
-                <Lozenge appearance={landStatusToAppearance[status.state]}>
-                  {landStatusToNiceString[status.state]}
-                </Lozenge>
-              </StatusItem>
-            ))}
+        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <div
+            className="queue-item__clickable"
+            style={{ width: '95px' }}
+            onClick={() =>
+              this.state.landRequestInfo
+                ? this.setState({ landRequestInfo: null })
+                : this.displayMoreInfo()
+            }
+          >
+            <svg focusable="false" className={icon}>
+              <use xlinkHref={`#ak-icon-${this.state.landRequestInfo ? 'cross' : 'add'}`} />
+            </svg>
+            <StatusItem title={this.state.landRequestInfo ? 'Show less' : 'Show more...'} />
           </div>
-        ) : null}
+        </div>
+        {this.renderMoreInfo(status, dependsOnPRs)}
       </div>
     );
   }

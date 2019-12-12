@@ -74,8 +74,10 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
                 <QueueItemJoined
                   bitbucketBaseUrl={this.props.bitbucketBaseUrl}
                   request={item.request}
-                  status={item.statusEvents.find(status => status.isLatest) || null}
+                  // status={item.statusEvents.find(status => status.isLatest) || null}
+                  status={item}
                   key={item.request.id}
+                  queue={history}
                 />
               ))}
               <div style={{ marginTop: '30px' }}>
