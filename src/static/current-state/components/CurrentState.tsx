@@ -33,7 +33,6 @@ let styles = css({
 export type Props = RunnerState;
 
 export const CurrentState: React.FunctionComponent<Props> = props => {
-  // const { started, paused, pausedReason, locked, queueSize, isRunning } = props;
   const { daysSinceLastFailure, queue, pauseState } = props;
   const fancyDaysSinceLastFailure = daysSinceLastFailure === -1 ? '∞' : daysSinceLastFailure;
 
@@ -64,7 +63,7 @@ export const CurrentState: React.FunctionComponent<Props> = props => {
     <Panel>
       <strong>Builds are currently paused</strong>
       <br />
-      {pauseState ? pauseState.reason : 'No reason was provided'}
+      {pauseState ? pauseState.reason || 'No reason was provided' : null}
     </Panel>
   );
 

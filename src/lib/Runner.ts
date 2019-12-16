@@ -275,17 +275,6 @@ export class Runner {
     });
   };
 
-  removeLandRequestByPullRequestId = async (pullRequestId: number, user: ISessionUser) => {
-    const requests = await LandRequest.findAll<LandRequest>({
-      where: {
-        pullRequestId,
-      },
-    });
-    for (const request of requests) {
-      await request.setStatus('aborted', `Cancelled by user: "${user.aaid}" (${user.displayName})`);
-    }
-  };
-
   enqueue = async (landRequestOptions: LandRequestOptions): Promise<void> => {
     // TODO: Ensure no land request is pending for this PR
     if (await this.getPauseState()) return;
@@ -483,7 +472,7 @@ export class Runner {
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
-      this.queue.getQueue(),
+      this.getQueue(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
