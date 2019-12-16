@@ -24,6 +24,7 @@ module.exports = {
       secret: 'ouath-secret-from-bitbucket',
     },
   },
+  maxConcurrentBuilds: 3,
   prSettings: {
     requiredApprovals: 1,
     canApproveOwnPullRequest: true,

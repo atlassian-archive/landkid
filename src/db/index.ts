@@ -139,7 +139,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
           $in: ['fail', 'aborted'],
         },
       },
-      include: [{ model: LandRequest }],
+      include: [LandRequest],
     });
 
     return failedDependencies;

@@ -9,6 +9,7 @@ export class LandRequestHistory {
     const latestLandRequestStatuses = await LandRequestStatus.findAndCountAll<LandRequestStatus>({
       where: {
         isLatest: true,
+        state: ['success', 'fail', 'aborted'],
       },
       order: [['date', 'DESC']],
       limit: PAGE_LEN,
