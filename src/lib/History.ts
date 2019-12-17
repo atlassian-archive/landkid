@@ -22,27 +22,6 @@ export class LandRequestHistory {
       ],
     });
 
-    // Now we need to fetch all the associated data for those requests
-    // const allHistoryData = await LandRequest.findAll<LandRequest>({
-    //   where: {
-    //     id: {
-    //       $in: latestLandRequestStatuses.rows.map(s => s.requestId),
-    //     },
-    //   },
-    //   order: [['created', 'DESC']],
-    //   include: [PullRequest, LandRequestStatus],
-    // });
-
-    // Just need to slightly transform the shape to match HistoryItem
-    // const transformedHistory = allHistoryData.map(data => {
-    //   const { statuses: statusEvents, ...request } = data.get();
-
-    //   return {
-    //     statusEvents,
-    //     request,
-    //   };
-    // });
-
     return {
       history: latestLandRequestStatuses.rows,
       count: latestLandRequestStatuses.count,

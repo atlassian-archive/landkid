@@ -89,11 +89,6 @@ declare namespace Express {
   }
 }
 
-// declare interface HistoryItem {
-//   request: ILandRequest;
-//   statusEvents: Array<IStatusUpdate>;
-// }
-
 declare type HistoryResponse = {
   history: IStatusUpdate[];
   count: number;

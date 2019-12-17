@@ -361,9 +361,10 @@ export class Runner {
     const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestStatus) return false;
 
+    const displayName = user.displayName || user.aaid;
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Removed from queue by user "${user.aaid}" (${user.displayName})`,
+      `Removed from queue by user "${displayName}`,
     );
     Logger.info('Removing landRequest from queue', { landRequestStatus });
     return true;

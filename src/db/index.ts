@@ -167,7 +167,6 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
     Sequelize.ENUM({
       values: [
         'will-queue-when-ready',
-        'created', // actually not used - remove
         'queued',
         'running',
         'awaiting-merge',
