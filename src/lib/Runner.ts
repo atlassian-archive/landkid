@@ -477,11 +477,17 @@ export class Runner {
       this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
     ]);
+    // We are ignoring errors because the IDE things all returned values can be null
+    // However, this is operating as intended
     return {
+      // @ts-ignore
       daysSinceLastFailure,
       pauseState,
+      // @ts-ignore
       queue,
+      // @ts-ignore
       users,
+      // @ts-ignore
       waitingToQueue,
       bannerMessageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
