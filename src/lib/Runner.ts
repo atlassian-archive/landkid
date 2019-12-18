@@ -477,7 +477,7 @@ export class Runner {
       this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
     ]);
-    // We are ignoring errors because the IDE things all returned values can be null
+    // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
     return {
       // @ts-ignore
