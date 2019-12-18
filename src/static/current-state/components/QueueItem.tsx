@@ -78,7 +78,6 @@ let queueItemStyles = css({
     overflowX: 'scroll',
     whiteSpace: 'nowrap',
 
-    // TODO: ????
     '&::-webkit-scrollbar': {
       display: 'none',
     },

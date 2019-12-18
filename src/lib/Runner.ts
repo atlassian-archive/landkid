@@ -37,7 +37,8 @@ export class Runner {
       this.next();
     }, 15 * 1000); // 15s
 
-    this.maxConcurrentBuilds = config.maxConcurrentBuilds || 1;
+    this.maxConcurrentBuilds =
+      config.maxConcurrentBuilds && config.maxConcurrentBuilds > 0 ? config.maxConcurrentBuilds : 1;
   }
 
   // old function, will remove once not used
