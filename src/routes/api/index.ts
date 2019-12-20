@@ -108,7 +108,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/unpause',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      await runner.unpause(req.user!);
+      await runner.unpause();
       res.json({ paused: false });
     }),
   );
@@ -179,7 +179,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         res.status(400).json({ error: 'Message type must be one of: default, warning, error' });
       }
       // @ts-ignore -- checks value of type above
-      runner.sendBannerMessage(message, type, req.user!);
+      runner.addBannerMessage(message, type, req.user!);
       res.json({ message });
     }),
   );
@@ -188,7 +188,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/remove-message',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      await runner.removeBannerMessage(req.user!);
+      await runner.removeBannerMessage();
       res.json({ removed: true });
     }),
   );

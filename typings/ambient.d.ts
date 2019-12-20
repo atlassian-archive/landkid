@@ -24,19 +24,15 @@ declare interface IPullRequest {
 }
 
 declare interface IPauseState {
-  id: string;
   pauserAaid: string;
-  paused: boolean;
   reason: string | null;
   date: Date;
 }
 
 declare interface IMessageState {
-  id: string;
   senderAaid: string;
-  messageExists: boolean;
-  message: string | null;
-  messageType: 'default' | 'warning' | 'error' | null;
+  message: string;
+  messageType: 'default' | 'warning' | 'error';
   date: Date;
 }
 

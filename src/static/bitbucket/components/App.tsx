@@ -3,8 +3,8 @@ import { proxyRequest } from '../utils/RequestProxy';
 
 type BannerMessage = {
   messageExists: boolean;
-  message: string | null;
-  messageType: 'default' | 'warning' | 'error' | null;
+  message: string;
+  messageType: 'default' | 'warning' | 'error';
 };
 
 type AppState = {
@@ -18,7 +18,7 @@ type AppState = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
-  bannerMessage: BannerMessage;
+  bannerMessage: BannerMessage | null;
 };
 
 export class App extends React.Component {
@@ -39,11 +39,7 @@ export class App extends React.Component {
     canLand: false,
     canLandWhenAble: false,
     errors: [],
-    bannerMessage: {
-      messageExists: false,
-      message: null,
-      messageType: null,
-    },
+    bannerMessage: null,
   };
 
   async componentDidMount() {
@@ -60,7 +56,7 @@ export class App extends React.Component {
       canLand: string;
       canLandWhenAble: string;
       errors: string[];
-      bannerMessage: BannerMessage;
+      bannerMessage: BannerMessage | null;
     };
     proxyRequest<Resp>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
@@ -200,14 +196,11 @@ export class App extends React.Component {
   };
 
   render() {
-    const {
-      curState,
-      bannerMessage: { messageExists, message, messageType },
-    } = this.state;
-    const msgType = messageType || 'default';
+    const { curState, bannerMessage } = this.state;
+    const msgType = bannerMessage ? bannerMessage.messageType : 'default';
     return (
       <React.Fragment>
-        {curState !== 'checking-can-land' && messageExists ? (
+        {curState !== 'checking-can-land' && bannerMessage ? (
           <div
             style={{
               width: 'fit-content',
@@ -218,7 +211,7 @@ export class App extends React.Component {
               fontWeight: msgType === 'default' ? 'bold' : 'normal',
             }}
           >
-            {`${this.messageEmoji[msgType]} ${message} ${this.messageEmoji[msgType]}`}
+            {`${this.messageEmoji[msgType]} ${bannerMessage.message} ${this.messageEmoji[msgType]}`}
           </div>
         ) : null}
         {this.renderLandState(curState)}

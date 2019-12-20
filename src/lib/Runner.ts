@@ -7,12 +7,12 @@ import { withLock } from './utils/locker';
 import {
   Installation,
   LandRequest,
-  PauseStateTransition,
+  PauseState,
   PullRequest,
   Permission,
   UserNote,
   LandRequestStatus,
-  MessageStateTransition,
+  BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
 
@@ -214,71 +214,42 @@ export class Runner {
   };
 
   pause = async (reason: string, user: ISessionUser) => {
-    await PauseStateTransition.create<PauseStateTransition>({
-      paused: true,
+    await this.unpause();
+    await PauseState.create<PauseState>({
+      pauserAaid: user.aaid,
       reason,
-      pauserAaid: user.aaid,
     });
   };
 
-  unpause = async (user: ISessionUser) => {
-    await PauseStateTransition.create<PauseStateTransition>({
-      paused: false,
-      pauserAaid: user.aaid,
-    });
+  unpause = async () => {
+    await PauseState.truncate();
   };
 
-  getPauseState = async (): Promise<IPauseState> => {
-    const state = await PauseStateTransition.findOne<PauseStateTransition>({
-      order: [['date', 'DESC']],
-    });
-    if (!state) {
-      return {
-        id: '_',
-        date: new Date(0),
-        paused: false,
-        pauserAaid: '',
-        reason: null,
-      };
-    }
-    return state.get();
+  getPauseState = async (): Promise<IPauseState | null> => {
+    const state = await PauseState.findOne<PauseState>();
+    return state ? state.get() : null;
   };
 
-  sendBannerMessage = async (
+  addBannerMessage = async (
     message: string,
     messageType: IMessageState['messageType'],
     user: ISessionUser,
   ) => {
-    await MessageStateTransition.create<MessageStateTransition>({
+    await this.removeBannerMessage();
+    await BannerMessageState.create<BannerMessageState>({
       senderAaid: user.aaid,
-      messageExists: true,
       message,
       messageType,
     });
   };
 
-  removeBannerMessage = async (user: ISessionUser) => {
-    await MessageStateTransition.create<MessageStateTransition>({
-      senderAaid: user.aaid,
-      messageExists: false,
-    });
+  removeBannerMessage = async () => {
+    await BannerMessageState.truncate();
   };
 
-  getBannerMessageState = async (): Promise<IMessageState> => {
-    const state = await MessageStateTransition.findOne<MessageStateTransition>({
-      order: [['date', 'DESC']],
-    });
-    if (!state) {
-      return {
-        id: '_',
-        senderAaid: '',
-        messageExists: false,
-        message: null,
-        messageType: null,
-        date: new Date(0),
-      };
-    }
-    return state.get();
+  getBannerMessageState = async (): Promise<IMessageState | null> => {
+    const state = await BannerMessageState.findOne<BannerMessageState>();
+    return state ? state.get() : null;
   };
 
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
@@ -306,20 +277,9 @@ export class Runner {
     });
   };
 
-  removeLandRequestByPullRequestId = async (pullRequestId: number, user: ISessionUser) => {
-    const requests = await LandRequest.findAll<LandRequest>({
-      where: {
-        pullRequestId,
-      },
-    });
-    for (const request of requests) {
-      await request.setStatus('aborted', `Cancelled by user: "${user.aaid}" (${user.displayName})`);
-    }
-  };
-
   enqueue = async (landRequestOptions: LandRequestOptions): Promise<void> => {
     // TODO: Ensure no land request is pending for this PR
-    if ((await this.getPauseState()).paused) return;
+    if (await this.getPauseState()) return;
 
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
@@ -327,7 +287,7 @@ export class Runner {
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
     // TODO: Ensure no land request is pending for this PR
-    if ((await this.getPauseState()).paused) return;
+    if (await this.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 
@@ -514,16 +474,22 @@ export class Runner {
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
-      this.queue.getQueue(),
+      this.getQueue(),
       this.getUsersPermissions(requestingUser),
       this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
     ]);
+    // We are ignoring errors because the IDE thinks all returned values can be null
+    // However, this is operating as intended
     return {
+      // @ts-ignore
       daysSinceLastFailure,
       pauseState,
+      // @ts-ignore
       queue,
+      // @ts-ignore
       users,
+      // @ts-ignore
       waitingToQueue,
       bannerMessageState,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${

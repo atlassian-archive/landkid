@@ -248,19 +248,11 @@ export class UserNote extends Model<UserNote> implements IUserNote {
 }
 
 @Table
-export class PauseStateTransition extends Model<PauseStateTransition> implements IPauseState {
+export class PauseState extends Model<PauseState> implements IPauseState {
   @PrimaryKey
-  @Default(Sequelize.UUIDV4)
-  @Column(Sequelize.UUID)
-  id: string;
-
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly pauserAaid: string;
-
-  @AllowNull(false)
-  @Column(Sequelize.BOOLEAN)
-  readonly paused: boolean;
 
   @AllowNull(true)
   @Column(Sequelize.STRING({ length: 2000 }))
@@ -273,25 +265,17 @@ export class PauseStateTransition extends Model<PauseStateTransition> implements
 }
 
 @Table
-export class MessageStateTransition extends Model<MessageStateTransition> implements IMessageState {
+export class BannerMessageState extends Model<BannerMessageState> implements IMessageState {
   @PrimaryKey
-  @Default(Sequelize.UUIDV4)
-  @Column(Sequelize.UUID)
-  id: string;
-
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly senderAaid: string;
 
   @AllowNull(false)
-  @Column(Sequelize.BOOLEAN)
-  readonly messageExists: boolean;
-
-  @AllowNull(true)
   @Column(Sequelize.STRING({ length: 2000 }))
   readonly message: string;
 
-  @AllowNull(true)
+  @AllowNull(false)
   @Column(
     Sequelize.ENUM({
       values: ['default', 'warning', 'error'],
@@ -317,8 +301,8 @@ export const initializeSequelize = async () => {
 
   sequelize.addModels([
     Installation,
-    PauseStateTransition,
-    MessageStateTransition,
+    PauseState,
+    BannerMessageState,
     Permission,
     UserNote,
     PullRequest,

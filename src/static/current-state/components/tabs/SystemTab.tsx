@@ -7,7 +7,7 @@ export type SystemTabProps = {
   users: UserState[];
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
-  bannerMessageState: IMessageState;
+  bannerMessageState: IMessageState | null;
 };
 
 export type SystemTabsState = {
