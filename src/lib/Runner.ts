@@ -214,7 +214,7 @@ export class Runner {
   };
 
   pause = async (reason: string, user: ISessionUser) => {
-    this.unpause();
+    await this.unpause();
     await PauseState.create<PauseState>({
       pauserAaid: user.aaid,
       reason,
@@ -235,7 +235,7 @@ export class Runner {
     messageType: IMessageState['messageType'],
     user: ISessionUser,
   ) => {
-    this.removeBannerMessage();
+    await this.removeBannerMessage();
     await BannerMessageState.create<BannerMessageState>({
       senderAaid: user.aaid,
       message,
