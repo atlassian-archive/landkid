@@ -214,6 +214,7 @@ export class Runner {
   };
 
   pause = async (reason: string, user: ISessionUser) => {
+    this.unpause();
     await PauseState.create<PauseState>({
       pauserAaid: user.aaid,
       reason,
@@ -229,11 +230,12 @@ export class Runner {
     return state ? state.get() : null;
   };
 
-  sendBannerMessage = async (
+  addBannerMessage = async (
     message: string,
     messageType: IMessageState['messageType'],
     user: ISessionUser,
   ) => {
+    this.removeBannerMessage();
     await BannerMessageState.create<BannerMessageState>({
       senderAaid: user.aaid,
       message,
