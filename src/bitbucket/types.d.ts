@@ -84,6 +84,7 @@ declare namespace BB {
   type BuildState = 'SUCCESSFUL' | 'FAILED' | 'INPROGRESS' | 'STOPPED' | 'DEFAULT' | 'PENDING';
 
   type BuildStatus = {
+    name: string;
     state: BuildState;
     createdOn: Date;
     url: string;
