@@ -98,6 +98,7 @@ export class BitbucketAPI {
     return allBuildStatuses
       .filter(buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/))
       .map(status => ({
+        name: status.name,
         state: status.state,
         createdOn: new Date(status.created_on),
         url: status.url,
