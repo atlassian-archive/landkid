@@ -139,7 +139,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
           $in: ['fail', 'aborted'],
         },
       },
-      include: [{ model: LandRequest }],
+      include: [LandRequest],
     });
 
     return failedDependencies;
@@ -167,7 +167,6 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
     Sequelize.ENUM({
       values: [
         'will-queue-when-ready',
-        'created', // actually not used - remove
         'queued',
         'running',
         'awaiting-merge',

@@ -19,6 +19,8 @@ import { permissionService } from './PermissionService';
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
 export class Runner {
+  maxConcurrentBuilds: number;
+
   constructor(
     public queue: LandRequestQueue,
     private history: LandRequestHistory,
@@ -34,6 +36,9 @@ export class Runner {
     setInterval(() => {
       this.next();
     }, 15 * 1000); // 15s
+
+    this.maxConcurrentBuilds =
+      config.maxConcurrentBuilds && config.maxConcurrentBuilds > 0 ? config.maxConcurrentBuilds : 1;
   }
 
   // old function, will remove once not used
@@ -50,6 +55,9 @@ export class Runner {
   };
 
   moveFromQueueToRunning = async (landRequest: LandRequest) => {
+    const running = await this.getRunning();
+    if (running.length >= this.maxConcurrentBuilds) return false;
+
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
     );
@@ -72,7 +80,6 @@ export class Runner {
 
     if (isAllowedToLand.errors.length === 0) {
       Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
-      const running = await this.getRunning();
       // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
       // as yourself
       const dependencies = running.filter(
@@ -315,9 +322,10 @@ export class Runner {
     const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestStatus) return false;
 
+    const displayName = user.displayName || user.aaid;
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Removed from queue by user "${user.aaid}" (${user.displayName})`,
+      `Removed from queue by user "${displayName}`,
     );
     Logger.info('Removing landRequest from queue', { landRequestStatus });
     return true;

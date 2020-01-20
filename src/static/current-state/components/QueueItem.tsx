@@ -16,6 +16,10 @@ let queueItemStyles = css({
   transition: 'box-shadow 0.3s',
   color: 'inherit',
 
+  '& > ak-grid': {
+    padding: '0px',
+  },
+
   '&:hover': {
     boxShadow: 'rgba(23, 43, 77, 0.32) 0px 4px 8px -2px, rgba(23, 43, 77, 0.25) 0px 0px 1px',
     color: 'inherit',
@@ -36,9 +40,8 @@ let queueItemStyles = css({
   '& .queue-item__status-line': {
     display: 'flex',
     flexGrow: 1,
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     marginTop: 'auto',
-    overflow: 'hidden',
     height: '28px',
   },
 
@@ -46,7 +49,6 @@ let queueItemStyles = css({
     display: 'inline-flex',
     flexDirection: 'row',
     alignItems: 'center',
-    maxWidth: 'calc(100% - 16px)',
     height: '28px',
 
     '& + .queue-item__status-item': {
@@ -66,6 +68,18 @@ let queueItemStyles = css({
     userSelect: 'none',
     '&:hover': {
       cursor: 'pointer',
+    },
+  },
+
+  '& .queue-item__more-info': {
+    marginLeft: '8px',
+    marginRight: '8px',
+    overflowY: 'hidden',
+    overflowX: 'scroll',
+    whiteSpace: 'nowrap',
+
+    '&::-webkit-scrollbar': {
+      display: 'none',
     },
   },
 });
@@ -214,21 +228,21 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
 
     return (
-      <React.Fragment>
+      <div className="queue-item__more-info">
         {buildId ? (
-          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <div className="queue-item__status-line">
             <StatusItem title="Pipelines link:">
               <a href={buildUrl}>#{buildId}</a>
             </StatusItem>
           </div>
         ) : null}
-        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+        <div className="queue-item__status-line">
           {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
             <StatusItem
               title={
                 index === 0
                   ? 'Status History:'
-                  : `— ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
+                  : `→ ${duration(+new Date(statuses[index - 1].date), +new Date(status.date))} →`
               }
             >
               <Lozenge
@@ -241,16 +255,16 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           ))}
         </div>
         {status.reason ? (
-          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <div className="queue-item__status-line">
             <StatusItem title="Reason:">{status.reason}</StatusItem>
           </div>
         ) : null}
         {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
-          <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+          <div className="queue-item__status-line">
             <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
           </div>
         ) : null}
-      </React.Fragment>
+      </div>
     );
   };
 
@@ -338,7 +352,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           ) : null}
         </ak-grid>
 
-        <div className="queue-item__status-line" style={{ paddingLeft: '16px' }}>
+        <div className="queue-item__status-line" style={{ paddingLeft: '8px' }}>
           <div
             className="queue-item__clickable"
             style={{ width: '95px' }}
