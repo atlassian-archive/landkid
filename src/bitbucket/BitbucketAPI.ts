@@ -13,9 +13,9 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (pullRequestId: number) => {
+  mergePullRequest = async (pullRequestId: number, targetBranch: string) => {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
-    const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on Master`;
+    const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     const data = {
       close_source_branch: true,
       message,

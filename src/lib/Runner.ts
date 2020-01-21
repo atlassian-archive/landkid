@@ -131,7 +131,10 @@ export class Runner {
     try {
       const pullRequestId = landRequest.request.pullRequestId;
       Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
-      await this.client.mergePullRequest(pullRequestId);
+      await this.client.mergePullRequest(
+        pullRequestId,
+        landRequest.request.pullRequest.targetBranch,
+      );
       Logger.info('Successfully merged PR', { pullRequestId });
       return await landRequest.request.setStatus('success');
     } catch (err) {

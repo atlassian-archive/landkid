@@ -85,8 +85,8 @@ export class BitbucketClient {
     return await this.pipelines.stopLandBuild(buildId);
   }
 
-  async mergePullRequest(pullRequestId: number) {
-    return await this.bitbucket.mergePullRequest(pullRequestId);
+  async mergePullRequest(pullRequestId: number, targetBranch: string) {
+    return await this.bitbucket.mergePullRequest(pullRequestId, targetBranch);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {
