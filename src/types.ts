@@ -63,6 +63,7 @@ export type Config = {
   repoConfig: RepoConfig;
   prSettings: PullRequestSettings;
   deployment: DeploymentConfig;
+  maxConcurrentBuilds?: number;
   sequelize?: any;
   easterEgg?: any;
 };
