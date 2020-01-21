@@ -305,6 +305,8 @@ export class Runner {
   };
 
   moveFromWaitingToQueued = async (pullRequestId: number) => {
+    if (await this.getPauseState()) return;
+
     const requests = await LandRequest.findAll<LandRequest>({
       where: {
         pullRequestId,
