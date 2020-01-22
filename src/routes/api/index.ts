@@ -44,7 +44,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
 
   router.get(
     '/history',
-    requireAuth('read'),
+    requireAuth('land'),
     wrap(async (req, res) => {
       const page = parseInt(req.query.page || '0', 10);
       const history = await runner.getHistory(page);

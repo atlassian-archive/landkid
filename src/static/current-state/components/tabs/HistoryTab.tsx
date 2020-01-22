@@ -33,6 +33,7 @@ import { Section } from '../Section';
 
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
+  loggedInUser: ISessionUser;
 };
 
 type HistoryState = {
@@ -58,10 +59,14 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
         endpoint={`api/history?page=${this.state.page}`}
         render={historyResponse => {
           const { history, pageLen, count } = historyResponse;
-          if (!history.length) {
+          if (history === undefined || !history.length) {
             return (
               <TabContent>
-                <EmptyState>Empty...</EmptyState>
+                <EmptyState>
+                  {this.props.loggedInUser.permission === 'admin'
+                    ? 'Contact an admin for permission to view this information'
+                    : 'Empty...'}
+                </EmptyState>
               </TabContent>
             );
           }

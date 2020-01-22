@@ -125,8 +125,12 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             bannerMessageState={bannerMessageState}
           />
         ) : null}
-        {selected === 1 ? <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} queue={queue} /> : null}
-        {selected === 2 ? <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} /> : null}
+        {selected === 1 ? (
+          <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} loggedInUser={loggedInUser} queue={queue} />
+        ) : null}
+        {selected === 2 ? (
+          <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} loggedInUser={loggedInUser} />
+        ) : null}
       </Section>
     );
   }
