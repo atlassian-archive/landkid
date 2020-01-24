@@ -393,7 +393,9 @@ export class Runner {
     return landRequestStatuses;
   };
 
-  private getUsersPermissions = async (requestingUser: ISessionUser): Promise<UserState[]> => {
+  private getUsersPermissions = async (
+    requestingUserMode: IPermissionMode,
+  ): Promise<UserState[]> => {
     // TODO: Figure out how to use distinct
     const perms = await Permission.findAll<Permission>({
       order: [['dateAssigned', 'DESC']],
@@ -411,7 +413,6 @@ export class Runner {
     }
 
     const aaidNotes: Record<string, string> = {};
-    const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
     if (requestingUserMode === 'admin') {
       const notes = await UserNote.findAll<UserNote>();
       for (const note of notes) {
@@ -477,6 +478,7 @@ export class Runner {
   };
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
+    const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
     const [
       daysSinceLastFailure,
       pauseState,
@@ -487,9 +489,9 @@ export class Runner {
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
-      this.getQueue(),
-      this.getUsersPermissions(requestingUser),
-      this.queue.getStatusesForWaitingRequests(),
+      requestingUserMode === 'read' ? [] : this.getQueue(),
+      this.getUsersPermissions(requestingUserMode),
+      requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
     ]);
     // We are ignoring errors because the IDE thinks all returned values can be null
