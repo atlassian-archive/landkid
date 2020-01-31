@@ -56,7 +56,10 @@ export class Runner {
 
   moveFromQueueToRunning = async (landRequest: LandRequest) => {
     const running = await this.getRunning();
-    if (running.length >= this.maxConcurrentBuilds) return false;
+    const runningTargetingSameBranch = running.filter(
+      build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+    );
+    if (runningTargetingSameBranch.length >= this.maxConcurrentBuilds) return false;
 
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
@@ -82,12 +85,11 @@ export class Runner {
       Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
       // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
       // as yourself
-      const dependencies = running.filter(
-        build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
-      );
-      const dependsOnStr = dependencies.map(queueItem => queueItem.request.id).join(',');
+      const dependsOnStr = runningTargetingSameBranch
+        .map(queueItem => queueItem.request.id)
+        .join(',');
       const depCommitsArrStr = JSON.stringify(
-        dependencies.map(queueItem => queueItem.request.forCommit),
+        runningTargetingSameBranch.map(queueItem => queueItem.request.forCommit),
       );
 
       const buildId = await this.client.createLandBuild(commit, depCommitsArrStr);
