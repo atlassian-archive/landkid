@@ -128,6 +128,7 @@ export class App extends React.Component {
                 type="button"
                 className="ak-button ak-button__appearance-primary"
                 onClick={this.onLandClicked}
+                data-test-id="land-button"
               >
                 Land
               </button>

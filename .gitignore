@@ -11,3 +11,7 @@ db.sqlite
 env
 env.sh
 .logs
+cypress.env.json
+
+# TODO remove once test suite is finished
+cypress/integration/examples
