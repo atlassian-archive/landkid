@@ -336,6 +336,15 @@ export class Runner {
     return true;
   };
 
+  moveRequestToTopOfQueue = async (requestId: string): Promise<boolean> => {
+    const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
+    if (!landRequestStatus) return false;
+    Logger.info('yeet', { lrs: landRequestStatus });
+
+    await landRequestStatus.request.setStatus('queued');
+    return true;
+  };
+
   checkWaitingLandRequests = async () => {
     Logger.info('Checking for waiting landrequests ready to queue');
 
