@@ -1,1 +1,1 @@
-import 'cypress-wait-until';
+// cypress config
