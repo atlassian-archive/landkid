@@ -336,12 +336,19 @@ export class Runner {
     return true;
   };
 
-  moveRequestToTopOfQueue = async (requestId: string): Promise<boolean> => {
+  moveRequestToTopOfQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
     const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestStatus) return false;
     Logger.info('yeet', { lrs: landRequestStatus });
 
-    await landRequestStatus.request.setStatus('queued');
+    const requestAtTop = (await this.getQueue())[0];
+    const topDate = new Date(requestAtTop.date.getDate() - 1);
+
+    await landRequestStatus.request.setStatus(
+      'queued',
+      `moved to the top of the queue by user ${user.aaid}`,
+      topDate,
+    );
     return true;
   };
 

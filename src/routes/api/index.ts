@@ -240,7 +240,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
-      const success = await runner.moveRequestToTopOfQueue(requestId);
+      const success = await runner.moveRequestToTopOfQueue(requestId, req.user!);
       if (success) {
         res.json({ message: 'Request moved to top of queue' });
       } else {
