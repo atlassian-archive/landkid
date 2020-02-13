@@ -12,3 +12,4 @@ env
 env.sh
 .logs
 cypress.env.json
+/cypress/screenshots

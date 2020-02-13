@@ -4,8 +4,7 @@ const sessionID =
   's%3Ab9ex0ZJBLfMRscLx0qpJko1zcEs2PwXd.Ido3uJL%2F3L4iK%2B4YLhYpKPc5YFyuglsnUznMgs8gX8E';
 const landkidURL = 'https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/';
 
-const promisify = command => new Promise(resolve => command().then(resolve));
-const request = config => promisify(() => cy.request(config));
+const request = config => new Promise(resolve => cy.request(config).then(resolve));
 
 describe('Testing Landkid', () => {
   const username = Cypress.env('BITBUCKET_USERNAME');
@@ -91,33 +90,35 @@ describe('Testing Landkid', () => {
       },
     });
 
+  const landPRs = async ids => Promise.all(ids.map(id => landPR(id)));
+
   const getHistory = async () =>
     request({
       url: '/api/history?page=1',
       method: 'GET',
     });
 
-  const waitForPRsToFinish = async ids =>
+  const waitForPRsToFinish = async (ids, waitTime = 30000) =>
     new Promise(async resolve => {
       while (true) {
+        cy.wait(waitTime);
         const prHistory = (await getHistory()).body.history.filter(item =>
           ids.includes(item.request.pullRequestId),
         );
         if (prHistory.length === ids.length) {
-          resolve(prHistory);
+          resolve(prHistory.map(item => item.state).reverse());
           break;
         }
-        cy.wait(10000);
       }
     });
 
   it('Sequence of successful PRs', async () => {
-    const PRSequence = [true];
+    const PRSequence = [true, true];
     const ids = await createPRSequence(PRSequence);
     cy.log(ids);
-    await Promise.all(ids.map(id => landPR(id)));
-
-    const prHistory = await waitForPRsToFinish(ids);
-    console.log(prHistory);
+    await landPRs(ids);
+    const prStates = await waitForPRsToFinish(ids);
+    cy.log(prStates);
+    expect(prStates).to.deep.equal(['success', 'success']);
   });
 });

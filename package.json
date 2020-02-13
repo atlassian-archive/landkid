@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "test": "ava",
+    "test": "yarn run cypress run --spec cypress/integration/pr-flow.spec.js",
     "format": "prettier --write src/**/*.ts src/**/*.tsx",
     "build": "yarn run clean && yarn build:server && yarn build:ui",
     "build:server": "tsc",
