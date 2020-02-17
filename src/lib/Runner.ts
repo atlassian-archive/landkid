@@ -379,20 +379,26 @@ export class Runner {
     return landRequest;
   };
 
-  getLandRequestStatuses = async (requestId: number): Promise<LandRequestStatus[]> => {
-    const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
-      where: {
-        requestId,
-      },
-      order: [['date', 'ASC']],
-      include: [
-        {
-          model: LandRequest,
-          include: [PullRequest],
+  getStatusesForLandRequests = async (
+    requestIds: string[],
+  ): Promise<{ [id: string]: LandRequestStatus[] }> => {
+    const statuses: { [id: string]: LandRequestStatus[] } = {};
+    for (const requestId of requestIds) {
+      const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+        where: {
+          requestId,
         },
-      ],
-    });
-    return landRequestStatuses;
+        order: [['date', 'ASC']],
+        include: [
+          {
+            model: LandRequest,
+            include: [PullRequest],
+          },
+        ],
+      });
+      statuses[requestId] = landRequestStatuses;
+    }
+    return statuses;
   };
 
   private getUsersPermissions = async (
