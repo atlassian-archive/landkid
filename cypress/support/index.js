@@ -2,7 +2,7 @@ import faker from 'faker';
 
 const username = 'jackrgardner';
 const password = Cypress.env('BITBUCKET_APP_PASSWORD');
-const repo = 'atlassian-frontend-landkid-test-repo';
+const repo = 'changeset-testing';
 
 Cypress.Commands.overwrite('log', (originalFn, args) => {
   console.log(args);
@@ -11,7 +11,7 @@ Cypress.Commands.overwrite('log', (originalFn, args) => {
 
 Cypress.Commands.add('visitLandkid', () => {
   cy.setCookie('landkid.sid', Cypress.env('LANDKID_SESSION_ID'));
-  cy.visit('https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/');
+  cy.visit('https://jgardner.ngrok.io/current-state/');
 });
 
 Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
@@ -73,6 +73,13 @@ Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
 });
 
 Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 30000) => {
+  const getStatuses = ids =>
+    cy
+      .request({
+        url: `/api/landrequests?ids=${ids.join(',')}`,
+        method: 'GET',
+      })
+      .then(res => res.body);
   const getHistory = () =>
     cy
       .request({
@@ -84,7 +91,7 @@ Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 30000) => {
           prTitles.includes(item.request.pullRequest.title),
         );
         if (prHistory.length === prTitles.length)
-          return prHistory.map(item => item.state).reverse();
+          return getStatuses(prHistory.map(item => item.requestId));
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);
         getHistory();
