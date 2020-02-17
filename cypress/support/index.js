@@ -72,14 +72,20 @@ Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
   );
 });
 
-Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 30000) => {
-  const getStatuses = ids =>
+Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 10000) => {
+  const getStatuses = (ids, idToTitle) =>
     cy
       .request({
         url: `/api/landrequests?ids=${ids.join(',')}`,
         method: 'GET',
       })
-      .then(res => res.body);
+      .then(res => {
+        const transformed = {};
+        Object.keys(res.body.statuses).forEach(id => {
+          transformed[idToTitle[id]] = res.body.statuses[id].map(item => item.state);
+        });
+        return transformed;
+      });
   const getHistory = () =>
     cy
       .request({
@@ -90,11 +96,17 @@ Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 30000) => {
         const prHistory = res.body.history.filter(item =>
           prTitles.includes(item.request.pullRequest.title),
         );
-        if (prHistory.length === prTitles.length)
-          return getStatuses(prHistory.map(item => item.requestId));
+        if (prHistory.length === prTitles.length) {
+          const idToTitle = {};
+          for (const pr of prHistory) {
+            idToTitle[pr.requestId] = pr.request.pullRequest.title;
+          }
+          return getStatuses(prHistory.map(item => item.requestId), idToTitle);
+        }
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);
         getHistory();
       });
+  cy.wait(2 * waitTime);
   return getHistory();
 });
