@@ -55,7 +55,7 @@ jobs:
             - .cache
           key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run: |
-          echo "{\"BITBUCKET_APP_PASSWORD\":\"$BITBUCKET_APP_PASSWORD\"}" > cypress.env.json
+          echo "{\"BITBUCKET_APP_PASSWORD\":\"$BITBUCKET_APP_PASSWORD\",\"LANDKID_SESSION_ID\":\"$LANDKID_SESSION_ID\"}" > cypress.env.json
           yarn test
 
 workflows:

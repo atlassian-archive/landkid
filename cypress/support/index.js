@@ -9,6 +9,11 @@ Cypress.Commands.overwrite('log', (originalFn, args) => {
   originalFn(args);
 });
 
+Cypress.Commands.add('visitLandkid', () => {
+  cy.setCookie('landkid.sid', Cypress.env('LANDKID_SESSION_ID'));
+  cy.visit('https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/');
+});
+
 Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
   const hackerPhrase = faker.hacker.phrase();
 
