@@ -2,7 +2,7 @@ import faker from 'faker';
 
 const username = 'jackrgardner';
 const password = Cypress.env('BITBUCKET_APP_PASSWORD');
-const repo = 'changeset-testing';
+const repo = 'atlassian-frontend-landkid-test-repo';
 
 Cypress.Commands.overwrite('log', (originalFn, args) => {
   console.log(args);
@@ -11,7 +11,7 @@ Cypress.Commands.overwrite('log', (originalFn, args) => {
 
 Cypress.Commands.add('visitLandkid', () => {
   cy.setCookie('landkid.sid', Cypress.env('LANDKID_SESSION_ID'));
-  cy.visit('https://jgardner.ngrok.io/current-state/');
+  cy.visit('https://landkid-dev.ngrok.io/current-state/');
 });
 
 Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {

@@ -56,7 +56,7 @@ jobs:
           key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run: |
           echo "{\"BITBUCKET_APP_PASSWORD\":\"$BITBUCKET_APP_PASSWORD\",\"LANDKID_SESSION_ID\":\"$LANDKID_SESSION_ID\"}" > cypress.env.json
-          yarn test
+          ./test.sh
 
 workflows:
   version: 2
@@ -69,10 +69,10 @@ workflows:
           filters:
             branches:
               only: /^(?!pull\/).*$/
-      - run_tests:
+      - hold_tests:
           type: approval
           requires:
             - build
       - test:
           requires:
-            - run_tests
+            - hold_tests
