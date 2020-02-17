@@ -171,9 +171,7 @@ export type QueueItemProps = {
 
 type QueueItemState = {
   status: IStatusUpdate;
-  landRequestInfo: {
-    statuses: IStatusUpdate[];
-  } | null;
+  landRequestInfo: IStatusUpdate[] | null;
 };
 
 export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
@@ -209,14 +207,14 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   };
 
   displayMoreInfo = () => {
-    fetch(`/api/landrequest/${this.props.status.requestId}`, { method: 'GET' })
+    fetch(`/api/landrequests?ids=${this.props.status.requestId}`, { method: 'GET' })
       .then(response => response.json())
       .then(landRequestInfo =>
         this.setState({
-          status: landRequestInfo.statuses.find(
+          status: landRequestInfo.statuses[this.props.status.requestId].find(
             (status: IStatusUpdate) => status.isLatest === true,
           ),
-          landRequestInfo,
+          landRequestInfo: landRequestInfo.statuses[this.props.status.requestId],
         }),
       );
   };
@@ -237,7 +235,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </div>
         ) : null}
         <div className="queue-item__status-line">
-          {this.state.landRequestInfo.statuses.map((status, index, statuses) => (
+          {this.state.landRequestInfo.map((status, index, statuses) => (
             <StatusItem
               title={
                 index === 0
