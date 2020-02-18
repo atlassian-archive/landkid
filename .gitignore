@@ -3,7 +3,6 @@ node_modules
 dist/
 coverage/
 landkid-queue.*
-/config.js
 log.txt
 .DS_Store
 .cache-loader
@@ -13,3 +12,4 @@ env.sh
 .logs
 cypress.env.json
 /cypress/screenshots
+config.js
