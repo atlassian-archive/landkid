@@ -64,18 +64,15 @@ workflows:
   version: 2
   build:
     jobs:
-      - test
-      # - build
-      # - publish:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         only: /^(?!pull\/).*$/
-      # - hold_tests:
-      #     type: approval
-      #     requires:
-      #       - build
-      # - test:
-      #     requires:
-      #       - hold_tests
+      - build
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^(?!pull\/).*$/
+      - hold_tests:
+          type: approval
+      - test:
+          requires:
+            - hold_tests
