@@ -17,9 +17,7 @@ describe('Fail then Success', () => {
 
   it('Request is re-entered into queue and succeeds after the failure of dependency', async () => {
     expect(prStatuses[branch1]).to.deep.equal(['queued', 'running', 'fail']);
-    expect(prStatuses[branch2]).to.include.ordered.members([
-      'queued',
-      'running',
+    expect(prStatuses[branch2].slice(-5)).to.deep.equal([
       'fail',
       'queued',
       'running',
