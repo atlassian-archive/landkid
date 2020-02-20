@@ -1,3 +1,5 @@
+import { successful } from './utils';
+
 describe('Sequence of successful PRs', () => {
   let branch1;
   let branch2;
@@ -19,9 +21,8 @@ describe('Sequence of successful PRs', () => {
   });
 
   it('All Successful', async () => {
-    const successfulFlow = ['queued', 'running', 'awaiting-merge', 'success'];
-    expect(prStatuses[branch1]).to.deep.equal(successfulFlow);
-    expect(prStatuses[branch2]).to.deep.equal(successfulFlow);
-    expect(prStatuses[branch3]).to.deep.equal(successfulFlow);
+    assert(successful.validate(prStatuses[branch1]));
+    assert(successful.validate(prStatuses[branch2]));
+    assert(successful.validate(prStatuses[branch3]));
   });
 });

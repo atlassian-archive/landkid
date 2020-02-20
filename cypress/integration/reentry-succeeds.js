@@ -1,3 +1,5 @@
+import { failed, reentry } from './utils';
+
 describe('Fail then Success', () => {
   let branch1;
   let branch2;
@@ -16,13 +18,7 @@ describe('Fail then Success', () => {
   });
 
   it('Request is re-entered into queue and succeeds after the failure of dependency', async () => {
-    expect(prStatuses[branch1]).to.deep.equal(['queued', 'running', 'fail']);
-    expect(prStatuses[branch2].slice(-5)).to.deep.equal([
-      'fail',
-      'queued',
-      'running',
-      'awaiting-merge',
-      'success',
-    ]);
+    assert(failed.validate(prStatuses[branch1]));
+    assert(reentry.validate(prStatuses[branch2]));
   });
 });
