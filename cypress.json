@@ -1,5 +1,5 @@
 {
-    "defaultCommandTimeout": 10000,
     "pluginsFile": false,
-    "video": false
+    "video": false,
+    "testFiles": "*.spec.js"
 }

@@ -1,9 +1,7 @@
 import { successful } from './utils';
 
 describe('Sequence of successful PRs', () => {
-  let branch1;
-  let branch2;
-  let branch3;
+  let branch1, branch2, branch3;
   let prStatuses;
 
   before(() => {
