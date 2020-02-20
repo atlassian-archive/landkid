@@ -71,8 +71,10 @@ workflows:
           filters:
             branches:
               only: /^(?!pull\/).*$/
-      - hold_tests:
+  test:
+    jobs:
+      - hold:
           type: approval
       - test:
           requires:
-            - hold_tests
+            - hold
