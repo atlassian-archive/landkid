@@ -18,6 +18,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "test": "yarn run cypress run",
+    "pretest:local": "node tools/test-local.js",
+    "test:local": "yarn test",
+    "posttest:local": "node tools/revert-test-local.js",
     "format": "prettier --write src/**/*.ts src/**/*.tsx",
     "build": "yarn run clean && yarn build:server && yarn build:ui",
     "build:server": "tsc",
