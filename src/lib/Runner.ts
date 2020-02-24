@@ -341,10 +341,9 @@ export class Runner {
   moveRequestToTopOfQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
     const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestStatus) return false;
-    Logger.info('yeet', { lrs: landRequestStatus });
 
     const requestAtTop = (await this.getQueue())[0];
-    const topDate = new Date(requestAtTop.date.getDate() - 1);
+    const topDate = new Date(requestAtTop.date.getTime() - 1);
 
     await landRequestStatus.request.setStatus(
       'queued',
