@@ -2,7 +2,7 @@ import { successful } from './utils';
 
 describe('Sequence of successful PRs', () => {
   let branch1, branch2, branch3;
-  let prStatuses;
+  let prs;
 
   before(() => {
     cy.visitLandkid();
@@ -15,12 +15,12 @@ describe('Sequence of successful PRs', () => {
     cy.createLandRequest(branch1, true);
     cy.createLandRequest(branch2, true);
     cy.createLandRequest(branch3, true);
-    cy.waitForAllFinished([branch1, branch2, branch3]).then(res => (prStatuses = res));
+    cy.waitForAllFinished([branch1, branch2, branch3]).then(res => (prs = res));
   });
 
   it('All Successful', async () => {
-    assert(successful.validate(prStatuses[branch1]));
-    assert(successful.validate(prStatuses[branch2]));
-    assert(successful.validate(prStatuses[branch3]));
+    assert(successful.validate(prs[branch1].statuses));
+    assert(successful.validate(prs[branch2].statuses));
+    assert(successful.validate(prs[branch3].statuses));
   });
 });

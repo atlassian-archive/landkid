@@ -2,7 +2,7 @@ import { failed, reentry, doubleReentry } from './utils';
 
 describe('Re-entry into queue', () => {
   let branch1, branch2, branch3;
-  let prStatuses;
+  let prs;
 
   before(() => {
     cy.visitLandkid();
@@ -15,12 +15,17 @@ describe('Re-entry into queue', () => {
     cy.createLandRequest(branch1, false);
     cy.createLandRequest(branch2, false);
     cy.createLandRequest(branch3, true);
-    cy.waitForAllFinished([branch1, branch2, branch3]).then(res => (prStatuses = res));
+    cy.waitForAllFinished([branch1, branch2, branch3]).then(res => (prs = res));
   });
 
   it('Requests are re-entered into queue after the failure of dependency', async () => {
-    assert(failed.validate(prStatuses[branch1]));
-    assert(reentry.validate(prStatuses[branch2]));
-    assert(doubleReentry.validate(prStatuses[branch3]));
+    assert(failed.validate(prs[branch1].statuses));
+    assert(reentry.validate(prs[branch2].statuses));
+    assert(doubleReentry.validate(prs[branch3].statuses));
+  });
+
+  afterEach(() => {
+    cy.removePR(prs[branch1].prId, branch1);
+    cy.removePR(prs[branch2].prId, branch2);
   });
 });
