@@ -15,7 +15,7 @@ describe('Re-entry into queue', () => {
     cy.createLandRequest(branch1, false);
     cy.createLandRequest(branch2, false);
     cy.createLandRequest(branch3, true);
-    cy.waitForAllFinished([branch1, branch2, branch3]).then(res => (prs = res));
+    cy.waitForAllFinished([branch1, branch2, branch3], 25000).then(res => (prs = res));
   });
 
   it('Requests are re-entered into queue after the failure of dependency', async () => {
