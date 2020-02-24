@@ -56,7 +56,10 @@ export class Runner {
 
   moveFromQueueToRunning = async (landRequest: LandRequest) => {
     const running = await this.getRunning();
-    if (running.length >= this.maxConcurrentBuilds) return false;
+    const runningTargetingSameBranch = running.filter(
+      build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+    );
+    if (runningTargetingSameBranch.length >= this.maxConcurrentBuilds) return false;
 
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
@@ -82,12 +85,11 @@ export class Runner {
       Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
       // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
       // as yourself
-      const dependencies = running.filter(
-        build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
-      );
-      const dependsOnStr = dependencies.map(queueItem => queueItem.request.id).join(',');
+      const dependsOnStr = runningTargetingSameBranch
+        .map(queueItem => queueItem.request.id)
+        .join(',');
       const depCommitsArrStr = JSON.stringify(
-        dependencies.map(queueItem => queueItem.request.forCommit),
+        runningTargetingSameBranch.map(queueItem => queueItem.request.forCommit),
       );
 
       const buildId = await this.client.createLandBuild(commit, depCommitsArrStr);
@@ -393,20 +395,26 @@ export class Runner {
     return landRequest;
   };
 
-  getLandRequestStatuses = async (requestId: number): Promise<LandRequestStatus[]> => {
-    const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
-      where: {
-        requestId,
-      },
-      order: [['date', 'ASC']],
-      include: [
-        {
-          model: LandRequest,
-          include: [PullRequest],
+  getStatusesForLandRequests = async (
+    requestIds: string[],
+  ): Promise<{ [id: string]: LandRequestStatus[] }> => {
+    const statuses: { [id: string]: LandRequestStatus[] } = {};
+    for (const requestId of requestIds) {
+      const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+        where: {
+          requestId,
         },
-      ],
-    });
-    return landRequestStatuses;
+        order: [['date', 'ASC']],
+        include: [
+          {
+            model: LandRequest,
+            include: [PullRequest],
+          },
+        ],
+      });
+      statuses[requestId] = landRequestStatuses;
+    }
+    return statuses;
   };
 
   private getUsersPermissions = async (

@@ -63,7 +63,7 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
             return (
               <TabContent>
                 <EmptyState>
-                  {this.props.loggedInUser.permission === 'admin'
+                  {this.props.loggedInUser.permission === 'read'
                     ? 'Contact an admin for permission to view this information'
                     : 'Empty...'}
                 </EmptyState>

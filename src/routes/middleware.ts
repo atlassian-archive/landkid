@@ -34,7 +34,7 @@ export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHand
 
     if (!permission(userMode).isAtLeast(mode)) {
       return res.status(403).json({
-        error: 'You are not powerful enough to use this endpoint, sorry...',
+        error: 'You are not powerful enough to use this endpoint, sorry not sorry...',
       });
     }
 
