@@ -73,35 +73,40 @@ Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
 });
 
 Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 10000) => {
-  const getStatuses = (ids, idToTitle) =>
+  const getStatuses = (ids, idToTitle, idToPrId) =>
     cy
       .request({
-        url: `/api/landrequests?ids=${ids.join(',')}`,
         method: 'GET',
+        url: `/api/landrequests?ids=${ids.join(',')}`,
       })
       .then(res => {
         const transformed = {};
         Object.keys(res.body.statuses).forEach(id => {
-          transformed[idToTitle[id]] = res.body.statuses[id].map(item => item.state);
+          transformed[idToTitle[id]] = {
+            prId: idToPrId[id],
+            statuses: res.body.statuses[id].map(item => item.state),
+          };
         });
         return transformed;
       });
   const getHistory = () =>
     cy
       .request({
-        url: '/api/history?page=1',
         method: 'GET',
+        url: '/api/history?page=1',
       })
       .then(res => {
-        const prHistory = res.body.history.filter(item =>
+        const history = res.body.history.filter(item =>
           prTitles.includes(item.request.pullRequest.title),
         );
-        if (prHistory.length === prTitles.length) {
+        if (history.length === prTitles.length) {
           const idToTitle = {};
-          for (const pr of prHistory) {
-            idToTitle[pr.requestId] = pr.request.pullRequest.title;
+          const idToPrId = {};
+          for (const item of history) {
+            idToTitle[item.requestId] = item.request.pullRequest.title;
+            idToPrId[item.requestId] = item.request.pullRequestId;
           }
-          return getStatuses(prHistory.map(item => item.requestId), idToTitle);
+          return getStatuses(history.map(item => item.requestId), idToTitle, idToPrId);
         }
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);
@@ -109,4 +114,23 @@ Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 10000) => {
       });
   cy.wait(2 * waitTime);
   return getHistory();
+});
+
+Cypress.Commands.add('removePR', (id, branchName) => {
+  cy.request({
+    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/pullrequests/${id}/decline`,
+    method: 'POST',
+    auth: {
+      username,
+      password,
+    },
+  });
+  cy.request({
+    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/refs/branches/${branchName}`,
+    method: 'DELETE',
+    auth: {
+      username,
+      password,
+    },
+  });
 });
