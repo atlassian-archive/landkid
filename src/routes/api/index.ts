@@ -236,5 +236,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.post(
+    '/to-the-top/:id',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const requestId = req.params.id;
+      const success = await runner.moveRequestToTopOfQueue(requestId, req.user!);
+      if (success) {
+        res.json({ message: 'Request moved to top of queue' });
+      } else {
+        res.status(400).json({ error: 'Request either does not exist or is not queued' });
+      }
+    }),
+  );
+
   return router;
 }

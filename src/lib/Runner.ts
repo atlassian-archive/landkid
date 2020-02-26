@@ -333,6 +333,24 @@ export class Runner {
     return true;
   };
 
+  moveRequestToTopOfQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
+    const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
+    if (!landRequestStatus) return false;
+
+    const queue = await this.getQueue();
+    if (queue.length === 0) return true;
+
+    const requestAtTop = queue[0];
+    const topDate = new Date(requestAtTop.date.getTime() - 1);
+
+    await landRequestStatus.request.setStatus(
+      'queued',
+      `moved to the top of the queue by user ${user.aaid}`,
+      topDate,
+    );
+    return true;
+  };
+
   checkWaitingLandRequests = async () => {
     Logger.info('Checking for waiting landrequests ready to queue');
 

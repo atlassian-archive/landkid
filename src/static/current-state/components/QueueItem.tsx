@@ -171,6 +171,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
 const ADMIN_CONTROLS = {
   REMOVE: 'remove',
   CANCEL: 'cancel',
+  TOTHETOP: 'to-the-top',
 };
 
 const targetBranchToAppearance = (branch?: string) =>
@@ -274,6 +275,12 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
                 onClick={() => this.handleAdminControlClick(ADMIN_CONTROLS.REMOVE)}
               >
                 Remove
+              </button>
+              <button
+                className="queue-item__button"
+                onClick={() => this.handleAdminControlClick(ADMIN_CONTROLS.TOTHETOP)}
+              >
+                Move to top
               </button>
             </StatusItem>
           </div>
