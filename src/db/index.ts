@@ -136,7 +136,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
           $in: dependsOnArr,
         },
         state: {
-          $in: ['fail', 'aborted'],
+          $in: ['fail', 'aborted', 'queued'],
         },
       },
       include: [LandRequest],
