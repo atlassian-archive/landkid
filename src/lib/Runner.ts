@@ -19,8 +19,6 @@ import { permissionService } from './PermissionService';
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
 export class Runner {
-  maxConcurrentBuilds: number;
-
   constructor(
     public queue: LandRequestQueue,
     private history: LandRequestHistory,
@@ -36,10 +34,12 @@ export class Runner {
     setInterval(() => {
       this.next();
     }, 15 * 1000); // 15s
-
-    this.maxConcurrentBuilds =
-      config.maxConcurrentBuilds && config.maxConcurrentBuilds > 0 ? config.maxConcurrentBuilds : 1;
   }
+
+  getMaxConcurrentBuilds = () =>
+    this.config.maxConcurrentBuilds && this.config.maxConcurrentBuilds > 0
+      ? this.config.maxConcurrentBuilds
+      : 1;
 
   getQueue = async () => {
     return this.queue.getQueue();
@@ -54,7 +54,7 @@ export class Runner {
     const runningTargetingSameBranch = running.filter(
       build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
-    if (runningTargetingSameBranch.length >= this.maxConcurrentBuilds) return false;
+    if (runningTargetingSameBranch.length >= this.getMaxConcurrentBuilds()) return false;
 
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
