@@ -41,11 +41,6 @@ export class Runner {
       config.maxConcurrentBuilds && config.maxConcurrentBuilds > 0 ? config.maxConcurrentBuilds : 1;
   }
 
-  // old function, will remove once not used
-  getRunningOld = async () => {
-    return this.queue.maybeGetStatusForRunningRequests();
-  };
-
   getQueue = async () => {
     return this.queue.getQueue();
   };
@@ -208,7 +203,7 @@ export class Runner {
   };
 
   cancelRunningBuild = async (requestId: string, user: ISessionUser): Promise<boolean> => {
-    const running = await this.getRunningOld();
+    const running = await this.getRunning();
     if (!running || !running.length) return false;
 
     const landRequestStatus = running.find(status => status.requestId === requestId);

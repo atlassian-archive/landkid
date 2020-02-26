@@ -28,7 +28,7 @@
     "start": "cross-env NODE_ENV=production node ./dist",
     "dev": "yarn build:server && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./dist --watch dist --watch config.js --delay 1\"",
     "prePublishOnly": "yarn build",
-    "precommit": "lint-staged",
+    "precommit": "node tools/revert-test-local.js && lint-staged",
     "postinstall": "node tools/hax.js",
     "migrate": "ts-node src/db/MigrationService.ts"
   },
