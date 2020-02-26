@@ -337,7 +337,10 @@ export class Runner {
     const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
     if (!landRequestStatus) return false;
 
-    const requestAtTop = (await this.getQueue())[0];
+    const queue = await this.getQueue();
+    if (queue.length === 0) return true;
+
+    const requestAtTop = queue[0];
     const topDate = new Date(requestAtTop.date.getTime() - 1);
 
     await landRequestStatus.request.setStatus(
