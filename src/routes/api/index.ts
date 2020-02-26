@@ -19,12 +19,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       const install = await runner.getInstallationIfExists();
       const isInstalled = !!install;
+      const { customChecks, ...prSettings } = config.prSettings;
       res.header('Access-Control-Allow-Origin', '*').json({
         meta: {
           'tag-version': landKidTag,
           easterEgg: easterEggText,
           targetRepo: config.repoConfig.repoName,
-          prSettings: config.prSettings,
+          prSettings,
           maxConcurrentBuilds: runner.getMaxConcurrentBuilds(),
         },
         isInstalled,

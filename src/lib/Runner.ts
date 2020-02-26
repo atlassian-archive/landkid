@@ -90,8 +90,6 @@ export class Runner {
         dependencies.push(queueItem);
     }
 
-    // const dependencies = runningTargetingSameBranch.filter(async queueItem => (await queueItem.request.getFailedDependencies()).length === 0);
-
     Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
