@@ -8,17 +8,13 @@ import { User } from './User';
 let queueItemStyles = css({
   display: 'block',
   boxSizing: 'border-box',
-  padding: '12px 12px 8px',
+  padding: '14px 14px 14px',
   position: 'relative',
   boxShadow: 'rgba(23, 43, 77, 0.24) 0px 0px 1px 0px',
   backgroundColor: 'white',
   borderRadius: '3px',
   transition: 'box-shadow 0.3s',
   color: 'inherit',
-
-  '& > ak-grid': {
-    padding: '0px',
-  },
 
   '&:hover': {
     boxShadow: 'rgba(23, 43, 77, 0.32) 0px 4px 8px -2px, rgba(23, 43, 77, 0.25) 0px 0px 1px',
@@ -72,7 +68,6 @@ let queueItemStyles = css({
   },
 
   '& .queue-item__more-info': {
-    marginLeft: '8px',
     marginRight: '8px',
     overflowY: 'hidden',
     overflowX: 'scroll',
@@ -80,6 +75,23 @@ let queueItemStyles = css({
 
     '&::-webkit-scrollbar': {
       display: 'none',
+    },
+  },
+
+  '& .queue-item__button': {
+    backgroundColor: 'var(--n20-color)',
+    color: 'var(--n500-color)',
+    border: 'none',
+    borderRadius: '3px',
+    marginRight: 5,
+    cursor: 'pointer',
+    padding: '2 4 3',
+    fontSize: '11px',
+    fontWeight: 700,
+    verticalAlign: 'baseline',
+    textTransform: 'uppercase',
+    '&:focus': {
+      outline: 'none',
     },
   },
 });
@@ -156,6 +168,11 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   aborted: 'Aborted',
 };
 
+const ADMIN_CONTROLS = {
+  REMOVE: 'remove',
+  CANCEL: 'cancel',
+};
+
 const targetBranchToAppearance = (branch?: string) =>
   branch === 'master' ? 'moved' : branch === 'develop' ? 'new' : 'default';
 
@@ -180,21 +197,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     landRequestInfo: null,
   };
 
-  handleRemoveClick = () => {
-    fetch(`/api/remove/${this.props.status.requestId}`, { method: 'POST' })
-      .then(response => response.json())
-      .then(json => {
-        if (json.error) {
-          console.error(json.error);
-          window.alert(json.error);
-        } else {
-          location.reload();
-        }
-      });
-  };
-
-  handleCancelClick = () => {
-    fetch(`/api/cancel/${this.props.status.requestId}`, { method: 'POST' })
+  handleAdminControlClick = (action: string) => {
+    fetch(`/api/${action}/${this.props.status.requestId}`, { method: 'POST' })
       .then(response => response.json())
       .then(json => {
         if (json.error) {
@@ -262,6 +266,30 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
           </div>
         ) : null}
+        {status.state === 'queued' ? (
+          <div className="queue-item__status-line">
+            <StatusItem title="Admin Controls:">
+              <button
+                className="queue-item__button"
+                onClick={() => this.handleAdminControlClick(ADMIN_CONTROLS.REMOVE)}
+              >
+                Remove
+              </button>
+            </StatusItem>
+          </div>
+        ) : null}
+        {status.state === 'running' || status.state === 'awaiting-merge' ? (
+          <div className="queue-item__status-line">
+            <StatusItem title="Admin Controls:">
+              <button
+                className="queue-item__button"
+                onClick={() => this.handleAdminControlClick(ADMIN_CONTROLS.CANCEL)}
+              >
+                Cancel
+              </button>
+            </StatusItem>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -288,69 +316,50 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
 
     return (
       <div className={`${queueItemStyles} queue-item`}>
-        <ak-grid layout="fluid">
-          <ak-grid-column size={status.state === 'queued' || status.state === 'running' ? 11 : 12}>
-            <div className="queue-item__title">
-              <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
-              {pullRequest.title}
-            </div>
-            <div className="queue-item__status-line">
-              <StatusItem title="Status:">
-                <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
-                  {landStatusToNiceString[status.state]}
-                </Lozenge>
-              </StatusItem>
+        <div className="queue-item__title">
+          <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
+          {pullRequest.title}
+        </div>
+        <div className="queue-item__status-line">
+          <StatusItem title="Status:">
+            <Lozenge appearance={status ? landStatusToAppearance[status.state] : 'new'}>
+              {landStatusToNiceString[status.state]}
+            </Lozenge>
+          </StatusItem>
 
-              <StatusItem title="Author:">
-                <Lozenge>
-                  <User aaid={pullRequest.authorAaid}>
-                    {user => {
-                      return user.displayName;
-                    }}
-                  </User>
-                </Lozenge>
-              </StatusItem>
+          <StatusItem title="Author:">
+            <Lozenge>
+              <User aaid={pullRequest.authorAaid}>
+                {user => {
+                  return user.displayName;
+                }}
+              </User>
+            </Lozenge>
+          </StatusItem>
 
-              {pullRequest.targetBranch ? (
-                <StatusItem title="Target Branch:">
-                  <Lozenge
-                    appearance={targetBranchToAppearance(pullRequest.targetBranch)}
-                    title={pullRequest.targetBranch}
-                  >
-                    {pullRequest.targetBranch}
-                  </Lozenge>
-                </StatusItem>
-              ) : null}
-
-              <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
-                {distanceInWords(status.date, { addSuffix: true })}
-              </StatusItem>
-            </div>
-
-            {(status.state === 'queued' || status.state === 'running') &&
-            dependsOnPRs.length > 0 ? (
-              <div className="queue-item__status-line">
-                <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
-              </div>
-            ) : null}
-          </ak-grid-column>
-
-          {['queued', 'running'].includes(status.state) ? (
-            <ak-grid-column size={1} style={{ alignSelf: 'center' }}>
-              <button
-                className="ak-button ak-button__appearance-default"
-                style={{ float: 'right' }}
-                onClick={() =>
-                  status.state === 'queued' ? this.handleRemoveClick() : this.handleCancelClick()
-                }
+          {pullRequest.targetBranch ? (
+            <StatusItem title="Target Branch:">
+              <Lozenge
+                appearance={targetBranchToAppearance(pullRequest.targetBranch)}
+                title={pullRequest.targetBranch}
               >
-                {status.state === 'queued' ? 'Remove' : 'Cancel'}
-              </button>
-            </ak-grid-column>
+                {pullRequest.targetBranch}
+              </Lozenge>
+            </StatusItem>
           ) : null}
-        </ak-grid>
 
-        <div className="queue-item__status-line" style={{ paddingLeft: '8px' }}>
+          <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
+            {distanceInWords(status.date, { addSuffix: true })}
+          </StatusItem>
+        </div>
+
+        {(status.state === 'queued' || status.state === 'running') && dependsOnPRs.length > 0 ? (
+          <div className="queue-item__status-line">
+            <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
+          </div>
+        ) : null}
+
+        <div className="queue-item__status-line">
           <div
             className="queue-item__clickable"
             style={{ width: '95px' }}
