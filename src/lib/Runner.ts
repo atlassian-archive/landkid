@@ -86,8 +86,9 @@ export class Runner {
 
     const dependencies = [];
     for (const queueItem of runningTargetingSameBranch) {
-      if ((await queueItem.request.getFailedDependencies()).length === 0)
+      if ((await queueItem.request.getFailedDependencies()).length === 0) {
         dependencies.push(queueItem);
+      }
     }
 
     Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
@@ -103,13 +104,20 @@ export class Runner {
       return await landRequest.setStatus('fail', 'Unable to create land build in Pipelines');
     }
 
+    let depPrsStr: string | undefined = undefined;
+    if (dependencies.length > 0) {
+      depPrsStr =
+        'Started with PR dependencies: ' +
+        dependencies.map(queueItem => queueItem.request.pullRequestId).join(', ');
+    }
+
     Logger.info('LandRequest now running', {
       dependsOnStr,
       landRequest,
       buildId,
       depCommitsArrStr,
     });
-    await landRequest.setStatus('running');
+    await landRequest.setStatus('running', depPrsStr);
 
     // Todo: these should really be functions on landRequest
     landRequest.buildId = buildId;

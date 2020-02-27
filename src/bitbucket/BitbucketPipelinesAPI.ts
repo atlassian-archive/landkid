@@ -83,6 +83,16 @@ export class BitbucketPipelinesAPI {
   };
 
   public stopLandBuild = async (buildId: number) => {
-    return true;
+    Logger.info('Stopping land build with id', { buildId });
+    const endpoint = `${this.apiBaseUrl}/pipelines/${buildId}/stopPipeline`;
+    const resp = await axios.post(
+      endpoint,
+      null,
+      await bitbucketAuthenticator.getAuthConfig(
+        jwtTools.fromMethodAndUrl('post', endpoint),
+        axiosPostConfig,
+      ),
+    );
+    return resp.status === 204;
   };
 }
