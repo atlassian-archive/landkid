@@ -11,7 +11,7 @@ export const makeDescriptor = () => ({
   vendor: {
     name: 'Fabric Build',
   },
-  scopes: ['pullrequest', 'pullrequest:write', 'repository', 'pipeline'],
+  scopes: ['pullrequest', 'pullrequest:write', 'repository', 'pipeline', 'pipeline:write'],
   authentication: {
     type: 'jwt',
   },
