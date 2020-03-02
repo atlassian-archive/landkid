@@ -29,7 +29,6 @@ class PermissionService {
     mode: IPermissionMode,
     setter: ISessionUser,
   ): Promise<void> => {
-    Logger.info('Setting user permission', { aaid, mode, setter });
     await Permission.create({
       aaid,
       mode,

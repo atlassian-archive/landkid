@@ -24,7 +24,7 @@ export const permission = (userMode: IPermissionMode) => ({
 export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHandler =>
   wrap(async (req, res, next) => {
     if (!req.user) {
-      Logger.error('Endpoint requires authentication');
+      Logger.warn('Endpoint requires authentication');
       return res.status(401).json({
         error: 'This endpoint requires authentication',
       });

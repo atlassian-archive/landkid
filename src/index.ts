@@ -6,11 +6,9 @@ import * as expressSession from 'express-session';
 import * as expressWinston from 'express-winston';
 import * as passport from 'passport';
 import * as session from 'express-session';
-
 import * as bodyParser from 'body-parser';
 
 import { initializeSequelize, MigrationService } from './db';
-
 import { BitbucketClient } from './bitbucket/BitbucketClient';
 import { config, hasConfig } from './lib/Config';
 import { LandRequestQueue } from './lib/Queue';
@@ -40,6 +38,7 @@ async function main() {
       meta: false,
       winstonInstance: Logger,
       colorize: process.env.NODE_ENV !== 'production',
+      level: 'http',
     }),
   );
   server.use(bodyParser.json());
