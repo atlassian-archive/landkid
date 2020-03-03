@@ -388,23 +388,6 @@ export class Runner {
     }
   };
 
-  addFakeLandRequest = async (prIdStr: string, triggererAaid: string) => {
-    const prId = parseInt(prIdStr, 10);
-    const pr = await this.client.bitbucket.getPullRequest(prId);
-    if (!pr) return false;
-    const landRequest: LandRequestOptions = {
-      prId,
-      triggererAaid,
-      commit: pr.commit,
-      prTitle: pr.title,
-      prAuthorAaid: pr.authorAaid,
-      prTargetBranch: pr.targetBranch,
-    };
-    await this.enqueue(landRequest);
-
-    return landRequest;
-  };
-
   getStatusesForLandRequests = async (
     requestIds: string[],
   ): Promise<{ [id: string]: LandRequestStatus[] }> => {
