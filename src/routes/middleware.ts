@@ -24,7 +24,9 @@ export const permission = (userMode: IPermissionMode) => ({
 export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHandler =>
   wrap(async (req, res, next) => {
     if (!req.user) {
-      Logger.warn('Endpoint requires authentication');
+      Logger.warn('Endpoint requires authentication', {
+        namespace: 'routes:middleware:requireAuth',
+      });
       return res.status(401).json({
         error: 'This endpoint requires authentication',
       });
@@ -44,14 +46,18 @@ export const requireAuth = (mode: IPermissionMode = 'read'): express.RequestHand
 export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (req, res, next) => {
   const install = await Installation.findOne<Installation>();
   if (!install) {
-    Logger.error('Addon has not been installed, can not be validated');
+    Logger.error('Addon has not been installed, can not be validated', {
+      namespace: 'routes:middleware:authenticateIncomingBBCall',
+    });
     return res.status(401).json({
       error: 'Addon has not been installed, can not be validated',
     });
   }
   let jwt: string | undefined = req.query.jwt || req.header('authorization');
   if (!jwt) {
-    Logger.error('Authenticated request requires a JWT token');
+    Logger.error('Authenticated request requires a JWT token', {
+      namespace: 'routes:middleware:authenticateIncomingBBCall',
+    });
     return res.status(401).json({
       error: 'Authenticated request requires a JWT token',
     });
@@ -64,7 +70,9 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
   try {
     decoded = jwtTools.decode(jwt, install.sharedSecret);
   } catch (err) {
-    Logger.error('Could not validate JWT');
+    Logger.error('Could not validate JWT', {
+      namespace: 'routes:middleware:authenticateIncomingBBCall',
+    });
     return res.status(401).json({
       error: 'Could not validate JWT',
     });
@@ -79,7 +87,9 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
   const expectedHash = jwtTools.createQueryStringHash(jwtTools.fromExpressRequest(req));
 
   if (expectedHash !== decoded.qsh) {
-    Logger.error('JWT token is valid but not for this request');
+    Logger.error('JWT token is valid but not for this request', {
+      namespace: 'routes:middleware:authenticateIncomingBBCall',
+    });
     return res.status(401).json({
       error: 'JWT token is valid but not for this request',
     });

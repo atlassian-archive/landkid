@@ -10,11 +10,16 @@ export function lifecycleRoutes(runner: Runner) {
   router.post(
     '/installed',
     wrap(async (req, res) => {
+      Logger.verbose('Requesting creation of installion entry', {
+        namespace: 'routes:bitbucket:lifecycle:installed',
+      });
       const install = await Installation.findOne<Installation>();
       if (install) {
-        Logger.error('Attempted to install over and existing installation');
+        Logger.error('Attempted to install over an existing installation', {
+          namespace: 'routes:bitbucket:lifecyle:installed',
+        });
         return res.status(400).json({
-          error: 'Attempted to install over and existing installation',
+          error: 'Attempted to install over an existing installation',
         });
       }
 
@@ -32,6 +37,7 @@ export function lifecycleRoutes(runner: Runner) {
         clientKey: req.body.clientKey,
         sharedSecret: req.body.sharedSecret,
       });
+      Logger.info('Created installed entry', { namespace: 'routes:bitbucket:lifecycle:installed' });
 
       res.send('OK');
     }),
@@ -42,9 +48,7 @@ export function lifecycleRoutes(runner: Runner) {
     authenticateIncomingBBCall,
     wrap(async (req, res) => {
       await Installation.destroy({
-        where: {
-          id: 'the-one-and-only',
-        },
+        where: { id: 'the-one-and-only' },
       });
 
       const [queued, waiting] = await Promise.all([
