@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Cypress tests
           command: |
-            echo "{\"BITBUCKET_APP_PASSWORD\":\"$BITBUCKET_APP_PASSWORD\",\"LANDKID_SESSION_ID\":\"$LANDKID_SESSION_ID\"}" > cypress.env.json
+            node ./.circleci/create-cypress-env.js
             yarn test:staging
 
 workflows:

@@ -81,10 +81,10 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         prAuthorAaid: prInfo.authorAaid,
         prTargetBranch: prInfo.targetBranch,
       };
-      const positionInQueue = await runner.enqueue(landRequest);
-      Logger.info('Request to land received', { landRequest, positionInQueue });
+      await runner.enqueue(landRequest);
+      Logger.info('Request to land received', { landRequest });
 
-      res.status(200).json({ positionInQueue });
+      res.sendStatus(200);
       runner.next();
     }),
   );
