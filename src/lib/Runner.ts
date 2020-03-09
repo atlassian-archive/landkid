@@ -167,6 +167,7 @@ export class Runner {
           const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
           await landRequest.request.setStatus('fail', failReason);
           await landRequest.request.update({ dependsOn: null });
+          await this.client.stopLandBuild(landRequest.request.buildId);
           // await landRequest.request.save();
           return await landRequest.request.setStatus('queued');
         }
