@@ -7,14 +7,14 @@ export type Props = {
   bitbucketBaseUrl: string;
 };
 
-function findRunning(updates: IStatusUpdate[]) {
-  return updates.filter(update => ['running', 'awaiting-merge'].includes(update.state));
-}
+// function findRunning(updates: IStatusUpdate[]) {
+//   return updates.filter(update => ['running', 'awaiting-merge'].includes(update.state));
+// }
 
 export const RunningBuilds: React.FunctionComponent<Props> = props => {
-  const running = findRunning(props.queue);
+  // const running = findRunning(props.queue);
 
-  if (running.length === 0) {
+  if (props.queue.length === 0) {
     return React.createElement(
       'marquee',
       { style: { fontSize: '24px', color: 'lightskyblue' } },
@@ -23,7 +23,7 @@ export const RunningBuilds: React.FunctionComponent<Props> = props => {
   }
 
   const groupedByTargetBranch: { [branch: string]: IStatusUpdate[] } = {};
-  running.forEach(item => {
+  props.queue.forEach(item => {
     const targetBranch = item.request.pullRequest.targetBranch || item.requestId;
     if (!groupedByTargetBranch[targetBranch]) {
       groupedByTargetBranch[targetBranch] = [item];

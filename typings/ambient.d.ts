@@ -36,6 +36,10 @@ declare interface IMessageState {
   date: Date;
 }
 
+declare interface IStatistics {
+  averageQueueTime: number;
+}
+
 declare interface IStatusUpdate {
   id: string;
   date: Date;

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { css } from 'emotion';
-import * as distanceInWords from 'date-fns/distance_in_words_to_now';
+import formatDistanceStrict from 'date-fns/formatDistanceStrict';
 import { Lozenge } from './Lozenge';
 import { LozengeAppearance } from './types';
 import { User } from './User';
@@ -356,7 +356,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           ) : null}
 
           <StatusItem title={`${landStatusToPastTense[status.state]}:`}>
-            {distanceInWords(status.date, { addSuffix: true })}
+            {formatDistanceStrict(new Date(status.date), new Date(), { addSuffix: true })}
           </StatusItem>
         </div>
 

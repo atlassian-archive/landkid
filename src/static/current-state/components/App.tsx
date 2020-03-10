@@ -25,12 +25,17 @@ export const App: React.FunctionComponent = () => (
                 render={data => (
                   <div>
                     <CurrentState {...data} />
-                    <RunningBuilds queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
+                    <RunningBuilds
+                      queue={data.queue.filter(update =>
+                        ['running', 'awaiting-merge'].includes(update.state),
+                      )}
+                      bitbucketBaseUrl={data.bitbucketBaseUrl}
+                    />
                     <Tabs
                       bitbucketBaseUrl={data.bitbucketBaseUrl}
                       selected={1}
                       users={data.users}
-                      queue={data.queue}
+                      queue={data.queue.filter(update => update.state === 'queued')}
                       loggedInUser={loggedInUser}
                       paused={data.pauseState !== null}
                       bannerMessageState={data.bannerMessageState}

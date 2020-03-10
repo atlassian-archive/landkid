@@ -411,6 +411,41 @@ export class Runner {
     return statuses;
   };
 
+  // Currently only averageQueueTime
+  private calculateStatistics = async (): Promise<IStatistics> => {
+    const recentRunningStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+      where: {
+        date: {
+          $lt: new Date(),
+          $gt: new Date(+new Date() - 3 * 60 * 60 * 1000),
+        },
+        state: {
+          $in: ['queued', 'running'],
+        },
+      },
+      order: [['requestId', 'ASC'], ['date', 'DESC']],
+    });
+    const queueTimes = [];
+    let i = 0;
+    while (i < recentRunningStatuses.length - 1) {
+      if (
+        recentRunningStatuses[i].state !== 'running' ||
+        recentRunningStatuses[i + 1].state !== 'queued' ||
+        recentRunningStatuses[i].requestId !== recentRunningStatuses[i + 1].requestId
+      ) {
+        i += 1;
+        continue;
+      }
+      queueTimes.push(+recentRunningStatuses[i].date - +recentRunningStatuses[i + 1].date);
+      i += 2;
+    }
+    const averageQueueTime =
+      queueTimes.length === 0 ? 20000 : queueTimes.reduce((a, b) => a + b, 0) / queueTimes.length;
+    return {
+      averageQueueTime,
+    };
+  };
+
   private getUsersPermissions = async (
     requestingUserMode: IPermissionMode,
   ): Promise<UserState[]> => {
@@ -504,6 +539,7 @@ export class Runner {
       users,
       waitingToQueue,
       bannerMessageState,
+      statistics,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
@@ -511,6 +547,7 @@ export class Runner {
       this.getUsersPermissions(requestingUserMode),
       requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
+      this.calculateStatistics(),
     ]);
     // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
@@ -528,6 +565,8 @@ export class Runner {
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,
+      // @ts-ignore
+      statistics,
     };
   };
 }

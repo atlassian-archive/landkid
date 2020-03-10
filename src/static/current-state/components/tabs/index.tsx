@@ -48,10 +48,11 @@ let controlsStyles = css({
 export type TabsControlsProps = {
   selected: number;
   selectTab: (tab: number) => void;
+  queueLength: number;
 };
 
 const TabsControls: React.FunctionComponent<TabsControlsProps> = props => {
-  const { selected, selectTab } = props;
+  const { selected, selectTab, queueLength } = props;
   return (
     <div className={controlsStyles}>
       <button
@@ -64,7 +65,7 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = props => {
         onClick={() => selectTab(1)}
         className={`ak-button__appearance-subtle ${selected === 1 ? '--selected' : ''}`}
       >
-        Queue
+        {'Queue' + (queueLength === 0 ? '' : ` (${queueLength})`)}
       </button>
       <button
         onClick={() => selectTab(2)}
@@ -116,7 +117,11 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
 
     return (
       <Section important last>
-        <TabsControls selectTab={this.onTabSelected} selected={selected} />
+        <TabsControls
+          selectTab={this.onTabSelected}
+          selected={selected}
+          queueLength={queue.length}
+        />
         {selected === 0 ? (
           <SystemTab
             users={users}

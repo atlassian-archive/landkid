@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { css } from 'emotion';
+import formatDistanceStrict from 'date-fns/formatDistanceStrict';
+
 import { Section } from './Section';
 import { Badge } from './Badge';
 import { Panel } from './Panel';
@@ -33,7 +35,7 @@ let styles = css({
 export type Props = RunnerState;
 
 export const CurrentState: React.FunctionComponent<Props> = props => {
-  const { daysSinceLastFailure, queue, pauseState } = props;
+  const { daysSinceLastFailure, pauseState, statistics } = props;
   const fancyDaysSinceLastFailure = daysSinceLastFailure === -1 ? '∞' : daysSinceLastFailure;
 
   const renderStateColumns = () => (
@@ -51,9 +53,9 @@ export const CurrentState: React.FunctionComponent<Props> = props => {
         </div>
       </div>
       <div className="current-state__card">
-        <h4 className="current-state__card-title">Queue Size:</h4>
+        <h4 className="current-state__card-title">Average Queue Waiting Time:</h4>
         <div className="current-state__info">
-          <Badge>{queue.length}</Badge>
+          <Badge>{formatDistanceStrict(0, statistics.averageQueueTime)}</Badge>
         </div>
       </div>
     </div>
