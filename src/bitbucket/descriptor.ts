@@ -23,7 +23,8 @@ export const makeDescriptor = () => ({
   modules: {
     proxy: {
       '/can-land/{repository}/{pullrequest}': {
-        destination: '/bitbucket/proxy/can-land?aaid={user.uuid}&pullRequestId={pullrequest.id}',
+        destination:
+          '/bitbucket/proxy/can-land?aaid={user.uuid}&pullRequestId={pullrequest.id}&targetBranch={pullrequest.destination.branch.name}',
       },
       '/land/{repository}/{pullrequest}': {
         destination:

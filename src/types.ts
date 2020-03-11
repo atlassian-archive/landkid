@@ -76,5 +76,4 @@ export type RunnerState = {
   users: UserState[];
   bannerMessageState: IMessageState | null;
   bitbucketBaseUrl: string;
-  statistics: IStatistics;
 };

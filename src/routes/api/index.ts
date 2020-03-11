@@ -38,7 +38,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('read'),
     wrap(async (req, res) => {
       const state = await runner.getState(req.user!);
-      Logger.info('Requesting current state', { user: req.user });
+      Logger.info('Requesting current state');
       res.header('Access-Control-Allow-Origin', '*').json(state);
     }),
   );

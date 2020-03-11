@@ -17,15 +17,18 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/can-land',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId } = req.query as {
+      const { aaid, pullRequestId, targetBranch } = req.query as {
         aaid: string;
         pullRequestId: string;
+        targetBranch: string;
       };
       const prId = parseInt(pullRequestId, 10);
 
       const errors: string[] = [];
       const landCheckErrors: string[] = [];
       const bannerMessage = await runner.getBannerMessageState();
+      const estimatedWaitTime = await runner.getEstimatedWaitTime(targetBranch);
+      Logger.info('time', { estimatedWaitTime });
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
       if (permission(permissionLevel).isAtLeast('land')) {

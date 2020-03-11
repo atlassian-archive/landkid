@@ -13,6 +13,7 @@ import {
   UserNote,
   LandRequestStatus,
   BannerMessageState,
+  EstimatedWaitTime,
 } from '../db';
 import { permissionService } from './PermissionService';
 
@@ -176,6 +177,10 @@ export class Runner {
           // if we moved, we need to exit early, otherwise, just keep checking the queue
           if (didChangeState) return this.next();
         } else if (landRequest.state === 'queued') {
+          await this.calculateEstimatedWaitTimeDelta(
+            landRequest.request.pullRequest.targetBranch,
+            landRequest.date,
+          );
           const movedState = await this.moveFromQueueToRunning(landRequest.request);
           // if the landrequest was able to move from queued to running, exit early, otherwise, keep
           // checking the rest of the queue
@@ -183,7 +188,6 @@ export class Runner {
         }
         // otherwise, we must just be running, nothing to do here
       }
-      //
     });
   };
 
@@ -271,6 +275,37 @@ export class Runner {
   getBannerMessageState = async (): Promise<IMessageState | null> => {
     const state = await BannerMessageState.findOne<BannerMessageState>();
     return state ? state.get() : null;
+  };
+
+  private calculateEstimatedWaitTimeDelta = async (
+    targetBranch: string,
+    queuedDate: Date,
+  ): Promise<void> => {
+    const delta = +new Date() - +queuedDate;
+    this.setEstimatedWaitTime(targetBranch, delta);
+  };
+
+  private setEstimatedWaitTime = async (targetBranch: string, delta: number) => {
+    let estimatedWaitTime = delta;
+    const oldEstimatedWaitTime = await EstimatedWaitTime.findOne<EstimatedWaitTime>({
+      where: { targetBranch },
+    });
+    if (oldEstimatedWaitTime) {
+      estimatedWaitTime = (oldEstimatedWaitTime.estimatedWaitTime + delta) / 2;
+      oldEstimatedWaitTime.destroy();
+    }
+    await EstimatedWaitTime.create({
+      targetBranch,
+      estimatedWaitTime,
+    });
+  };
+
+  getEstimatedWaitTime = async (targetBranch: string): Promise<number> => {
+    const estimatedWaitTime = await EstimatedWaitTime.findOne<EstimatedWaitTime>({
+      where: { targetBranch },
+    });
+    if (!estimatedWaitTime) return 20000;
+    return estimatedWaitTime.estimatedWaitTime;
   };
 
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
@@ -411,41 +446,6 @@ export class Runner {
     return statuses;
   };
 
-  // Currently only averageQueueTime
-  private calculateStatistics = async (): Promise<IStatistics> => {
-    const recentRunningStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
-      where: {
-        date: {
-          $lt: new Date(),
-          $gt: new Date(+new Date() - 3 * 60 * 60 * 1000),
-        },
-        state: {
-          $in: ['queued', 'running'],
-        },
-      },
-      order: [['requestId', 'ASC'], ['date', 'DESC']],
-    });
-    const queueTimes = [];
-    let i = 0;
-    while (i < recentRunningStatuses.length - 1) {
-      if (
-        recentRunningStatuses[i].state !== 'running' ||
-        recentRunningStatuses[i + 1].state !== 'queued' ||
-        recentRunningStatuses[i].requestId !== recentRunningStatuses[i + 1].requestId
-      ) {
-        i += 1;
-        continue;
-      }
-      queueTimes.push(+recentRunningStatuses[i].date - +recentRunningStatuses[i + 1].date);
-      i += 2;
-    }
-    const averageQueueTime =
-      queueTimes.length === 0 ? 20000 : queueTimes.reduce((a, b) => a + b, 0) / queueTimes.length;
-    return {
-      averageQueueTime,
-    };
-  };
-
   private getUsersPermissions = async (
     requestingUserMode: IPermissionMode,
   ): Promise<UserState[]> => {
@@ -539,7 +539,6 @@ export class Runner {
       users,
       waitingToQueue,
       bannerMessageState,
-      statistics,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
@@ -547,7 +546,6 @@ export class Runner {
       this.getUsersPermissions(requestingUserMode),
       requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
       this.getBannerMessageState(),
-      this.calculateStatistics(),
     ]);
     // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
@@ -565,8 +563,6 @@ export class Runner {
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,
-      // @ts-ignore
-      statistics,
     };
   };
 }

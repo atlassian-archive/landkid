@@ -289,6 +289,23 @@ export class BannerMessageState extends Model<BannerMessageState> implements IMe
   readonly date: Date;
 }
 
+@Table
+export class EstimatedWaitTime extends Model<EstimatedWaitTime> implements IEstimatedWaitTime {
+  @PrimaryKey
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly targetBranch: string;
+
+  @AllowNull(true)
+  @Column(Sequelize.INTEGER)
+  estimatedWaitTime: number;
+
+  @AllowNull(true)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly date: Date;
+}
+
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize(
     config.sequelize ||
@@ -308,6 +325,7 @@ export const initializeSequelize = async () => {
     PullRequest,
     LandRequestStatus,
     LandRequest,
+    EstimatedWaitTime,
   ]);
 
   await sequelize.authenticate();
