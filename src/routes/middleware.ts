@@ -97,3 +97,28 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
 
   next();
 });
+
+export const requireCustomToken: express.RequestHandler = wrap(async (req, res, next) => {
+  let token: string | undefined = req.header('authorization');
+  if (!token) {
+    return res.status(400).json({ error: 'Request requires a custom token' });
+  }
+  token = token.substr(6);
+
+  let decoded: any;
+  try {
+    decoded = Buffer.from(token, 'base64')
+      .toString()
+      .trim();
+  } catch (err) {
+    Logger.error('Could not decode custom token', { err });
+    return res.status(401).json({ error: 'Could not decode custom token' });
+  }
+
+  if (decoded !== process.env.CUSTOM_TOKEN) {
+    Logger.error('Custom token is not valid', { decoded });
+    return res.status(401).json({ error: 'Custom token is not valid' });
+  }
+
+  next();
+});

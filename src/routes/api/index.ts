@@ -1,14 +1,14 @@
 import * as express from 'express';
 
-import { wrap, requireAuth } from '../middleware';
+import { wrap, requireAuth, requireCustomToken } from '../middleware';
 import { Runner } from '../../lib/Runner';
 import { Logger } from '../../lib/Logger';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
-import { Config } from '../../types';
+import { Config, LandRequestOptions } from '../../types';
 
-const landKidTag = process.env['LANDKID_TAG'] || 'Unknown';
+const landKidTag = process.env.LANDKID_TAG || 'Unknown';
 
 export function apiRoutes(runner: Runner, client: BitbucketClient, config: Config) {
   const router = express();
@@ -73,7 +73,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       const mode = req.body.mode;
       Logger.verbose('Setting user permission', { namespace: 'routes:api:permission', aaid, mode });
       if (['read', 'land', 'admin'].indexOf(mode) === -1) {
-        res.status(400).json({ error: 'Invalid permission mode' });
+        return res.status(400).json({ error: 'Invalid permission mode' });
       }
       res.json(await permissionService.setPermissionForUser(aaid, mode, req.user!));
     }),
@@ -87,7 +87,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       const note = req.body.note;
       Logger.verbose('Setting user note', { namespace: 'routes:api:note', aaid, note });
       if (!note) {
-        res.status(400).json({ error: 'Note can not be empty' });
+        return res.status(400).json({ error: 'Note can not be empty' });
       }
       await permissionService.setNoteForUser(aaid, note, req.user!);
       res.json({ message: `Added note to user ${aaid}` });
@@ -200,10 +200,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       }
       Logger.verbose('Setting message', { namespace: 'routes:api:message', message, type });
       if (!message) {
-        res.status(400).json({ error: 'Cannot send an empty message' });
+        return res.status(400).json({ error: 'Cannot send an empty message' });
       }
       if (!['default', 'warning', 'error'].includes(type)) {
-        res.status(400).json({ error: 'Message type must be one of: default, warning, error' });
+        return res
+          .status(400)
+          .json({ error: 'Message type must be one of: default, warning, error' });
       }
       // @ts-ignore -- checks value of type above
       runner.addBannerMessage(message, type, req.user!);
@@ -232,20 +234,37 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   );
 
   router.post(
-    '/create-fake',
-    requireAuth('admin'),
+    '/create-landrequest',
+    requireCustomToken,
     wrap(async (req, res) => {
-      if (req && req.body && req.body.prId) {
-        Logger.info('creating fake', { prId: req.body.prId });
-        const fakeLandRequst = await runner.addFakeLandRequest(req.body.prId, req.user!.aaid);
-        if (!fakeLandRequst) {
-          res.status(400).json({ err: 'Could not find PR with that ID' });
-        } else {
-          res.json({ fakeLandRequst });
-        }
-      } else {
+      if (!req.body || !req.body.prId) {
         return res.status(400).json({ err: 'req.body.prId expected' });
       }
+
+      const prId = parseInt(req.body.prId, 10);
+      const prInfo = await client.bitbucket.getPullRequest(prId);
+
+      if (!prInfo) {
+        return res.status(400).json({ err: 'Could not find PR with that ID' });
+      }
+
+      const landRequest: LandRequestOptions = {
+        prId,
+        triggererAaid: req.user ? req.user.aaid : 'landkid',
+        commit: prInfo.commit,
+        prTitle: prInfo.title,
+        prAuthorAaid: prInfo.authorAaid,
+        prTargetBranch: prInfo.targetBranch,
+      };
+
+      if (req.body.entryPoint === 'land-when-able') {
+        await runner.addToWaitingToLand(landRequest);
+      } else {
+        await runner.enqueue(landRequest);
+      }
+      Logger.info('Landrequest created', { landRequest });
+
+      res.sendStatus(200);
     }),
   );
 

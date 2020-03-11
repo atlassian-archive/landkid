@@ -63,10 +63,14 @@ Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
     },
   }).then(res =>
     cy.request({
-      url: '/api/create-fake',
+      url: '/api/create-landrequest',
       method: 'POST',
       body: {
         prId: res.body.id,
+        entryPoint: 'queue',
+      },
+      headers: {
+        Authorization: `Token ${Cypress.env('CUSTOM_TOKEN')}`,
       },
     }),
   );
