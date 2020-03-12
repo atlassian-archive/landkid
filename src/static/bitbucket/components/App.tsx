@@ -1,4 +1,5 @@
 import * as React from 'react';
+import formatDistanceStrict from 'date-fns/formatDistanceStrict';
 import { proxyRequest } from '../utils/RequestProxy';
 
 type BannerMessage = {
@@ -19,6 +20,7 @@ type AppState = {
   canLandWhenAble: boolean;
   errors: string[];
   bannerMessage: BannerMessage | null;
+  estimatedWaitTime: number | null;
 };
 
 export class App extends React.Component {
@@ -40,6 +42,7 @@ export class App extends React.Component {
     canLandWhenAble: false,
     errors: [],
     bannerMessage: null,
+    estimatedWaitTime: null,
   };
 
   async componentDidMount() {
@@ -57,13 +60,15 @@ export class App extends React.Component {
       canLandWhenAble: string;
       errors: string[];
       bannerMessage: BannerMessage | null;
+      estimatedWaitTime: number;
     };
     proxyRequest<Resp>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
+      .then(({ canLand, canLandWhenAble, errors, bannerMessage, estimatedWaitTime }) => {
         if (canLand) {
           return this.setState({
             curState: 'can-land',
             bannerMessage,
+            estimatedWaitTime,
           });
         }
         this.setState({
@@ -120,9 +125,17 @@ export class App extends React.Component {
         return <p>🤔 Checking Landkid permissions...</p>;
       }
       case 'can-land': {
+        const { estimatedWaitTime } = this.state;
+        let waitTimeMessage = estimatedWaitTime
+          ? `Estimated queue time: ${formatDistanceStrict(0, estimatedWaitTime)}`
+          : null;
+        if (this.state.estimatedWaitTime === 0) {
+          waitTimeMessage = 'The queue is empty, go go go!';
+        }
         return (
           <div>
             <p>Your PR is ready to land!</p>
+            {waitTimeMessage ? <p>{waitTimeMessage}</p> : null}
             <div style={{ marginTop: '15px' }}>
               <button
                 type="button"

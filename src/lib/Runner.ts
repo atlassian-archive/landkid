@@ -308,9 +308,9 @@ export class Runner {
       status =>
         status.state === 'queued' && status.request.pullRequest.targetBranch === targetBranch,
     );
-    const queueSize = queuedTargetingSameBranch.length + 1;
-    if (!estimatedBuildTime) return 20000 * queueSize;
-    return estimatedBuildTime.estimatedBuildTime * queueSize;
+    const queueSize = queuedTargetingSameBranch.length;
+    if (!estimatedBuildTime) return (1200000 / this.getMaxConcurrentBuilds()) * queueSize;
+    return (estimatedBuildTime.estimatedBuildTime / this.getMaxConcurrentBuilds()) * queueSize;
   };
 
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
