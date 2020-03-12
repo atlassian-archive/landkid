@@ -60,7 +60,7 @@ export class App extends React.Component {
       canLandWhenAble: string;
       errors: string[];
       bannerMessage: BannerMessage | null;
-      estimatedWaitTime: number;
+      estimatedWaitTime: number | null;
     };
     proxyRequest<Resp>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, bannerMessage, estimatedWaitTime }) => {

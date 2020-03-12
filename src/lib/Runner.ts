@@ -300,7 +300,7 @@ export class Runner {
     });
   };
 
-  getEstimatedWaitTime = async (targetBranch: string): Promise<number> => {
+  getEstimatedWaitTime = async (targetBranch: string): Promise<number | null> => {
     const estimatedBuildTime = await EstimatedBuildTime.findOne<EstimatedBuildTime>({
       where: { targetBranch },
     });
@@ -309,7 +309,7 @@ export class Runner {
         status.state === 'queued' && status.request.pullRequest.targetBranch === targetBranch,
     );
     const queueSize = queuedTargetingSameBranch.length;
-    if (!estimatedBuildTime) return (1200000 / this.getMaxConcurrentBuilds()) * queueSize;
+    if (!estimatedBuildTime) return null;
     return (estimatedBuildTime.estimatedBuildTime / this.getMaxConcurrentBuilds()) * queueSize;
   };
 
