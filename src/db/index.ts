@@ -290,7 +290,7 @@ export class BannerMessageState extends Model<BannerMessageState> implements IMe
 }
 
 @Table
-export class EstimatedWaitTime extends Model<EstimatedWaitTime> implements IEstimatedWaitTime {
+export class EstimatedBuildTime extends Model<EstimatedBuildTime> implements IEstimatedBuildTime {
   @PrimaryKey
   @AllowNull(false)
   @Column(Sequelize.STRING)
@@ -298,7 +298,7 @@ export class EstimatedWaitTime extends Model<EstimatedWaitTime> implements IEsti
 
   @AllowNull(true)
   @Column(Sequelize.INTEGER)
-  estimatedWaitTime: number;
+  estimatedBuildTime: number;
 
   @AllowNull(true)
   @Default(() => new Date())
@@ -325,7 +325,7 @@ export const initializeSequelize = async () => {
     PullRequest,
     LandRequestStatus,
     LandRequest,
-    EstimatedWaitTime,
+    EstimatedBuildTime,
   ]);
 
   await sequelize.authenticate();

@@ -36,9 +36,9 @@ declare interface IMessageState {
   date: Date;
 }
 
-declare interface IEstimatedWaitTime {
+declare interface IEstimatedBuildTime {
   targetBranch: string;
-  estimatedWaitTime: number;
+  estimatedBuildTime: number;
 }
 
 declare interface IStatusUpdate {

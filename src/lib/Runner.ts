@@ -13,7 +13,7 @@ import {
   UserNote,
   LandRequestStatus,
   BannerMessageState,
-  EstimatedWaitTime,
+  EstimatedBuildTime,
 } from '../db';
 import { permissionService } from './PermissionService';
 
@@ -140,13 +140,11 @@ export class Runner {
 
     // Try to merge PR
     try {
-      const pullRequestId = landRequest.request.pullRequestId;
+      const { id: pullRequestId, targetBranch } = landRequest.request.pullRequest;
       Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
-      await this.client.mergePullRequest(
-        pullRequestId,
-        landRequest.request.pullRequest.targetBranch,
-      );
+      await this.client.mergePullRequest(pullRequestId, targetBranch);
       Logger.info('Successfully merged PR', { pullRequestId });
+      await this.calculateEstimatedBuildTime(targetBranch, landRequest.requestId);
       return await landRequest.request.setStatus('success');
     } catch (err) {
       return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
@@ -177,10 +175,6 @@ export class Runner {
           // if we moved, we need to exit early, otherwise, just keep checking the queue
           if (didChangeState) return this.next();
         } else if (landRequest.state === 'queued') {
-          await this.calculateEstimatedWaitTimeDelta(
-            landRequest.request.pullRequest.targetBranch,
-            landRequest.date,
-          );
           const movedState = await this.moveFromQueueToRunning(landRequest.request);
           // if the landrequest was able to move from queued to running, exit early, otherwise, keep
           // checking the rest of the queue
@@ -277,35 +271,46 @@ export class Runner {
     return state ? state.get() : null;
   };
 
-  private calculateEstimatedWaitTimeDelta = async (
+  private calculateEstimatedBuildTime = async (
     targetBranch: string,
-    queuedDate: Date,
+    requestId: string,
   ): Promise<void> => {
-    const delta = +new Date() - +queuedDate;
-    this.setEstimatedWaitTime(targetBranch, delta);
-  };
-
-  private setEstimatedWaitTime = async (targetBranch: string, delta: number) => {
-    let estimatedWaitTime = delta;
-    const oldEstimatedWaitTime = await EstimatedWaitTime.findOne<EstimatedWaitTime>({
+    const runningStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId,
+        state: 'running',
+      },
+      order: [['date', 'DESC']],
+    });
+    const timeNow = +new Date();
+    let estimatedBuildTime = timeNow - +runningStatus!.date;
+    const oldEstimatedBuildTime = await EstimatedBuildTime.findOne<EstimatedBuildTime>({
       where: { targetBranch },
     });
-    if (oldEstimatedWaitTime) {
-      estimatedWaitTime = (oldEstimatedWaitTime.estimatedWaitTime + delta) / 2;
-      oldEstimatedWaitTime.destroy();
+    if (oldEstimatedBuildTime) {
+      const timeSinceLastCalculated = timeNow - +oldEstimatedBuildTime.date;
+      if (timeSinceLastCalculated > estimatedBuildTime) {
+        estimatedBuildTime = (oldEstimatedBuildTime.estimatedBuildTime + estimatedBuildTime) / 2;
+      }
+      oldEstimatedBuildTime.destroy();
     }
-    await EstimatedWaitTime.create({
+    await EstimatedBuildTime.create({
       targetBranch,
-      estimatedWaitTime,
+      estimatedBuildTime,
     });
   };
 
   getEstimatedWaitTime = async (targetBranch: string): Promise<number> => {
-    const estimatedWaitTime = await EstimatedWaitTime.findOne<EstimatedWaitTime>({
+    const estimatedBuildTime = await EstimatedBuildTime.findOne<EstimatedBuildTime>({
       where: { targetBranch },
     });
-    if (!estimatedWaitTime) return 20000;
-    return estimatedWaitTime.estimatedWaitTime;
+    const queuedTargetingSameBranch = (await this.getQueue()).filter(
+      status =>
+        status.state === 'queued' && status.request.pullRequest.targetBranch === targetBranch,
+    );
+    const queueSize = queuedTargetingSameBranch.length + 1;
+    if (!estimatedBuildTime) return 20000 * queueSize;
+    return estimatedBuildTime.estimatedBuildTime * queueSize;
   };
 
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
