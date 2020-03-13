@@ -127,28 +127,28 @@ export class Runner {
     return true;
   };
 
-  attemptToMoveFromAwaitingMerge = async (landRequest: LandRequestStatus) => {
-    const dependencies = await landRequest.request.getDependencies();
+  attemptToMoveFromAwaitingMerge = async (landRequestStatus: LandRequestStatus) => {
+    const dependencies = await landRequestStatus.request.getDependencies();
 
     if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
       Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
         dependencies,
-        landRequest,
+        landRequestStatus,
       });
       return false; // did not move state, return false
     }
 
+    const { id: pullRequestId, targetBranch } = landRequestStatus.request.pullRequest;
     // Try to merge PR
     try {
-      const { id: pullRequestId, targetBranch } = landRequest.request.pullRequest;
-      Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
+      Logger.info('Attempting merge pull request', { pullRequestId, landRequestStatus });
       await this.client.mergePullRequest(pullRequestId, targetBranch);
       Logger.info('Successfully merged PR', { pullRequestId });
-      await this.calculateEstimatedBuildTime(targetBranch, landRequest.requestId);
-      return await landRequest.request.setStatus('success');
+      await landRequestStatus.request.setStatus('success');
     } catch (err) {
-      return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
+      await landRequestStatus.request.setStatus('fail', 'Unable to merge pull request');
     }
+    await this.calculateEstimatedBuildTime(targetBranch, landRequestStatus.requestId);
   };
 
   // Next must always return early if ever doing a single state transition
@@ -292,7 +292,7 @@ export class Runner {
       if (timeSinceLastCalculated > estimatedBuildTime) {
         estimatedBuildTime = (oldEstimatedBuildTime.estimatedBuildTime + estimatedBuildTime) / 2;
       }
-      oldEstimatedBuildTime.destroy();
+      await oldEstimatedBuildTime.destroy();
     }
     await EstimatedBuildTime.create({
       targetBranch,
