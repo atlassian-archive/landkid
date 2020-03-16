@@ -11,8 +11,9 @@ const getConfig = (): Config | null => {
     let configValid = true;
 
     if (!config.deployment.oAuth.secret || !config.deployment.oAuth.key) {
-      Logger.error('deployment.oAuth.secret or deployment.oAuth.key are missing');
-      Logger.error('Did you forget to set an environment variable?');
+      Logger.error('deployment.oAuth.secret or deployment.oAuth.key are missing', {
+        namespace: 'lib:config:getConfig',
+      });
       configValid = false;
     }
 

@@ -31,6 +31,7 @@ export class BitbucketPipelinesAPI {
       typeof statusEvent.commit_status.url !== 'string'
     ) {
       Logger.error('Status event receieved that does not match the shape we were expecting', {
+        namespace: 'bitbucket:pipelines:processStatusWebhook',
         statusEvent: body,
       });
       return null;
@@ -50,7 +51,11 @@ export class BitbucketPipelinesAPI {
   };
 
   public createLandBuild = async (commit: string, depCommits: string) => {
-    Logger.info('Creating land build for commit', { commit });
+    Logger.info('Creating land build for commit', {
+      namespace: 'bitbucket:pipelines:createLandBuild',
+      commit,
+      depCommits,
+    });
     const data = {
       target: {
         commit: { hash: commit, type: 'commit' },
@@ -73,17 +78,27 @@ export class BitbucketPipelinesAPI {
         axiosPostConfig,
       ),
     );
-    Logger.info('Created build', { buildNumber: resp.data.build_number });
     if (!resp.data.build_number || typeof resp.data.build_number !== 'number') {
-      Logger.error('Response from creating build does not match the shape we expected');
+      Logger.error('Response from creating build does not match the shape we expected', {
+        namespace: 'bitbucket:pipelines:createLandBuild',
+        commit,
+      });
       return null;
     }
+    Logger.info('Created build', {
+      namespace: 'bitbucket:pipelines:createLandBuild',
+      commit,
+      buildNumber: resp.data.build_number,
+    });
     // build_number comes back as a number unfortunately
     return resp.data.build_number as number;
   };
 
   public stopLandBuild = async (buildId: number) => {
-    Logger.info('Stopping land build with id', { buildId });
+    Logger.info('Stopping land build with id', {
+      namespace: 'bitbucket:pipelines:stopLandBuild',
+      buildId,
+    });
     const endpoint = `${this.apiBaseUrl}/pipelines/${buildId}/stopPipeline`;
     const resp = await axios.post(
       endpoint,
@@ -93,6 +108,14 @@ export class BitbucketPipelinesAPI {
         axiosPostConfig,
       ),
     );
-    return resp.status === 204;
+    if (resp.status !== 204) {
+      Logger.info('Build could not be cancelled', {
+        namespace: 'bitbucket:pipelines:stopLandBuild',
+        buildId,
+        response: resp.data,
+      });
+      return false;
+    }
+    return true;
   };
 }

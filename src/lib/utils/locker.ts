@@ -15,7 +15,10 @@ export const withLock = async <T>(resource: string, fn: () => Promise<T>) => {
   try {
     result = await fn();
   } catch (err) {
-    Logger.error(`Error failed while in lock for "${resource}"`, { err });
+    Logger.error(`Error failed while in lock for "${resource}"`, {
+      namespace: 'lib:utils:locker:withLock',
+      err,
+    });
   }
   await lock.unlock();
   return result!;

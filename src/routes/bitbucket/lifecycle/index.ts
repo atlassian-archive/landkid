@@ -10,7 +10,7 @@ export function lifecycleRoutes(runner: Runner) {
   router.post(
     '/installed',
     wrap(async (req, res) => {
-      Logger.verbose('Requesting creation of installion entry', {
+      Logger.verbose('Requesting creation of installation entry', {
         namespace: 'routes:bitbucket:lifecycle:installed',
       });
       const install = await Installation.findOne<Installation>();
@@ -37,7 +37,9 @@ export function lifecycleRoutes(runner: Runner) {
         clientKey: req.body.clientKey,
         sharedSecret: req.body.sharedSecret,
       });
-      Logger.info('Created installed entry', { namespace: 'routes:bitbucket:lifecycle:installed' });
+      Logger.info('Created installation entry', {
+        namespace: 'routes:bitbucket:lifecycle:installed',
+      });
 
       res.send('OK');
     }),

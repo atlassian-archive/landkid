@@ -22,7 +22,7 @@ class BitbucketAuthenticator {
       },
       install.sharedSecret,
     );
-    Logger.info('Generated JWT');
+    Logger.info('Generated JWT', { namespace: 'bitbucket:authenticator:getJWTAuthHeaders' });
     return {
       Authorization: `JWT ${token}`,
     };
@@ -35,10 +35,14 @@ class BitbucketAuthenticator {
     const install = await Installation.findOne<Installation>();
     let authHeaders: any;
     if (!install) {
-      Logger.info('no install, using basic auth');
+      Logger.info('no install, using basic auth', {
+        namespace: 'bitbucket:authenticator:getJWTAuthHeaders',
+      });
       authHeaders = this.getBasicAuthHeaders();
     } else {
-      Logger.info('found install, using JWT auth');
+      Logger.info('found install, using JWT auth', {
+        namespace: 'bitbucket:authenticator:getJWTAuthHeaders',
+      });
       authHeaders = this.getJWTAuthHeaders(request, install);
     }
 

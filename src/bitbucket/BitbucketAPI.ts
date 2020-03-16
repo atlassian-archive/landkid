@@ -22,7 +22,11 @@ export class BitbucketAPI {
       merge_strategy: 'merge_commit',
     };
 
-    Logger.info('Merging pull request', { pullRequestId, endpoint });
+    Logger.info('Merging pull request', {
+      namespace: 'bitbucket:api:mergePullRequest',
+      pullRequestId,
+      request: { endpoint, ...data },
+    });
     // This is just defining the function that we will retry
     const attemptMerge = async () =>
       axios.post(
@@ -42,6 +46,7 @@ export class BitbucketAPI {
       // which contains auth credentials
 
       Logger.error('Merge attempt failed', {
+        namespace: 'bitbucket:api:mergePullRequest:onFailedAttept',
         response: {
           statusCode: status,
           statusText,
@@ -54,9 +59,18 @@ export class BitbucketAPI {
       });
     };
     await pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
-      .then(() => Logger.info('Merged Pull Request', { pullRequestId }))
+      .then(() =>
+        Logger.info('Merged Pull Request', {
+          namespace: 'bitbucket:api:mergePullRequest',
+          pullRequestId,
+        }),
+      )
       .catch(err => {
-        Logger.error('Unable to merge pull request', { err, pullRequestId });
+        Logger.error('Unable to merge pull request', {
+          namespace: 'bitbucket:api:mergePullRequest',
+          err,
+          pullRequestId,
+        });
         throw err;
       });
   };
@@ -122,12 +136,18 @@ export class BitbucketAPI {
 
   getRepository = async (): Promise<BB.Repository> => {
     const endpoint = this.apiBaseUrl;
-    Logger.info('fetching uuid for repository', { endpoint });
+    Logger.info('fetching uuid for repository', {
+      namespace: 'bitbucket:api:getRepository',
+      endpoint,
+    });
     const { data } = await axios.get<BB.RepositoryResponse>(
       endpoint,
       await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
     );
-    Logger.info('successfully fetched repo uuid', { uuid: data.uuid });
+    Logger.info('successfully fetched repo uuid', {
+      namespace: 'bitbucket:api:getRepository',
+      uuid: data.uuid,
+    });
 
     return {
       repoOwner: data.owner.username,

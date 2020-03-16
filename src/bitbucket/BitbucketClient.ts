@@ -36,7 +36,8 @@ export class BitbucketClient {
     const { prSettings } = this.config;
     const errors: string[] = [];
 
-    Logger.info('isAllowedToLand()', {
+    Logger.info('Pull request approval checks', {
+      namespace: 'bitbucket:client:isAllowedToLand',
       pullRequestId,
       approvalChecks,
       requirements: prSettings,

@@ -45,7 +45,10 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
             displayName: userResponse.data.display_name,
           };
 
-          Logger.info('User logged in', { aaid: userInfo.aaid });
+          Logger.info('User logged in', {
+            namespace: 'auth:bitbucket',
+            aaid: userInfo.aaid,
+          });
         } catch (err) {
           return verified(err);
         }
