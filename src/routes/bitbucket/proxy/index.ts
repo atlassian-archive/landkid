@@ -98,7 +98,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       await runner.enqueue(landRequest);
       Logger.info('Pull request landed', {
-        namespace: 'routes:proxy:bitbucket:land',
+        namespace: 'routes:bitbucket:proxy:land',
         pullRequestId: prId,
         landRequest,
       });
@@ -135,7 +135,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       };
       await runner.addToWaitingToLand(landRequest);
       Logger.info('Pull request will land when able', {
-        namespace: 'routes:proxy:bitbucket:land-when-able',
+        namespace: 'routes:bitbucket:proxy:land-when-able',
         pullRequestId: prId,
         landRequest,
       });

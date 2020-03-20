@@ -125,7 +125,7 @@ export class Runner {
       dependsOn: dependsOnStr,
     });
 
-    const buildId = await this.client.createLandBuild(commit, depCommitsArrStr);
+    const buildId = await this.client.createLandBuild(landRequest.id, commit, depCommitsArrStr);
     if (!buildId) {
       Logger.verbose('Unable to create land build in Pipelines', {
         namespace: 'lib:runner:moveFromQueueToRunning',
@@ -179,10 +179,7 @@ export class Runner {
         pullRequestId,
         requestId: landRequest.id,
       });
-      await this.client.mergePullRequest(
-        pullRequestId,
-        landRequest.request.pullRequest.targetBranch,
-      );
+      await this.client.mergePullRequest(landRequest.request);
       Logger.info('Successfully merged PR', {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         requestId: landRequest.id,

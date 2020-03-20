@@ -5,6 +5,7 @@ import * as pRetry from 'p-retry';
 import { RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
+import { LandRequest } from '../db';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
@@ -13,7 +14,12 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (pullRequestId: number, targetBranch: string) => {
+  mergePullRequest = async (landRequest: LandRequest) => {
+    const {
+      id: requestId,
+      pullRequestId,
+      pullRequest: { targetBranch },
+    } = landRequest;
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
     const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     const data = {
@@ -25,7 +31,9 @@ export class BitbucketAPI {
     Logger.info('Merging pull request', {
       namespace: 'bitbucket:api:mergePullRequest',
       pullRequestId,
-      request: { endpoint, ...data },
+      requestId,
+      targetBranch,
+      postRequest: { endpoint, ...data },
     });
     // This is just defining the function that we will retry
     const attemptMerge = async () =>
@@ -56,12 +64,15 @@ export class BitbucketAPI {
         attemptNumber,
         attemptsLeft,
         pullRequestId,
+        requestId,
+        targetBranch,
       });
     };
     await pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
       .then(() =>
         Logger.info('Merged Pull Request', {
           namespace: 'bitbucket:api:mergePullRequest',
+          requestId,
           pullRequestId,
         }),
       )
@@ -70,6 +81,7 @@ export class BitbucketAPI {
           namespace: 'bitbucket:api:mergePullRequest',
           err,
           pullRequestId,
+          requestId,
         });
         throw err;
       });
