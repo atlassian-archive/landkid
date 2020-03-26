@@ -78,7 +78,7 @@ export class Runner {
     const targetBranchMatches = currentPrInfo.targetBranch === landRequest.pullRequest.targetBranch;
     const commitMatches = currentPrInfo.commit === landRequest.forCommit;
     if (!targetBranchMatches) {
-      Logger.verbose('Target branch changed between landing and running', {
+      Logger.info('Target branch changed between landing and running', {
         namespace: 'lib:runner:moveFromQueueToRunning',
         landRequestTargetBranch: landRequest.pullRequest.targetBranch,
         currentPrTargetBranch: currentPrInfo.targetBranch,
@@ -86,7 +86,7 @@ export class Runner {
       return landRequest.setStatus('aborted', 'Target branch changed between landing and running');
     }
     if (!commitMatches) {
-      Logger.verbose('Target branch changed between landing and running', {
+      Logger.info('Target branch changed between landing and running', {
         namespace: 'lib:runner:moveFromQueueToRunning',
         landRequestCommit: landRequest.forCommit,
         currentPrCommit: currentPrInfo.commit,
