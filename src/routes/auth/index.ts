@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as passport from 'passport';
 import { permissionService } from '../../lib/PermissionService';
 import { wrap } from '../middleware';
+import { Logger } from '../../lib/Logger';
 
 export function authRoutes() {
   const router = express();
@@ -18,12 +19,11 @@ export function authRoutes() {
   router.get(
     '/whoami',
     wrap(async (req, res) => {
+      Logger.verbose('Requesting whoami', { namespace: 'routes:auth:whoami', user: req.user });
       res.json({
         loggedIn: !!req.user,
         user: req.user,
-        permission: req.user
-          ? await permissionService.getPermissionForUser(req.user.aaid)
-          : 'read',
+        permission: req.user ? await permissionService.getPermissionForUser(req.user.aaid) : 'read',
       });
     }),
   );

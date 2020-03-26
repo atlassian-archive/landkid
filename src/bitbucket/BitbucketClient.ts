@@ -2,6 +2,7 @@ import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
+import { LandRequest } from '../db';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
@@ -36,7 +37,8 @@ export class BitbucketClient {
     const { prSettings } = this.config;
     const errors: string[] = [];
 
-    Logger.info('isAllowedToLand()', {
+    Logger.info('Pull request approval checks', {
+      namespace: 'bitbucket:client:isAllowedToLand',
       pullRequestId,
       approvalChecks,
       requirements: prSettings,
@@ -77,16 +79,16 @@ export class BitbucketClient {
     };
   }
 
-  createLandBuild(commit: string, depCommits: string) {
-    return this.pipelines.createLandBuild(commit, depCommits);
+  createLandBuild(requestId: string, commit: string, depCommits: string) {
+    return this.pipelines.createLandBuild(requestId, commit, depCommits);
   }
 
   async stopLandBuild(buildId: number) {
     return await this.pipelines.stopLandBuild(buildId);
   }
 
-  async mergePullRequest(pullRequestId: number, targetBranch: string) {
-    return await this.bitbucket.mergePullRequest(pullRequestId, targetBranch);
+  async mergePullRequest(landRequest: LandRequest) {
+    return await this.bitbucket.mergePullRequest(landRequest);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {

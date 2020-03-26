@@ -13,7 +13,11 @@ class PermissionService {
 
     if (!permission) {
       const defaultMode: IPermissionMode = config.landkidAdmins.includes(aaid) ? 'admin' : 'read';
-      Logger.info('User does not exist, creating one', { defaultMode, aaid });
+      Logger.info('User does not exist, creating one', {
+        namespace: 'lib:permissions:getPermissionForUser',
+        defaultMode,
+        aaid,
+      });
       await Permission.create({
         aaid,
         mode: defaultMode,
@@ -29,7 +33,6 @@ class PermissionService {
     mode: IPermissionMode,
     setter: ISessionUser,
   ): Promise<void> => {
-    Logger.info('Setting user permission', { aaid, mode, setter });
     await Permission.create({
       aaid,
       mode,

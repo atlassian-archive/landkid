@@ -54,7 +54,15 @@ export class Runner {
     const runningTargetingSameBranch = running.filter(
       build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
-    if (runningTargetingSameBranch.length >= this.getMaxConcurrentBuilds()) return false;
+    const maxConcurrentBuilds = this.getMaxConcurrentBuilds();
+    if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
+      Logger.verbose('No concurrent build slots left', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        runningTargetingSameBranch,
+        maxConcurrentBuilds,
+      });
+      return false;
+    }
 
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
@@ -70,16 +78,28 @@ export class Runner {
     const targetBranchMatches = currentPrInfo.targetBranch === landRequest.pullRequest.targetBranch;
     const commitMatches = currentPrInfo.commit === landRequest.forCommit;
     if (!targetBranchMatches) {
+      Logger.info('Target branch changed between landing and running', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        landRequestTargetBranch: landRequest.pullRequest.targetBranch,
+        currentPrTargetBranch: currentPrInfo.targetBranch,
+      });
       return landRequest.setStatus('aborted', 'Target branch changed between landing and running');
     }
     if (!commitMatches) {
+      Logger.info('Target branch changed between landing and running', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        landRequestCommit: landRequest.forCommit,
+        currentPrCommit: currentPrInfo.commit,
+      });
       return landRequest.setStatus('aborted', 'PR commit changed between landing and running');
     }
 
     if (isAllowedToLand.errors.length > 0) {
       Logger.error('LandRequest no longer passes land checks', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
         errors: isAllowedToLand.errors,
         landRequest,
+        requestId: landRequest.id,
       });
       return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
     }
@@ -91,7 +111,6 @@ export class Runner {
       }
     }
 
-    Logger.info('Moving from queued to running', { landRequest: landRequest.get() });
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
     const dependsOnStr = dependencies.map(queueItem => queueItem.request.id).join(',');
@@ -99,8 +118,19 @@ export class Runner {
       dependencies.map(queueItem => queueItem.request.forCommit),
     );
 
-    const buildId = await this.client.createLandBuild(commit, depCommitsArrStr);
+    Logger.info('Attempting to move from queued to running', {
+      namespace: 'lib:runner:moveFromQueueToRunning',
+      requestId: landRequest.id,
+      landRequest: landRequest.get(),
+      dependsOn: dependsOnStr,
+    });
+
+    const buildId = await this.client.createLandBuild(landRequest.id, commit, depCommitsArrStr);
     if (!buildId) {
+      Logger.verbose('Unable to create land build in Pipelines', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        requestId: landRequest.id,
+      });
       return await landRequest.setStatus('fail', 'Unable to create land build in Pipelines');
     }
 
@@ -111,28 +141,32 @@ export class Runner {
         dependencies.map(queueItem => queueItem.request.pullRequestId).join(', ');
     }
 
-    Logger.info('LandRequest now running', {
-      dependsOnStr,
-      landRequest,
-      buildId,
-      depCommitsArrStr,
-    });
     await landRequest.setStatus('running', depPrsStr);
 
     // Todo: these should really be functions on landRequest
     landRequest.buildId = buildId;
     landRequest.dependsOn = dependsOnStr;
-    await landRequest.save();
+    const newLandRequest = await landRequest.save();
+
+    Logger.info('LandRequest now running', {
+      namespace: 'lib:runner:moveFromQueueToRunning',
+      requestId: newLandRequest.id,
+      landRequest: newLandRequest,
+      buildId,
+      depCommitsArrStr,
+    });
     return true;
   };
 
-  attemptToMoveFromAwaitingMerge = async (landRequest: LandRequestStatus) => {
+  moveFromAwaitingMerge = async (landRequest: LandRequestStatus) => {
     const dependencies = await landRequest.request.getDependencies();
 
     if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
       Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
-        dependencies,
+        namespace: 'lib:runner:moveFromAwaitingMerge',
+        requestId: landRequest.id,
         landRequest,
+        dependencies,
       });
       return false; // did not move state, return false
     }
@@ -140,12 +174,17 @@ export class Runner {
     // Try to merge PR
     try {
       const pullRequestId = landRequest.request.pullRequestId;
-      Logger.info('Attempting merge pull request', { pullRequestId, landRequest });
-      await this.client.mergePullRequest(
+      Logger.verbose('Attempting merge pull request', {
+        namespace: 'lib:runner:moveFromAwaitingMerge',
         pullRequestId,
-        landRequest.request.pullRequest.targetBranch,
-      );
-      Logger.info('Successfully merged PR', { pullRequestId });
+        requestId: landRequest.id,
+      });
+      await this.client.mergePullRequest(landRequest.request);
+      Logger.info('Successfully merged PR', {
+        namespace: 'lib:runner:moveFromAwaitingMerge',
+        requestId: landRequest.id,
+        pullRequestId,
+      });
       return await landRequest.request.setStatus('success');
     } catch (err) {
       return await landRequest.request.setStatus('fail', 'Unable to merge pull request');
@@ -156,13 +195,21 @@ export class Runner {
   next = async () => {
     await withLock('Runner:next', async () => {
       const queue = await this.queue.getQueue();
-      Logger.info('Next() called', { queue });
+      Logger.info('Next() called', {
+        namespace: 'lib:runner:next',
+        queue,
+      });
 
       for (const landRequest of queue) {
         // Check for this _before_ looking at the state so that we don't have to wait until
         const failedDeps = await landRequest.request.getFailedDependencies();
         if (failedDeps.length !== 0) {
-          Logger.info('LandRequest failed due to failing dependency');
+          Logger.info('LandRequest failed due to failing dependency', {
+            namespace: 'lib:runner:next',
+            requestId: landRequest.requestId,
+            pullRequestId: landRequest.request.pullRequestId,
+            failedDeps,
+          });
           const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
           const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
           await landRequest.request.setStatus('fail', failReason);
@@ -172,7 +219,7 @@ export class Runner {
           return await landRequest.request.setStatus('queued');
         }
         if (landRequest.state === 'awaiting-merge') {
-          const didChangeState = await this.attemptToMoveFromAwaitingMerge(landRequest);
+          const didChangeState = await this.moveFromAwaitingMerge(landRequest);
           // if we moved, we need to exit early, otherwise, just keep checking the queue
           if (didChangeState) return this.next();
         } else if (landRequest.state === 'queued') {
@@ -183,7 +230,6 @@ export class Runner {
         }
         // otherwise, we must just be running, nothing to do here
       }
-      //
     });
   };
 
@@ -191,26 +237,47 @@ export class Runner {
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
     const running = await this.getRunning();
     if (!running.length) {
-      Logger.info('No builds running, status event is irrelevant', { statusEvent });
+      Logger.info('No builds running, status event is irrelevant', {
+        namespace: 'lib:runner:onStatusUpdate',
+        statusEvent,
+      });
       return;
     }
     for (const landRequest of running) {
       if (statusEvent.buildId !== landRequest.request.buildId) continue; // check next landRequest
       switch (statusEvent.buildStatus) {
         case 'SUCCESSFUL':
-          Logger.info('Moving landRequest to awaiting-merge state', { landRequest });
+          Logger.info('Moving landRequest to awaiting-merge state', {
+            namespace: 'lib:runner:onStatusUpdate',
+            requestId: landRequest.requestId,
+            pullRequestId: landRequest.request.pullRequestId,
+            landRequest,
+          });
           await landRequest.request.setStatus('awaiting-merge');
           return this.next();
         case 'FAILED':
-          Logger.info('Moving landRequest to failed state', { landRequest });
+          Logger.info('Moving landRequest to failed state', {
+            namespace: 'lib:runner:onStatusUpdate',
+            requestId: landRequest.requestId,
+            pullRequestId: landRequest.request.pullRequestId,
+            landRequest,
+          });
           await landRequest.request.setStatus('fail', 'Landkid build failed');
           return this.next();
         case 'STOPPED':
-          Logger.info('Moving landRequest to aborted state', { landRequest });
+          Logger.info('Moving landRequest to aborted state', {
+            namespace: 'lib:runner:onStatusUpdate',
+            requestId: landRequest.requestId,
+            pullRequestId: landRequest.request.pullRequestId,
+            landRequest,
+          });
           await landRequest.request.setStatus('aborted', 'Landkid pipelines build was stopped');
           return this.next();
         default:
-          Logger.info('Dont know what to do with build status, ignoring', { statusEvent });
+          Logger.info('Dont know what to do with build status, ignoring', {
+            namespace: 'lib:runner:onStatusUpdate',
+            statusEvent,
+          });
           break;
       }
     }
@@ -301,7 +368,6 @@ export class Runner {
   enqueue = async (landRequestOptions: LandRequestOptions): Promise<void> => {
     // TODO: Ensure no land request is pending for this PR
     if (await this.getPauseState()) return;
-
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('queued');
   };
@@ -329,7 +395,10 @@ export class Runner {
 
       await request.setStatus('queued');
     }
-    Logger.info('Moving landRequests from waiting to queue', { requests });
+    Logger.info('Moving landRequests from waiting to queue', {
+      namespace: 'lib:runner:moveFromWaitingToQueued',
+      requests,
+    });
 
     this.next();
   };
@@ -343,7 +412,11 @@ export class Runner {
       'aborted',
       `Removed from queue by user "${displayName}`,
     );
-    Logger.info('Removing landRequest from queue', { landRequestStatus });
+    Logger.info('Removing landRequest from queue', {
+      namespace: 'lib:removeLandRequestFromQueue',
+      requestId: landRequestStatus.requestId,
+      landRequestStatus,
+    });
     return true;
   };
 
@@ -366,7 +439,9 @@ export class Runner {
   };
 
   checkWaitingLandRequests = async () => {
-    Logger.info('Checking for waiting landrequests ready to queue');
+    Logger.info('Checking for waiting landrequests ready to queue', {
+      namespace: 'lib:runner:checkWaitingLandRequests',
+    });
 
     for (let landRequest of await this.queue.getStatusesForWaitingRequests()) {
       const pullRequestId = landRequest.request.pullRequestId;
@@ -489,7 +564,7 @@ export class Runner {
   };
 
   clearHistory = async () => {
-    Logger.info('Clearing LandRequest History');
+    Logger.info('Clearing LandRequest History', { namespace: 'lib:runner:clearHistory' });
     await LandRequestStatus.truncate();
     await LandRequest.truncate();
     await PullRequest.truncate();

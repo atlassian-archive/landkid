@@ -1,18 +1,29 @@
 import * as winston from 'winston';
+import { isMatch } from 'micromatch';
 
 process.stdout.isTTY = true;
 
 const ProdLogger = winston.createLogger({
-  level: 'info',
+  level: 'http',
   format: winston.format.json(),
   transports: [new winston.transports.Console()],
 });
-const DevelopmentLogger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+
+const DevLogger = winston.createLogger({
+  level: 'verbose',
+  format: winston.format.combine(
+    winston.format(log =>
+      process.env.LOG_NAMESPACES && !isMatch(log.namespace || '', process.env.LOG_NAMESPACES)
+        ? false
+        : log,
+    )(),
+    winston.format.colorize(),
+    winston.format.printf(
+      ({ level, message, namespace, ...info }) =>
+        `${level}: ${namespace ? `[${namespace}] ` : ''}${message} ${JSON.stringify(info)}`,
+    ),
+  ),
   transports: [new winston.transports.Console()],
 });
 
-const LoggerToExport = process.env.NODE_ENV === 'production' ? ProdLogger : DevelopmentLogger;
-
-export const Logger = LoggerToExport;
+export const Logger = process.env.NODE_ENV === 'production' ? ProdLogger : DevLogger;

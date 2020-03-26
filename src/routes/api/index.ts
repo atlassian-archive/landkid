@@ -17,6 +17,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   router.get(
     '/meta',
     wrap(async (req, res) => {
+      Logger.verbose('Requesting meta information', { namespace: 'routes:api:meta' });
       const install = await runner.getInstallationIfExists();
       const isInstalled = !!install;
       const { customChecks, ...prSettings } = config.prSettings;
@@ -38,7 +39,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('read'),
     wrap(async (req, res) => {
       const state = await runner.getState(req.user!);
-      Logger.info('Requesting current state');
+      Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
       res.header('Access-Control-Allow-Origin', '*').json(state);
     }),
   );
@@ -49,7 +50,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       const page = parseInt(req.query.page || '0', 10);
       const history = await runner.getHistory(page);
-      Logger.info('Requesting current history');
+      Logger.info('Requesting history', { namespace: 'routes:api:history', page });
       res.header('Access-Control-Allow-Origin', '*').json(history);
     }),
   );
@@ -58,7 +59,9 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/user/:aaid',
     requireAuth('read'),
     wrap(async (req, res) => {
-      res.json(await AccountService.get(client).getAccountInfo(req.params.aaid));
+      const aaid = req.params.aaid;
+      Logger.verbose('Requesting user', { namespace: 'routes:api:user', aaid });
+      res.json(await AccountService.get(client).getAccountInfo(aaid));
     }),
   );
 
@@ -66,12 +69,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/permission/:aaid',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      const userAaid = req.params.aaid;
+      const aaid = req.params.aaid;
       const mode = req.body.mode;
+      Logger.verbose('Setting user permission', { namespace: 'routes:api:permission', aaid, mode });
       if (['read', 'land', 'admin'].indexOf(mode) === -1) {
         return res.status(400).json({ error: 'Invalid permission mode' });
       }
-      res.json(await permissionService.setPermissionForUser(userAaid, mode, req.user!));
+      res.json(await permissionService.setPermissionForUser(aaid, mode, req.user!));
     }),
   );
 
@@ -79,13 +83,14 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/note/:aaid',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      const userAaid = req.params.aaid;
+      const aaid = req.params.aaid;
       const note = req.body.note;
+      Logger.verbose('Setting user note', { namespace: 'routes:api:note', aaid, note });
       if (!note) {
         return res.status(400).json({ error: 'Note can not be empty' });
       }
-      await permissionService.setNoteForUser(userAaid, note, req.user!);
-      res.json({ message: `Added note to user ${userAaid}` });
+      await permissionService.setNoteForUser(aaid, note, req.user!);
+      res.json({ message: `Added note to user ${aaid}` });
     }),
   );
 
@@ -93,9 +98,10 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/note/:aaid',
     requireAuth('admin'),
     wrap(async (req, res) => {
-      const userAaid = req.params.aaid;
-      await permissionService.removeUserNote(userAaid);
-      res.json({ message: `Removed note from user ${userAaid}` });
+      const aaid = req.params.aaid;
+      Logger.verbose('Removing user note', { namespace: 'routes:api:note', aaid });
+      await permissionService.removeUserNote(aaid);
+      res.json({ message: `Removed note from user ${aaid}` });
     }),
   );
 
@@ -107,6 +113,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       if (req && req.body && req.body.reason) {
         pausedReason = String(req.body.reason);
       }
+      Logger.verbose('Pausing', { namespace: 'routes:api:pause', pausedReason });
       runner.pause(pausedReason, req.user!);
       res.json({ paused: true, pausedReason });
     }),
@@ -116,6 +123,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/unpause',
     requireAuth('admin'),
     wrap(async (req, res) => {
+      Logger.verbose('Unpausing', { namespace: 'routes:api:unpause' });
       await runner.unpause();
       res.json({ paused: false });
     }),
@@ -128,6 +136,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/next',
     requireAuth('admin'),
     wrap(async (req, res) => {
+      Logger.verbose('Calling next', { namespace: 'routes:api:next' });
       await runner.next();
       res.json({ message: 'Called next()' });
     }),
@@ -137,6 +146,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/uninstall',
     requireAuth('admin'),
     wrap(async (req, res) => {
+      Logger.verbose('Uninstalling', { namespace: 'routes:api:uninstall' });
       await runner.deleteInstallation();
       res.json({ message: 'Installation deleted' });
     }),
@@ -147,6 +157,10 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
+      Logger.verbose('Removing landrequest from queue', {
+        namespace: 'routes:api:remove',
+        requestId,
+      });
       const success = await runner.removeLandRequestFromQueue(requestId, req.user!);
       if (success) {
         res.json({ message: 'Request removed from queue' });
@@ -161,6 +175,10 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
+      Logger.verbose('Cancelling running landrequest', {
+        namespace: 'routes:api:cancel',
+        requestId,
+      });
       const success = await runner.cancelRunningBuild(requestId, req.user!);
       if (success) {
         res.json({ message: 'Running build cancelled' });
@@ -180,6 +198,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         message = String(req.body.message);
         type = String(req.body.type);
       }
+      Logger.verbose('Setting message', { namespace: 'routes:api:message', message, type });
       if (!message) {
         return res.status(400).json({ error: 'Cannot send an empty message' });
       }
@@ -198,6 +217,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/remove-message',
     requireAuth('admin'),
     wrap(async (req, res) => {
+      Logger.verbose('Removing message', { namespace: 'routes:api:remove-message' });
       await runner.removeBannerMessage();
       res.json({ removed: true });
     }),
@@ -208,6 +228,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('land'),
     wrap(async (req, res) => {
       const ids = req.query.ids.split(',');
+      Logger.verbose('Requesting landrequests', { namespace: 'routes:api:landrequests', ids });
       res.json({ statuses: await runner.getStatusesForLandRequests(ids) });
     }),
   );
@@ -251,6 +272,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/delete-history',
     requireAuth('admin'),
     wrap(async (req, res) => {
+      Logger.verbose('Deleting history', { namespace: 'routes:api:delete-history' });
       await runner.clearHistory();
       res.json({ response: 'You better be sure about this captain... Done!' });
     }),
@@ -261,6 +283,10 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
+      Logger.verbose('Moving landrequest to the top of the queue', {
+        namespace: 'routes:api:to-the-top',
+        requestId,
+      });
       const success = await runner.moveRequestToTopOfQueue(requestId, req.user!);
       if (success) {
         res.json({ message: 'Request moved to top of queue' });

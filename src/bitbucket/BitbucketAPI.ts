@@ -5,6 +5,7 @@ import * as pRetry from 'p-retry';
 import { RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
+import { LandRequest } from '../db';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
@@ -13,7 +14,12 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (pullRequestId: number, targetBranch: string) => {
+  mergePullRequest = async (landRequest: LandRequest) => {
+    const {
+      id: requestId,
+      pullRequestId,
+      pullRequest: { targetBranch },
+    } = landRequest;
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
     const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     const data = {
@@ -22,7 +28,13 @@ export class BitbucketAPI {
       merge_strategy: 'merge_commit',
     };
 
-    Logger.info('Merging pull request', { pullRequestId, endpoint });
+    Logger.info('Merging pull request', {
+      namespace: 'bitbucket:api:mergePullRequest',
+      pullRequestId,
+      requestId,
+      targetBranch,
+      postRequest: { endpoint, ...data },
+    });
     // This is just defining the function that we will retry
     const attemptMerge = async () =>
       axios.post(
@@ -42,6 +54,7 @@ export class BitbucketAPI {
       // which contains auth credentials
 
       Logger.error('Merge attempt failed', {
+        namespace: 'bitbucket:api:mergePullRequest:onFailedAttept',
         response: {
           statusCode: status,
           statusText,
@@ -51,12 +64,25 @@ export class BitbucketAPI {
         attemptNumber,
         attemptsLeft,
         pullRequestId,
+        requestId,
+        targetBranch,
       });
     };
     await pRetry(attemptMerge, { onFailedAttempt, retries: 5 })
-      .then(() => Logger.info('Merged Pull Request', { pullRequestId }))
+      .then(() =>
+        Logger.info('Merged Pull Request', {
+          namespace: 'bitbucket:api:mergePullRequest',
+          requestId,
+          pullRequestId,
+        }),
+      )
       .catch(err => {
-        Logger.error('Unable to merge pull request', { err, pullRequestId });
+        Logger.error('Unable to merge pull request', {
+          namespace: 'bitbucket:api:mergePullRequest',
+          err,
+          pullRequestId,
+          requestId,
+        });
         throw err;
       });
   };
@@ -122,12 +148,18 @@ export class BitbucketAPI {
 
   getRepository = async (): Promise<BB.Repository> => {
     const endpoint = this.apiBaseUrl;
-    Logger.info('fetching uuid for repository', { endpoint });
+    Logger.info('fetching uuid for repository', {
+      namespace: 'bitbucket:api:getRepository',
+      endpoint,
+    });
     const { data } = await axios.get<BB.RepositoryResponse>(
       endpoint,
       await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
     );
-    Logger.info('successfully fetched repo uuid', { uuid: data.uuid });
+    Logger.info('successfully fetched repo uuid', {
+      namespace: 'bitbucket:api:getRepository',
+      uuid: data.uuid,
+    });
 
     return {
       repoOwner: data.owner.username,
