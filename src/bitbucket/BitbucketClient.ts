@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
@@ -68,7 +69,7 @@ export class BitbucketClient {
         permissionLevel,
       };
       for (const { rule } of prSettings.customChecks) {
-        const passesRule = await rule(pullRequestInfo);
+        const passesRule = await rule(pullRequestInfo, axios);
         if (typeof passesRule === 'string') errors.push(passesRule);
       }
     }
