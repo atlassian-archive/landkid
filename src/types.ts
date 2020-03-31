@@ -34,6 +34,7 @@ export type PullRequestSettings = {
   canApproveOwnPullRequest: boolean;
   allowLandWhenAble: boolean;
   customChecks?: CustomCheck[];
+  customWarnings?: CustomCheck[];
 };
 
 export type ApprovalChecks = {

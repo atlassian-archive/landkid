@@ -29,6 +29,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       const errors: string[] = [];
+      const warnings: string[] = [];
       const landCheckErrors: string[] = [];
       const bannerMessage = await runner.getBannerMessageState();
 
@@ -39,6 +40,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
           const landChecks = await client.isAllowedToLand(prId, permissionLevel);
+          warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
           landCheckErrors.push(...landChecks.errors);
 
@@ -59,12 +61,14 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       Logger.verbose('Land checks determined', {
         namespace: 'routes:bitbucket:proxy:can-land',
         errors,
+        warnings,
       });
 
       res.json({
         canLand: errors.length === 0,
         canLandWhenAble: errors.length === landCheckErrors.length && prSettings.allowLandWhenAble,
         errors,
+        warnings,
         bannerMessage,
       });
     }),

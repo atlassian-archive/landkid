@@ -18,6 +18,7 @@ type AppState = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
+  warnings: string[];
   bannerMessage: BannerMessage | null;
 };
 
@@ -39,6 +40,7 @@ export class App extends React.Component {
     canLand: false,
     canLandWhenAble: false,
     errors: [],
+    warnings: [],
     bannerMessage: null,
   };
 
@@ -56,13 +58,15 @@ export class App extends React.Component {
       canLand: string;
       canLandWhenAble: string;
       errors: string[];
+      warnings: string[];
       bannerMessage: BannerMessage | null;
     };
     proxyRequest<Resp>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors, bannerMessage }) => {
+      .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage }) => {
         if (canLand) {
           return this.setState({
             curState: 'can-land',
+            warnings,
             bannerMessage,
           });
         }
@@ -70,6 +74,7 @@ export class App extends React.Component {
           curState: 'cannot-land',
           canLandWhenAble,
           errors,
+          warnings,
           bannerMessage,
         });
       })
@@ -114,6 +119,21 @@ export class App extends React.Component {
     );
   };
 
+  renderWarnings = () => {
+    const { warnings } = this.state;
+    if (warnings.length === 0) return null;
+    return (
+      <div>
+        <p>Your PR currently has these warnings (these will not prevent landing):</p>
+        <ul>
+          {warnings.map(warning => (
+            <li key={warning}>{warning}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   renderLandState = (curState: AppState['curState']) => {
     switch (curState) {
       case 'checking-can-land': {
@@ -123,6 +143,7 @@ export class App extends React.Component {
         return (
           <div>
             <p>Your PR is ready to land!</p>
+            {this.renderWarnings()}
             <div style={{ marginTop: '15px' }}>
               <button
                 type="button"
@@ -142,10 +163,11 @@ export class App extends React.Component {
           <div>
             <p> 😭 You cannot currently land this PR for the following reasons: </p>
             <ul>
-              {errors.map(error => {
-                return <li key={error}>{error}</li>;
-              })}
+              {errors.map(error => (
+                <li key={error}>{error}</li>
+              ))}
             </ul>
+            {this.renderWarnings()}
             <div style={{ display: 'flex', marginTop: '15px' }}>
               <button
                 type="button"
