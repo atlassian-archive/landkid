@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
@@ -36,6 +37,7 @@ export class BitbucketClient {
 
     const { prSettings } = this.config;
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     Logger.info('Pull request approval checks', {
       namespace: 'bitbucket:client:isAllowedToLand',
@@ -60,22 +62,31 @@ export class BitbucketClient {
 
     if (!approvalChecks.isOpen) {
       errors.push('PR is already closed!');
-    } else if (prSettings.customChecks) {
+    } else {
       const pullRequestInfo = {
         pullRequest,
         buildStatuses,
         approvals,
         permissionLevel,
       };
-      for (const { rule } of prSettings.customChecks) {
-        const passesRule = await rule(pullRequestInfo);
-        if (typeof passesRule === 'string') errors.push(passesRule);
+      if (prSettings.customChecks) {
+        for (const { rule } of prSettings.customChecks) {
+          const passesRule = await rule(pullRequestInfo, axios);
+          if (typeof passesRule === 'string') errors.push(passesRule);
+        }
+      }
+      if (prSettings.customWarnings) {
+        for (const { rule } of prSettings.customWarnings) {
+          const passesWarning = await rule(pullRequestInfo, axios);
+          if (typeof passesWarning === 'string') warnings.push(passesWarning);
+        }
       }
     }
 
     return {
       ...approvalChecks,
       errors,
+      warnings,
     };
   }
 

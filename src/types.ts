@@ -1,3 +1,5 @@
+import { AxiosInstance } from 'axios';
+
 export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
@@ -21,6 +23,7 @@ type CustomCheck = {
       approvals: string[];
       permissionLevel: IPermissionMode;
     },
+    axios: AxiosInstance,
   ) => Promise<true | string>;
 };
 
@@ -31,6 +34,7 @@ export type PullRequestSettings = {
   canApproveOwnPullRequest: boolean;
   allowLandWhenAble: boolean;
   customChecks?: CustomCheck[];
+  customWarnings?: CustomCheck[];
 };
 
 export type ApprovalChecks = {
