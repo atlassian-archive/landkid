@@ -58,7 +58,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         errors.push("You don't have land permissions");
       }
 
-      Logger.verbose('Land checks determined', {
+      Logger.info('Land checks determined', {
         namespace: 'routes:bitbucket:proxy:can-land',
         errors,
         warnings,
