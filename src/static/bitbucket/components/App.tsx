@@ -123,7 +123,7 @@ export class App extends React.Component {
     const { warnings } = this.state;
     if (warnings.length === 0) return null;
     return (
-      <div>
+      <div style={{ marginTop: '15px' }}>
         <p>Your PR currently has these warnings (these will not prevent landing):</p>
         <ul>
           {warnings.map(warning => (
