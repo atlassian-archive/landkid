@@ -71,13 +71,13 @@ export class BitbucketClient {
       };
       if (prSettings.customChecks) {
         for (const { rule } of prSettings.customChecks) {
-          const passesRule = await rule(pullRequestInfo, axios);
+          const passesRule = await rule(pullRequestInfo, { axios, Logger });
           if (typeof passesRule === 'string') errors.push(passesRule);
         }
       }
       if (prSettings.customWarnings) {
         for (const { rule } of prSettings.customWarnings) {
-          const passesWarning = await rule(pullRequestInfo, axios);
+          const passesWarning = await rule(pullRequestInfo, { axios, Logger });
           if (typeof passesWarning === 'string') warnings.push(passesWarning);
         }
       }

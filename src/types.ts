@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { Logger } from 'winston';
 
 export type LandRequestOptions = {
   prId: number;
@@ -23,7 +24,10 @@ type CustomCheck = {
       approvals: string[];
       permissionLevel: IPermissionMode;
     },
-    axios: AxiosInstance,
+    utils: {
+      axios: AxiosInstance;
+      Logger: Logger;
+    },
   ) => Promise<true | string>;
 };
 
