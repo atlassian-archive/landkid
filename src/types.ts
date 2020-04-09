@@ -16,7 +16,7 @@ export type RepoConfig = {
   uuid?: string;
 };
 
-type CustomCheck = {
+type CustomRule = {
   rule: (
     pullRequestInfo: {
       pullRequest: BB.PullRequest;
@@ -29,6 +29,9 @@ type CustomCheck = {
       Logger: Logger;
     },
   ) => Promise<true | string>;
+  errorKeys?: {
+    [key: string]: string;
+  };
 };
 
 export type PullRequestSettings = {
@@ -37,8 +40,8 @@ export type PullRequestSettings = {
   requireGreenBuild: boolean;
   canApproveOwnPullRequest: boolean;
   allowLandWhenAble: boolean;
-  customChecks?: CustomCheck[];
-  customWarnings?: CustomCheck[];
+  customChecks?: CustomRule[];
+  customWarnings?: CustomRule[];
 };
 
 export type ApprovalChecks = {
