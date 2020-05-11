@@ -13,3 +13,4 @@ env.sh
 cypress.env.json
 /cypress/screenshots
 config.js
+rules/

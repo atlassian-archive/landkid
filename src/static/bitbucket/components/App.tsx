@@ -127,7 +127,7 @@ export class App extends React.Component {
         <p>Your PR currently has these warnings (these will not prevent landing):</p>
         <ul>
           {warnings.map(warning => (
-            <li key={warning}>{warning}</li>
+            <li key={warning} dangerouslySetInnerHTML={{ __html: warning }} />
           ))}
         </ul>
       </div>
@@ -164,7 +164,7 @@ export class App extends React.Component {
             <p> 😭 You cannot currently land this PR for the following reasons: </p>
             <ul>
               {errors.map(error => (
-                <li key={error}>{error}</li>
+                <li key={error} dangerouslySetInnerHTML={{ __html: error }} />
               ))}
             </ul>
             {this.renderWarnings()}
