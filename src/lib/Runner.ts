@@ -114,9 +114,6 @@ export class Runner {
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
     const dependsOnStr = dependencies.map(queueItem => queueItem.request.id).join(',');
-    const depCommitsArrStr = JSON.stringify(
-      dependencies.map(queueItem => queueItem.request.forCommit),
-    );
 
     Logger.info('Attempting to move from queued to running', {
       namespace: 'lib:runner:moveFromQueueToRunning',
@@ -125,7 +122,10 @@ export class Runner {
       dependsOn: dependsOnStr,
     });
 
-    const buildId = await this.client.createLandBuild(landRequest.id, commit, depCommitsArrStr);
+    const buildId = await this.client.createLandBuild(landRequest.id, commit, {
+      dependencyCommits: dependencies.map(queueItem => queueItem.request.forCommit),
+      targetBranch: landRequest.pullRequest.targetBranch,
+    });
     if (!buildId) {
       Logger.verbose('Unable to create land build in Pipelines', {
         namespace: 'lib:runner:moveFromQueueToRunning',
@@ -153,7 +153,6 @@ export class Runner {
       requestId: newLandRequest.id,
       landRequest: newLandRequest,
       buildId,
-      depCommitsArrStr,
     });
     return true;
   };
@@ -459,7 +458,7 @@ export class Runner {
           await landRequest.request.setStatus('aborted', 'Already have existing Land build');
           continue;
         }
-        this.moveFromWaitingToQueued(pullRequestId);
+        await this.moveFromWaitingToQueued(pullRequestId);
       }
     }
   };
