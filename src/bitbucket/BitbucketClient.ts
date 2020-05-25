@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Config } from '../types';
 import { Logger } from '../lib/Logger';
-import { BitbucketPipelinesAPI } from './BitbucketPipelinesAPI';
+import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
 import { LandRequest } from '../db';
 
@@ -90,8 +90,8 @@ export class BitbucketClient {
     };
   }
 
-  createLandBuild(requestId: string, commit: string, depCommits: string) {
-    return this.pipelines.createLandBuild(requestId, commit, depCommits);
+  createLandBuild(requestId: string, commit: string, variables: PipelinesVariables) {
+    return this.pipelines.createLandBuild(requestId, commit, variables);
   }
 
   async stopLandBuild(buildId: number) {

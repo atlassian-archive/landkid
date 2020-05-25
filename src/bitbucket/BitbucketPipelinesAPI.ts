@@ -14,6 +14,11 @@ interface PipelinesStatusEvent {
   };
 }
 
+export interface PipelinesVariables {
+  dependencyCommits: string[];
+  targetBranch: string;
+}
+
 export class BitbucketPipelinesAPI {
   private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
 
@@ -50,12 +55,17 @@ export class BitbucketPipelinesAPI {
     };
   };
 
-  public createLandBuild = async (requestId: string, commit: string, depCommits: string) => {
+  public createLandBuild = async (
+    requestId: string,
+    commit: string,
+    { dependencyCommits, targetBranch }: PipelinesVariables,
+  ) => {
+    const depCommitsStr = JSON.stringify(dependencyCommits);
     Logger.info('Creating land build for commit', {
       namespace: 'bitbucket:pipelines:createLandBuild',
       requestId,
       commit,
-      depCommits,
+      depCommitsStr,
     });
     const data = {
       target: {
@@ -66,7 +76,11 @@ export class BitbucketPipelinesAPI {
       variables: [
         {
           key: 'LANDKID_DEPENDENCY_COMMITS',
-          value: depCommits,
+          value: depCommitsStr,
+        },
+        {
+          key: 'TARGET_BRANCH',
+          value: targetBranch,
         },
       ],
     };
