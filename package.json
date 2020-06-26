@@ -49,8 +49,7 @@
     "@types/umzug": "^2.2.2",
     "cache-loader": "^1.2.5",
     "concurrently": "^4.1.0",
-    "cypress": "^4.0.2",
-    "emotion": "^9.1.3",
+    "cypress": "^4.9.0",
     "faker": "^4.1.0",
     "html-webpack-plugin": "^3.2.0",
     "httplease-asap": "^0.3.2",
@@ -63,9 +62,9 @@
     "rimraf": "^2.6.2",
     "rxjs-compat": "^6.3.3",
     "ts-loader": "^5.3.0",
-    "webpack": "^4.8.1",
-    "webpack-cli": "^2.1.3",
-    "webpack-dev-server": "^3.1.10"
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
     "@atlaskit/pagination": "^8.0.5",
@@ -76,6 +75,7 @@
     "connect-redis": "^3.4.0",
     "cross-env": "^5.2.0",
     "date-fns": "^1.29.0",
+    "emotion": "^10.0.27",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "express-winston": "^3.0.1",
@@ -83,15 +83,13 @@
     "p-retry": "^2.0.0",
     "passport": "^0.4.0",
     "passport-oauth2": "^1.4.0",
-    "pg": "^7.6.1",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "redis": "^2.8.0",
     "redlock": "^3.1.2",
     "reflect-metadata": "^0.1.12",
-    "sequelize": "^4.41.2",
+    "sequelize": "^4.44.0",
     "sequelize-typescript": "^0.6.6",
-    "sqlite3": "^4.0.4",
     "styled-components": "^3.2.6",
     "typescript": "^3.1.6",
     "umzug": "^2.2.0",
@@ -109,11 +107,6 @@
     "*.tsx": [
       "prettier --write",
       "git add"
-    ]
-  },
-  "ava": {
-    "require": [
-      "babel-register"
     ]
   }
 }
