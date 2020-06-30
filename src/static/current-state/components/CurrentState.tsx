@@ -21,7 +21,7 @@ let styles = css({
   },
 
   '& .current-state__card-title': {
-    fontWeight: '400',
+    fontWeight: 400,
     marginBottom: '9px',
   },
 

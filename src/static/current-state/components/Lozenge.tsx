@@ -7,7 +7,7 @@ let styles = css({
   boxSizing: 'border-box',
   display: 'inline-block',
   fontSize: '11px',
-  fontWeight: '700',
+  fontWeight: 700,
   lineHeight: '1',
   maxWidth: '180px',
   textTransform: 'uppercase',
