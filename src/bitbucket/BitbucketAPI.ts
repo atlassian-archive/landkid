@@ -23,7 +23,7 @@ export class BitbucketAPI {
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
     const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     const data = {
-      close_source_branch: true,
+      // close_source_branch: true, // https://atlassian.slack.com/archives/C0168Q7F72A/p1593738037108200
       message,
       merge_strategy: 'merge_commit',
     };
