@@ -455,7 +455,7 @@ export class Runner {
           q => q.request.pullRequestId === landRequest.request.pullRequestId,
         );
         if (existingBuild) {
-          await landRequest.request.setStatus('aborted', 'Already have existing Land build');
+          await landRequest.request.setStatus('aborted', 'Already has existing Land build');
           continue;
         }
         await this.moveFromWaitingToQueued(pullRequestId);
