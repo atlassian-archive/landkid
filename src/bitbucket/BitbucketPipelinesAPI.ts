@@ -63,7 +63,7 @@ export class BitbucketPipelinesAPI {
     const depCommitsStr = JSON.stringify(dependencyCommits);
     Logger.info('Creating land build for commit', {
       namespace: 'bitbucket:pipelines:createLandBuild',
-      requestId,
+      landRequestId: requestId,
       commit,
       depCommitsStr,
     });
@@ -96,14 +96,14 @@ export class BitbucketPipelinesAPI {
     if (!resp.data.build_number || typeof resp.data.build_number !== 'number') {
       Logger.error('Response from creating build does not match the shape we expected', {
         namespace: 'bitbucket:pipelines:createLandBuild',
-        requestId,
+        landRequestId: requestId,
         commit,
       });
       return null;
     }
     Logger.info('Created build', {
       namespace: 'bitbucket:pipelines:createLandBuild',
-      requestId,
+      landRequestId: requestId,
       commit,
       buildNumber: resp.data.build_number,
     });
