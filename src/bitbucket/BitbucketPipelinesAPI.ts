@@ -59,6 +59,7 @@ export class BitbucketPipelinesAPI {
     requestId: string,
     commit: string,
     { dependencyCommits, targetBranch }: PipelinesVariables,
+    lockId: Date,
   ) => {
     const depCommitsStr = JSON.stringify(dependencyCommits);
     Logger.info('Creating land build for commit', {
@@ -66,6 +67,7 @@ export class BitbucketPipelinesAPI {
       landRequestId: requestId,
       commit,
       depCommitsStr,
+      lockId,
     });
     const data = {
       target: {
@@ -98,6 +100,7 @@ export class BitbucketPipelinesAPI {
         namespace: 'bitbucket:pipelines:createLandBuild',
         landRequestId: requestId,
         commit,
+        lockId,
       });
       return null;
     }
@@ -106,15 +109,17 @@ export class BitbucketPipelinesAPI {
       landRequestId: requestId,
       commit,
       buildNumber: resp.data.build_number,
+      lockId,
     });
     // build_number comes back as a number unfortunately
     return resp.data.build_number as number;
   };
 
-  public stopLandBuild = async (buildId: number) => {
+  public stopLandBuild = async (buildId: number, lockId?: Date) => {
     Logger.info('Stopping land build with id', {
       namespace: 'bitbucket:pipelines:stopLandBuild',
       buildId,
+      lockId,
     });
     const endpoint = `${this.apiBaseUrl}/pipelines/${buildId}/stopPipeline`;
     const resp = await axios.post(
@@ -129,6 +134,7 @@ export class BitbucketPipelinesAPI {
       Logger.info('Build could not be cancelled', {
         namespace: 'bitbucket:pipelines:stopLandBuild',
         buildId,
+        lockId,
         response: resp.data,
       });
       return false;

@@ -90,12 +90,12 @@ export class BitbucketClient {
     };
   }
 
-  createLandBuild(requestId: string, commit: string, variables: PipelinesVariables) {
-    return this.pipelines.createLandBuild(requestId, commit, variables);
+  createLandBuild(requestId: string, commit: string, variables: PipelinesVariables, lockId: Date) {
+    return this.pipelines.createLandBuild(requestId, commit, variables, lockId);
   }
 
-  async stopLandBuild(buildId: number) {
-    return await this.pipelines.stopLandBuild(buildId);
+  async stopLandBuild(buildId: number, lockId?: Date) {
+    return await this.pipelines.stopLandBuild(buildId, lockId);
   }
 
   async mergePullRequest(landRequestStatus: LandRequestStatus) {
