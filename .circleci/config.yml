@@ -59,6 +59,8 @@ jobs:
           command: |
             node ./.circleci/create-cypress-env.js
             yarn test:staging
+      - store_test_results:
+          path: ./cypress/junit-reports
 
 workflows:
   version: 2

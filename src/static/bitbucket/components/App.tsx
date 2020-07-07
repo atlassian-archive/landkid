@@ -31,7 +31,7 @@ export class App extends React.Component {
 
   messageEmoji = {
     default: '📢',
-    warning: '⚠',
+    warning: '⚠️',
     error: '❌',
   };
 

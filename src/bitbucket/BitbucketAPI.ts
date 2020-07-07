@@ -5,7 +5,7 @@ import * as pRetry from 'p-retry';
 import { RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
-import { LandRequest } from '../db';
+import { LandRequestStatus } from '../db';
 
 const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
 
@@ -14,12 +14,14 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (landRequest: LandRequest) => {
+  mergePullRequest = async (landRequestStatus: LandRequestStatus) => {
     const {
-      id: requestId,
-      pullRequestId,
-      pullRequest: { targetBranch },
-    } = landRequest;
+      id: landRequestId,
+      request: {
+        pullRequestId,
+        pullRequest: { targetBranch },
+      },
+    } = landRequestStatus;
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
     const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     const data = {
@@ -31,8 +33,9 @@ export class BitbucketAPI {
     Logger.info('Merging pull request', {
       namespace: 'bitbucket:api:mergePullRequest',
       pullRequestId,
-      requestId,
+      landRequestId,
       targetBranch,
+      landRequestStatus,
       postRequest: { endpoint, ...data },
     });
     // This is just defining the function that we will retry
@@ -64,7 +67,8 @@ export class BitbucketAPI {
         attemptNumber,
         attemptsLeft,
         pullRequestId,
-        requestId,
+        landRequestId,
+        landRequestStatus,
         targetBranch,
       });
     };
@@ -72,7 +76,8 @@ export class BitbucketAPI {
       .then(() =>
         Logger.info('Merged Pull Request', {
           namespace: 'bitbucket:api:mergePullRequest',
-          requestId,
+          landRequestId,
+          landRequestStatus,
           pullRequestId,
         }),
       )
@@ -81,7 +86,8 @@ export class BitbucketAPI {
           namespace: 'bitbucket:api:mergePullRequest',
           err,
           pullRequestId,
-          requestId,
+          landRequestStatus,
+          landRequestId,
         });
         throw err;
       });

@@ -3,7 +3,7 @@ import { Config } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
-import { LandRequest } from '../db';
+import { LandRequestStatus } from '../db';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
@@ -90,16 +90,16 @@ export class BitbucketClient {
     };
   }
 
-  createLandBuild(requestId: string, commit: string, variables: PipelinesVariables) {
-    return this.pipelines.createLandBuild(requestId, commit, variables);
+  createLandBuild(requestId: string, commit: string, variables: PipelinesVariables, lockId: Date) {
+    return this.pipelines.createLandBuild(requestId, commit, variables, lockId);
   }
 
-  async stopLandBuild(buildId: number) {
-    return await this.pipelines.stopLandBuild(buildId);
+  async stopLandBuild(buildId: number, lockId?: Date) {
+    return await this.pipelines.stopLandBuild(buildId, lockId);
   }
 
-  async mergePullRequest(landRequest: LandRequest) {
-    return await this.bitbucket.mergePullRequest(landRequest);
+  async mergePullRequest(landRequestStatus: LandRequestStatus) {
+    return await this.bitbucket.mergePullRequest(landRequestStatus);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {

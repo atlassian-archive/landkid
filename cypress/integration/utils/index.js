@@ -12,8 +12,8 @@ const failedDepFlow = [queued, running, awaitingmerge.optional(), fail];
 
 export const successful = Joi.array().ordered(...successfulFlow);
 export const failed = Joi.array().ordered(...failedFlow);
-export const reentry = Joi.array().ordered(...failedDepFlow, ...successfulFlow);
-export const doubleReentry = Joi.array().ordered(
+export const reentryFail = Joi.array().ordered(...failedDepFlow, ...failedFlow);
+export const doubleReentrySuccess = Joi.array().ordered(
   ...failedDepFlow,
   ...failedDepFlow,
   ...successfulFlow,

@@ -1,5 +1,8 @@
 {
     "pluginsFile": false,
     "video": false,
-    "testFiles": "*.spec.js"
+    "testFiles": "*.spec.js",
+    "reporterOptions": {
+        "mochaFile": "cypress/junit-reports/test-results.xml"
+    }
 }
