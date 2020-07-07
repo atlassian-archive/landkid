@@ -20,7 +20,7 @@
     "pretest": "node tools/test-local.js",
     "test": "yarn test:staging",
     "posttest": "node tools/revert-test-local.js",
-    "test:staging": "yarn run cypress run",
+    "test:staging": "yarn run cypress run --reporter junit",
     "format": "prettier --write src/**/*.ts src/**/*.tsx",
     "build": "yarn run clean && yarn build:server && yarn build:ui",
     "build:server": "tsc",
