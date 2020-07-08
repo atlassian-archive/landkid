@@ -48,7 +48,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/history',
     requireAuth('land'),
     wrap(async (req, res) => {
-      const page = parseInt(req.query.page || '0', 10);
+      const page = parseInt((req.query.page as string) || '0', 10);
       const history = await runner.getHistory(page);
       Logger.info('Requesting history', { namespace: 'routes:api:history', page });
       res.header('Access-Control-Allow-Origin', '*').json(history);
@@ -227,7 +227,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/landrequests',
     requireAuth('land'),
     wrap(async (req, res) => {
-      const ids = req.query.ids.split(',');
+      const ids = (req.query.ids as string).split(',');
       Logger.verbose('Requesting landrequests', { namespace: 'routes:api:landrequests', ids });
       res.json({ statuses: await runner.getStatusesForLandRequests(ids) });
     }),
