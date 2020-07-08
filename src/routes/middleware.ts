@@ -53,7 +53,8 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
       error: 'Addon has not been installed, can not be validated',
     });
   }
-  let jwt: string | undefined = req.query.jwt || req.header('authorization');
+  let jwt: string | undefined =
+    (req.query.jwt as string | undefined) || req.header('authorization');
   if (!jwt) {
     Logger.error('Authenticated request requires a JWT token', {
       namespace: 'routes:middleware:authenticateIncomingBBCall',
