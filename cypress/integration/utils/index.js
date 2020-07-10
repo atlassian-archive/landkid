@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 const queued = Joi.string().valid('queued');
 const running = Joi.string().valid('running');
