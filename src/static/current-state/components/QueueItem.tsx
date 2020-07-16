@@ -235,7 +235,9 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
         {buildId ? (
           <div className="queue-item__status-line">
             <StatusItem title="Pipelines link:">
-              <a href={buildUrl}>#{buildId}</a>
+              <a href={buildUrl} target="_blank">
+                #{buildId}
+              </a>
             </StatusItem>
           </div>
         ) : null}
@@ -324,7 +326,9 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     return (
       <div className={`${queueItemStyles} queue-item`}>
         <div className="queue-item__title">
-          <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}>[PR #{pullRequestId}]</a>{' '}
+          <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)} target="_blank">
+            [PR #{pullRequestId}]
+          </a>{' '}
           {pullRequest.title}
         </div>
         <div className="queue-item__status-line">
