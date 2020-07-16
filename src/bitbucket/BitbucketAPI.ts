@@ -41,15 +41,47 @@ export class BitbucketAPI {
 
     // Polls result of merge task if the merge takes more than 28 seconds
     // API returns 202 if this is required
-    const pollTaskResult = async (pollUrl: string): Promise<any> =>
+    const pollTaskResult = async (pollUrl: string): Promise<any> => {
+      Logger.info('202: beginning polling', {
+        // TODO: REMOVE AFTER TESTING
+        namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+        pullRequestId,
+        landRequestId,
+        pollUrl,
+      });
       axios.get(pollUrl).then(async (res: AxiosResponse) => {
+        Logger.info('202: received poll response', {
+          // TODO: REMOVE AFTER TESTING
+          namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+          pullRequestId,
+          landRequestId,
+          pollUrl,
+          res,
+        });
         if (res.data.task_status === 'PENDING') {
+          Logger.info('202: delaying and polling again', {
+            // TODO: REMOVE AFTER TESTING
+            namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+            pullRequestId,
+            landRequestId,
+            pollUrl,
+            res,
+          });
           // poll every 3 seconds
           await delay(3000);
           return pollTaskResult(pollUrl);
         }
+        Logger.info('202: returning merge_result', {
+          // TODO: REMOVE AFTER TESTING
+          namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+          pullRequestId,
+          landRequestId,
+          pollUrl,
+          res,
+        });
         return res.data.merge_result;
       });
+    };
 
     // Call on complete failure (not when a retry should occur)
     // Throws to exit function
@@ -85,21 +117,65 @@ export class BitbucketAPI {
           ),
         )
         .then(async (res: AxiosResponse) => {
+          Logger.info('Received merge response', {
+            // TODO: REMOVE AFTER TESTING
+            namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+            pullRequestId,
+            landRequestId,
+            res,
+          });
           // Merge successful
           if (res.status === 200) {
+            Logger.info('200: returning true', {
+              // TODO: REMOVE AFTER TESTING
+              namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+              pullRequestId,
+              landRequestId,
+              res,
+            });
             return true;
           }
           // Need to poll merge result because of timeout, throws if merge fails
           if (res.status === 202) {
+            Logger.info('202: calling polling function', {
+              // TODO: REMOVE AFTER TESTING
+              namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+              pullRequestId,
+              landRequestId,
+              res,
+            });
             return pollTaskResult(res.headers.Location).catch(err => {
+              Logger.info('202: returning failure', {
+                // TODO: REMOVE AFTER TESTING
+                namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+                pullRequestId,
+                landRequestId,
+                res,
+                err,
+              });
               if (err.response) onFailure(err.response);
               onFailure({ status: 0, statusText: '', headers: {}, data: err, config: {} });
             });
           }
           // Legitimate merge failure, not worth retrying
           if (res.status < 500) {
+            Logger.info('< 500: returning failure', {
+              // TODO: REMOVE AFTER TESTING
+              namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+              pullRequestId,
+              landRequestId,
+              res,
+            });
             onFailure(res);
           }
+          Logger.info('>= 500: retrying', {
+            // TODO: REMOVE AFTER TESTING
+            namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+            pullRequestId,
+            landRequestId,
+            res,
+            attemptsLeft,
+          });
           // Otherwise we failed with a 5xx error (SHOULD NOTIFY BB IF THIS HAPPENS)
           const { status, statusText, headers, data } = res;
           Logger.error('Merge attempt failed, trying again', {
