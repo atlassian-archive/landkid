@@ -2,7 +2,7 @@ import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
-    return await LandRequestStatus.findAll<LandRequestStatus>({
+    return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: 'will-queue-when-ready',
@@ -47,7 +47,7 @@ export class LandRequestQueue {
   // returns builds that are running or awaiting-merge, used to find the dependencies of a request
   // that is about to move to running state
   public getRunning = async (): Promise<LandRequestStatus[]> => {
-    return await LandRequestStatus.findAll<LandRequestStatus>({
+    return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {

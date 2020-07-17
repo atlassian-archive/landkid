@@ -154,7 +154,7 @@ export class Runner {
         landRequestStatus,
         lockId,
       });
-      return await landRequest.setStatus('fail', 'Unable to create land build in Pipelines');
+      return landRequest.setStatus('fail', 'Unable to create land build in Pipelines');
     }
 
     let depPrsStr: string | undefined = undefined;
@@ -214,9 +214,9 @@ export class Runner {
         pullRequestId,
         lockId,
       });
-      return await landRequest.setStatus('success');
+      return landRequest.setStatus('success');
     } catch (err) {
-      return await landRequest.setStatus('fail', 'Unable to merge pull request');
+      return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
 
@@ -249,7 +249,7 @@ export class Runner {
           await landRequest.update({ dependsOn: null });
           await this.client.stopLandBuild(landRequest.buildId, lockId);
           // await landRequest.request.save();
-          return await landRequest.setStatus('queued');
+          return landRequest.setStatus('queued');
         }
         if (landRequestStatus.state === 'awaiting-merge') {
           const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
@@ -329,7 +329,7 @@ export class Runner {
       `Cancelled by user "${user.aaid}" (${user.displayName})`,
     );
     if (landRequestStatus.request.buildId) {
-      return await this.client.stopLandBuild(landRequestStatus.request.buildId);
+      return this.client.stopLandBuild(landRequestStatus.request.buildId);
     } else {
       return false;
     }
@@ -392,7 +392,7 @@ export class Runner {
     pr.targetBranch = landRequestOptions.prTargetBranch;
     await pr.save();
 
-    return await LandRequest.create<LandRequest>({
+    return LandRequest.create<LandRequest>({
       triggererAaid: landRequestOptions.triggererAaid,
       pullRequestId: pr.prId,
       forCommit: landRequestOptions.commit,

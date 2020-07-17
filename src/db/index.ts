@@ -68,7 +68,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   dependsOn: string;
 
   getStatus = async () => {
-    return await LandRequestStatus.findOne<LandRequestStatus>({
+    return LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         requestId: this.id,
         isLatest: true,

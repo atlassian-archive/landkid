@@ -95,11 +95,11 @@ export class BitbucketClient {
   }
 
   async stopLandBuild(buildId: number, lockId?: Date) {
-    return await this.pipelines.stopLandBuild(buildId, lockId);
+    return this.pipelines.stopLandBuild(buildId, lockId);
   }
 
   async mergePullRequest(landRequestStatus: LandRequestStatus) {
-    return await this.bitbucket.mergePullRequest(landRequestStatus);
+    return this.bitbucket.mergePullRequest(landRequestStatus);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {
