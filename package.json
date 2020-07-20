@@ -38,6 +38,8 @@
     "@types/express": "^4.16.0",
     "@types/express-session": "^1.15.11",
     "@types/express-winston": "^3.0.0",
+    "@types/faker": "^4.1.12",
+    "@types/joi": "^14.3.4",
     "@types/node": "^10.12.7",
     "@types/p-retry": "^2.0.0",
     "@types/passport": "^0.4.7",

@@ -18,8 +18,5 @@
         "noImplicitThis": true,
         "noImplicitAny": true
     },
-    "exclude": [
-        "node_modules",
-        "public"
-    ]
+    "exclude": ["node_modules"]
 }

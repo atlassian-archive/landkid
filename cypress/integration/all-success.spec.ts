@@ -1,8 +1,9 @@
+// @ts-ignore
 import { successful } from './utils';
 
 describe('Sequence of successful PRs', () => {
-  let branch1, branch2, branch3;
-  let prs;
+  let branch1: string, branch2: string, branch3: string;
+  let prs: Record<string, any>;
 
   before(() => {
     cy.visitLandkid();
