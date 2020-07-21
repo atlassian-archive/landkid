@@ -1,4 +1,3 @@
-// @ts-ignore
 import { successful } from './utils';
 
 describe('Sequence of successful PRs', () => {

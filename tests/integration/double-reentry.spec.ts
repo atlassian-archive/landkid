@@ -1,4 +1,3 @@
-// @ts-ignore
 import { failed, reentryFail, doubleReentrySuccess } from './utils';
 
 describe('Re-entry into queue', () => {

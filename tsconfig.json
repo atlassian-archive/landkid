@@ -1,22 +1,7 @@
 {
+    "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "module": "commonjs",
-        "target": "es6",
-        "outDir": "dist",
-        "lib": [
-            "es6",
-            "dom",
-            "es7"
-        ],
-        "types": ["cypress"],
-        "sourceMap": true,
-        "rootDir": "src",
-        "jsx": "react",
-        "experimentalDecorators": true,
-        "strictNullChecks": true,
-        "noUnusedLocals": true,
-        "noImplicitThis": true,
-        "noImplicitAny": true
+        "outDir": "dist"
     },
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "tests"]
 }

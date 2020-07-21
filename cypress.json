@@ -1,8 +1,11 @@
 {
     "pluginsFile": false,
     "video": false,
-    "testFiles": "*.spec.js",
+    "integrationFolder": "tests/integration",
+    "testFiles": "*.spec.ts",
+    "screenshotsFolder": "tests/integration/screenshots",
+    "supportFile": "tests/integration/utils/cypress-commands.ts",
     "reporterOptions": {
-        "mochaFile": "cypress/junit-reports/test-results.xml"
+        "mochaFile": "tests/integration/junit-reports/test-results.xml"
     }
 }
