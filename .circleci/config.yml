@@ -75,7 +75,7 @@ jobs:
           name: Cypress tests
           command: |
             node ./.circleci/create-cypress-env.js
-            yarn test:staging
+            yarn test:integration:staging
       - store_test_results:
           path: ./cypress/junit-reports
 
