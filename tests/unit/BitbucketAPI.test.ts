@@ -5,13 +5,16 @@ import { BitbucketAPI } from '../../src/bitbucket/BitbucketAPI';
 
 jest.mock('axios');
 const mockedAxios = (axios as unknown) as jest.Mocked<typeof axios>;
+
 jest.mock('../../src/bitbucket/BitbucketAuthenticator', () => ({
   bitbucketAuthenticator: {
     getAuthConfig: jest.fn(),
   },
 }));
+
 const loggerInfoSpy = jest.spyOn(Logger, 'info');
 const loggerErrorSpy = jest.spyOn(Logger, 'error');
+
 jest.mock('delay');
 const mockedDelay = delay as jest.Mocked<typeof delay>;
 
@@ -68,7 +71,7 @@ describe('mergePullRequest', () => {
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'SUCCESSFUL' } });
     await bitbucketAPI.mergePullRequest(landRequestStatus as any);
-    expect(loggerInfoSpy).toHaveBeenCalledTimes(2);
+    expect(loggerInfoSpy).toHaveBeenCalledTimes(3);
     expect(mockedDelay).toHaveBeenCalledTimes(1);
   });
 
@@ -79,7 +82,7 @@ describe('mergePullRequest', () => {
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockRejectedValueOnce({ response: {} });
     await expect(bitbucketAPI.mergePullRequest(landRequestStatus as any)).rejects.toThrow();
-    expect(loggerInfoSpy).toHaveBeenCalledTimes(1);
+    expect(loggerInfoSpy).toHaveBeenCalledTimes(2);
     expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
     expect(mockedDelay).toHaveBeenCalledTimes(2);
   });

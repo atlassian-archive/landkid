@@ -41,9 +41,26 @@ export class BitbucketAPI {
 
     // Polls result of merge task if the merge takes more than 28 seconds
     // API returns 202 if this is required
-    const pollTaskResult = async (pollUrl: string): Promise<any> => {
+    const pollTaskResult = async (pollUrl: string, attemptNumber = 1): Promise<any> => {
       const res = await axios.get(pollUrl);
       if (res.data.task_status === 'PENDING') {
+        if (attemptNumber === 100) {
+          Logger.info('Stopping merge task, taking too long', {
+            namespace: 'bitbucket:api:mergePullRequest:pollTaskResult',
+            pollUrl,
+            response: {
+              statusCode: res.status,
+              statusText: res.statusText,
+              data: res.data,
+            },
+            pullRequestId,
+            landRequestId,
+          });
+          // Allow 5 minutes maximum
+          throw {
+            response: res,
+          };
+        }
         // poll every 3 seconds
         await delay(3000);
         return pollTaskResult(pollUrl);
@@ -65,7 +82,6 @@ export class BitbucketAPI {
         pullRequestId,
         landRequestId,
         landRequestStatus,
-        targetBranch,
       });
       throw new Error(data);
     };
@@ -88,8 +104,24 @@ export class BitbucketAPI {
       if (res.status === 200) {
         return;
       }
+      const { status, statusText, headers, data } = res;
       // Need to poll merge result because of timeout, throws if merge fails
       if (res.status === 202) {
+        Logger.info('Received timeout response, starting merge task polling', {
+          pollUrl: res.headers.Location,
+          namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+          response: {
+            statusCode: status,
+            statusText,
+            headers,
+            data,
+          },
+          attemptNumber,
+          attemptsLeft,
+          pullRequestId,
+          landRequestId,
+          landRequestStatus,
+        });
         return pollTaskResult(res.headers.Location).catch(err => {
           if (err.response) onFailure(err.response);
           onFailure({ status: 0, statusText: '', headers: {}, data: err, config: {} });
@@ -100,7 +132,6 @@ export class BitbucketAPI {
         onFailure(res);
       }
       // Otherwise we failed with a 5xx error (SHOULD NOTIFY BB IF THIS HAPPENS)
-      const { status, statusText, headers, data } = res;
       Logger.error('Merge attempt failed, trying again', {
         namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
         response: {
@@ -114,7 +145,6 @@ export class BitbucketAPI {
         pullRequestId,
         landRequestId,
         landRequestStatus,
-        targetBranch,
       });
       if (attemptsLeft === 0) {
         onFailure(res);
