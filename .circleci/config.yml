@@ -38,7 +38,24 @@ jobs:
           command: ./.circleci/publish-landkid-docker.sh
           name: Deploy to Docker
 
-  test:
+  unit_test:
+    docker:
+      - image: circleci/node:8.12
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "yarn.lock" }}
+            - v1-dependencies-
+      - run: yarn
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
+      - run: yarn test:unit
+
+  integration_test:
     docker:
       - image: cypress/base:10
     working_directory: ~/repo
@@ -58,7 +75,7 @@ jobs:
           name: Cypress tests
           command: |
             node ./.circleci/create-cypress-env.js
-            yarn test:staging
+            yarn test:integration:staging
       - store_test_results:
           path: ./cypress/junit-reports
 
@@ -73,10 +90,13 @@ workflows:
           filters:
             branches:
               only: /^(?!pull\/).*$/
-  test:
+  unit_test:
+    jobs:
+      - unit_test
+  integration_test:
     jobs:
       - hold:
           type: approval
-      - test:
+      - integration_test:
           requires:
             - hold

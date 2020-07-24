@@ -1,5 +1,13 @@
 declare module '@atlaskit/pagination';
 
+declare namespace JSX {
+  // Declare atlaskit reduced-ui grid components (for QueueItem)
+  interface IntrinsicElements {
+    'ak-grid': React.DetailedHTMLProps<any, HTMLElement>;
+    'ak-grid-column': React.DetailedHTMLProps<any, HTMLElement>;
+  }
+}
+
 declare interface Window {
   landClicked: () => void;
   landWhenAbleClicked: () => void;
@@ -95,12 +103,4 @@ declare interface ICanLand {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
-}
-
-declare namespace JSX {
-  // Declare atlaskit reduced-ui grid components (for QueueItem)
-  interface IntrinsicElements {
-    'ak-grid': React.DetailedHTMLProps<any, HTMLElement>;
-    'ak-grid-column': React.DetailedHTMLProps<any, HTMLElement>;
-  }
 }

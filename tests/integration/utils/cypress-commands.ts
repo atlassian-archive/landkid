@@ -1,4 +1,6 @@
-import faker from 'faker';
+import * as faker from 'faker';
+
+type Map = Record<string, string>;
 
 const username = 'jackrgardner';
 const password = Cypress.env('BITBUCKET_APP_PASSWORD');
@@ -14,12 +16,12 @@ Cypress.Commands.add('visitLandkid', () => {
   cy.visit('https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/');
 });
 
-Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
+Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean) => {
   const hackerPhrase = faker.hacker.phrase();
 
   cy.log(title);
 
-  let body = {
+  let body: Record<string, string> = {
     message: hackerPhrase,
     branch: title,
     parents: 'master',
@@ -76,19 +78,19 @@ Cypress.Commands.add('createLandRequest', (title, isSuccessful) => {
   );
 });
 
-Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 10000) => {
-  const getStatuses = (ids, idToTitle, idToPrId) =>
+Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000) => {
+  const getStatuses = (ids: string[], idToTitle: Map, idToPrId: Map) =>
     cy
       .request({
         method: 'GET',
         url: `/api/landrequests?ids=${ids.join(',')}`,
       })
       .then(res => {
-        const transformed = {};
+        const transformed: Record<string, any> = {};
         Object.keys(res.body.statuses).forEach(id => {
           transformed[idToTitle[id]] = {
             prId: idToPrId[id],
-            statuses: res.body.statuses[id].map(item => item.state),
+            statuses: res.body.statuses[id].map((item: any) => item.state),
           };
         });
         return transformed;
@@ -100,17 +102,17 @@ Cypress.Commands.add('waitForAllFinished', (prTitles, waitTime = 10000) => {
         url: '/api/history?page=1',
       })
       .then(res => {
-        const history = res.body.history.filter(item =>
+        const history = res.body.history.filter((item: any) =>
           prTitles.includes(item.request.pullRequest.title),
         );
         if (history.length === prTitles.length) {
-          const idToTitle = {};
-          const idToPrId = {};
+          const idToTitle: Map = {};
+          const idToPrId: Map = {};
           for (const item of history) {
             idToTitle[item.requestId] = item.request.pullRequest.title;
             idToPrId[item.requestId] = item.request.pullRequestId;
           }
-          return getStatuses(history.map(item => item.requestId), idToTitle, idToPrId);
+          return getStatuses(history.map((item: any) => item.requestId), idToTitle, idToPrId);
         }
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);

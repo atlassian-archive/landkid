@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "lib": [
+            "es6",
+            "dom",
+            "es7"
+        ],
+        "sourceMap": true,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true
+    },
+}

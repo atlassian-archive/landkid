@@ -1,8 +1,8 @@
 import { failed, reentryFail, doubleReentrySuccess } from './utils';
 
 describe('Re-entry into queue', () => {
-  let branch1, branch2, branch3;
-  let prs;
+  let branch1: string, branch2: string, branch3: string;
+  let prs: Record<string, any>;
 
   before(() => {
     cy.visitLandkid();
