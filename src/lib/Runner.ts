@@ -415,7 +415,6 @@ export class Runner {
     this.checkWaitingLandRequests();
   };
 
-  // TODO: CHECK FOR LOCK
   moveFromWaitingToQueued = async (pullRequestId: number) => {
     if (await this.getPauseState()) return;
 
@@ -473,7 +472,6 @@ export class Runner {
     return true;
   };
 
-  // TODO: ADD LOCK
   checkWaitingLandRequests = async () => {
     await withLock('status-transition', async () => {
       Logger.info('Checking for waiting landrequests ready to queue', {
