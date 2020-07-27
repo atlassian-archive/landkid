@@ -222,7 +222,7 @@ export class Runner {
 
   // Next must always return early if ever doing a single state transition
   next = async () => {
-    await withLock('Runner:next', async (lockId: Date) => {
+    await withLock('status-transition', async (lockId: Date) => {
       const queue = await this.queue.getQueue();
       Logger.info('Next() called', {
         namespace: 'lib:runner:next',
@@ -473,37 +473,39 @@ export class Runner {
   };
 
   checkWaitingLandRequests = async () => {
-    Logger.info('Checking for waiting landrequests ready to queue', {
-      namespace: 'lib:runner:checkWaitingLandRequests',
-    });
+    await withLock('status-transition', async () => {
+      Logger.info('Checking for waiting landrequests ready to queue', {
+        namespace: 'lib:runner:checkWaitingLandRequests',
+      });
 
-    for (let landRequestStatus of await this.queue.getStatusesForWaitingRequests()) {
-      const landRequest = landRequestStatus.request;
-      const pullRequestId = landRequest.pullRequestId;
-      const triggererUserMode = await permissionService.getPermissionForUser(
-        landRequest.triggererAaid,
-      );
-      const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
-
-      if (isAllowedToLand.errors.length === 0) {
-        const queue = await this.getQueue();
-        const existingBuild = queue.find(
-          q => q.request.pullRequestId === landRequest.pullRequestId,
+      for (let landRequestStatus of await this.queue.getStatusesForWaitingRequests()) {
+        const landRequest = landRequestStatus.request;
+        const pullRequestId = landRequest.pullRequestId;
+        const triggererUserMode = await permissionService.getPermissionForUser(
+          landRequest.triggererAaid,
         );
-        if (existingBuild) {
-          Logger.warn('Already has existing Land build', {
-            pullRequestId,
-            landRequestId: landRequest.id,
-            landRequestStatus,
-            existingBuild,
-            namespace: 'lib:runner:checkWaitingLandRequests',
-          });
-          await landRequest.setStatus('aborted', 'Already has existing Land build');
-          continue;
+        const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
+
+        if (isAllowedToLand.errors.length === 0) {
+          const queue = await this.getQueue();
+          const existingBuild = queue.find(
+            q => q.request.pullRequestId === landRequest.pullRequestId,
+          );
+          if (existingBuild) {
+            Logger.warn('Already has existing Land build', {
+              pullRequestId,
+              landRequestId: landRequest.id,
+              landRequestStatus,
+              existingBuild,
+              namespace: 'lib:runner:checkWaitingLandRequests',
+            });
+            await landRequest.setStatus('aborted', 'Already has existing Land build');
+            continue;
+          }
+          await this.moveFromWaitingToQueued(pullRequestId);
         }
-        await this.moveFromWaitingToQueued(pullRequestId);
       }
-    }
+    });
   };
 
   getStatusesForLandRequests = async (
