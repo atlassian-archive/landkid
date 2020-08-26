@@ -3,33 +3,36 @@
  */
 
 module.exports = {
-  name: 'My Landkid',
-  key: 'my-landkid',
-  baseUrl: 'https://mydomain.com',
+  name: 'MyName Landkid',
+  key: 'myname-landkid',
+  baseUrl: 'https://myname-landkid.ngrok.io',
   port: 8080,
-  landkidAdmins: ['my-bb-admin-uuid'],
+  landkidAdmins: ['your bb uuid'],
   repoConfig: {
-    repoOwner: 'awesome-org',
-    repoName: 'cool-thing',
-    uuid: '{1b3e3a62-e6ec-4548-94ff-c4db699db0af}', // This is optional but will make development startup faster
+    repoOwner: 'bitbucket workspace (e.g. bb username)',
+    repoName: 'myname-landkid-test-repo',
+    uuid: 'repo uuid', // This is optional but will make development startup faster
   },
   deployment: {
-    secret: 'this-is-your-session-secret-key',
+    secret: 'session secret', // for local dev this can be anything
     redis: {
-      endpoint: '127.0.0.1',
-      port: '6379',
+      endpoint: process.env.REDIS_SESSION_HOST,
+      port: process.env.REDIS_SESSION_PORT,
     },
+    // Create oauth consumer for workspace
+    // Needs to be private with callback URL as baseUrl/auth/callback and URL set to baseUrl
+    // Requires account read permissions
     oAuth: {
-      key: 'ouath-client-key-from-bitbucket',
-      secret: 'ouath-secret-from-bitbucket',
+      key: process.env.oauth_key,
+      secret: process.env.oauth_secret,
     },
   },
   maxConcurrentBuilds: 3,
   prSettings: {
-    requiredApprovals: 1,
+    requiredApprovals: 0,
     canApproveOwnPullRequest: true,
     requireClosedTasks: true,
-    requireGreenBuild: true,
+    requireGreenBuild: false,
     allowLandWhenAble: true,
     /** What is provided to a custom rule:
      *  {
@@ -40,11 +43,6 @@ module.exports = {
      *  }
      * Return true if the rule is passed and is not blocking landing,
      * otherwise return the error message to be displayed on the PR
-    customChecks: [
-      {
-        rule: ({ pullRequest, buildStatuses, approvals, permissionLevel }) => true,
-      },
-    ],
-    */
+     */
   },
 };
