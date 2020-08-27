@@ -34,6 +34,7 @@ export const App: React.FunctionComponent = () => (
                       loggedInUser={loggedInUser}
                       paused={data.pauseState !== null}
                       bannerMessageState={data.bannerMessageState}
+                      permissionsMessage={data.permissionsMessage}
                     />
                   </div>
                 )}

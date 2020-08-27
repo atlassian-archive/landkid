@@ -25,6 +25,7 @@ module.exports = {
     },
   },
   maxConcurrentBuilds: 3,
+  permissionsMessage: 'Contact an admin for permission to view this information',
   prSettings: {
     requiredApprovals: 1,
     canApproveOwnPullRequest: true,

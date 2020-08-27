@@ -647,6 +647,7 @@ export class Runner {
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
         this.config.repoConfig.repoName
       }`,
+      permissionsMessage: this.config.permissionsMessage,
     };
   };
 }

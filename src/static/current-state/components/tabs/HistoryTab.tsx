@@ -6,6 +6,7 @@ import { EmptyState } from '../EmptyState';
 import { QueueItemJoined } from '../QueueItem';
 import { WithAPIData } from '../WithAPIData';
 import { Section } from '../Section';
+import { permission } from '../../../../routes/middleware';
 
 // export type HistoryItemsListProps = {
 //   history: Array<HistoryItem>;
@@ -34,6 +35,7 @@ import { Section } from '../Section';
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
+  permissionsMessage?: string;
 };
 
 type HistoryState = {
@@ -64,7 +66,7 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
               <TabContent>
                 <EmptyState>
                   {this.props.loggedInUser.permission === 'read'
-                    ? 'Contact an admin for permission to view this information'
+                    ? this.props.permissionsMessage
                     : 'Empty...'}
                 </EmptyState>
               </TabContent>

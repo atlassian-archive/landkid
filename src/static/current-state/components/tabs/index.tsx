@@ -84,6 +84,7 @@ export type TabsProps = {
   loggedInUser: ISessionUser;
   paused: boolean;
   bannerMessageState: IMessageState | null;
+  permissionsMessage?: string;
 };
 
 type TabsState = {
@@ -112,7 +113,15 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
 
   render() {
     const { selected } = this.state;
-    const { users, bitbucketBaseUrl, queue, loggedInUser, paused, bannerMessageState } = this.props;
+    const {
+      users,
+      bitbucketBaseUrl,
+      queue,
+      loggedInUser,
+      paused,
+      bannerMessageState,
+      permissionsMessage,
+    } = this.props;
 
     return (
       <Section important last>
@@ -126,10 +135,19 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
           />
         ) : null}
         {selected === 1 ? (
-          <QueueTab bitbucketBaseUrl={bitbucketBaseUrl} loggedInUser={loggedInUser} queue={queue} />
+          <QueueTab
+            bitbucketBaseUrl={bitbucketBaseUrl}
+            loggedInUser={loggedInUser}
+            queue={queue}
+            permissionsMessage={permissionsMessage}
+          />
         ) : null}
         {selected === 2 ? (
-          <HistoryTab bitbucketBaseUrl={bitbucketBaseUrl} loggedInUser={loggedInUser} />
+          <HistoryTab
+            bitbucketBaseUrl={bitbucketBaseUrl}
+            loggedInUser={loggedInUser}
+            permissionsMessage={permissionsMessage}
+          />
         ) : null}
       </Section>
     );

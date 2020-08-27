@@ -7,10 +7,11 @@ export type QueueTabProps = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
   queue: IStatusUpdate[];
+  permissionsMessage?: string;
 };
 
 export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
-  const { bitbucketBaseUrl, loggedInUser, queue } = props;
+  const { bitbucketBaseUrl, loggedInUser, queue, permissionsMessage } = props;
   return (
     <div>
       <QueueItemsList
@@ -20,9 +21,7 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
         renderEmpty={() => (
           <TabContent>
             <EmptyState>
-              {loggedInUser.permission === 'read'
-                ? 'Contact an admin for permission to view this information'
-                : 'Queue is empty...'}
+              {loggedInUser.permission === 'admin' ? permissionsMessage : 'Queue is empty...'}
             </EmptyState>
           </TabContent>
         )}
