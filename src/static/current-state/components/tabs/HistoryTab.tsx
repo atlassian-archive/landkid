@@ -6,7 +6,6 @@ import { EmptyState } from '../EmptyState';
 import { QueueItemJoined } from '../QueueItem';
 import { WithAPIData } from '../WithAPIData';
 import { Section } from '../Section';
-import { permission } from '../../../../routes/middleware';
 
 // export type HistoryItemsListProps = {
 //   history: Array<HistoryItem>;

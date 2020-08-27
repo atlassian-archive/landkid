@@ -21,7 +21,7 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
         renderEmpty={() => (
           <TabContent>
             <EmptyState>
-              {loggedInUser.permission === 'admin' ? permissionsMessage : 'Queue is empty...'}
+              {loggedInUser.permission === 'read' ? permissionsMessage : 'Queue is empty...'}
             </EmptyState>
           </TabContent>
         )}
