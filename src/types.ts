@@ -75,7 +75,7 @@ export type Config = {
   prSettings: PullRequestSettings;
   deployment: DeploymentConfig;
   maxConcurrentBuilds?: number;
-  permissionsMessage?: string;
+  permissionsMessage: string;
   sequelize?: any;
   easterEgg?: any;
 };
@@ -88,5 +88,5 @@ export type RunnerState = {
   users: UserState[];
   bannerMessageState: IMessageState | null;
   bitbucketBaseUrl: string;
-  permissionsMessage?: string;
+  permissionsMessage: string;
 };

@@ -17,6 +17,10 @@ const getConfig = (): Config | null => {
       configValid = false;
     }
 
+    if (!config.permissionsMessage) {
+      config.permissionsMessage = 'Contact an admin for permission to view this information';
+    }
+
     if (!configValid) {
       throw new Error('Config is invalid');
     }

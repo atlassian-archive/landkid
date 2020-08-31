@@ -7,7 +7,7 @@ export type QueueTabProps = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
   queue: IStatusUpdate[];
-  permissionsMessage?: string;
+  permissionsMessage: string;
 };
 
 export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {

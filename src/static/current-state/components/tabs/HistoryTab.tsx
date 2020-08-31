@@ -34,7 +34,7 @@ import { Section } from '../Section';
 export type HistoryTabProps = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
-  permissionsMessage?: string;
+  permissionsMessage: string;
 };
 
 type HistoryState = {

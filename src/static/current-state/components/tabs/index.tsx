@@ -84,7 +84,7 @@ export type TabsProps = {
   loggedInUser: ISessionUser;
   paused: boolean;
   bannerMessageState: IMessageState | null;
-  permissionsMessage?: string;
+  permissionsMessage: string;
 };
 
 type TabsState = {
