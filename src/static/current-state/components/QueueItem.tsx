@@ -264,6 +264,17 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             <StatusItem title="Reason:">{status.reason}</StatusItem>
           </div>
         ) : null}
+        {status.request.triggererAaid ? (
+          <StatusItem title="Landed By:">
+            <Lozenge>
+              <User aaid={status.request.triggererAaid}>
+                {user => {
+                  return user.displayName;
+                }}
+              </User>
+            </Lozenge>
+          </StatusItem>
+        ) : null}
         {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
           <div className="queue-item__status-line">
             <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
