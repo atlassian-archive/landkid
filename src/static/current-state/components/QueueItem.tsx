@@ -226,7 +226,6 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
 
   renderMoreInfo = (status: IStatusUpdate, dependsOn: string[], bitbucketBaseUrl: string) => {
     if (this.state.landRequestInfo === null) return null;
-
     const buildId = status.request.buildId;
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
 
@@ -265,7 +264,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </div>
         ) : null}
         {status.request.triggererAaid ? (
-          <StatusItem title="Landed By:">
+          <StatusItem title={status.state === 'aborted' ? 'Aborted By:' : 'Landed by'}>
             <Lozenge>
               <User aaid={status.request.triggererAaid}>
                 {user => {
