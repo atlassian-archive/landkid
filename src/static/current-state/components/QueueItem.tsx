@@ -264,7 +264,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </div>
         ) : null}
         {status.request.triggererAaid ? (
-          <StatusItem title={status.state === 'aborted' ? 'Aborted By:' : 'Landed by'}>
+          <StatusItem title={status.state === 'aborted' ? 'Aborted By:' : 'Landed by:'}>
             <Lozenge>
               <User aaid={status.request.triggererAaid}>
                 {user => {
