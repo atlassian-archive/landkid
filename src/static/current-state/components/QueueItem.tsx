@@ -228,7 +228,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     if (this.state.landRequestInfo === null) return null;
     const buildId = status.request.buildId;
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
-    console.log(status);
+
     return (
       <div className="queue-item__more-info">
         {buildId ? (
