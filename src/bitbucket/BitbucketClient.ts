@@ -111,4 +111,8 @@ export class BitbucketClient {
 
     return repo.uuid;
   }
+
+  async getUser(aaid: string): Promise<ISessionUser> {
+    return this.bitbucket.getUser(aaid);
+  }
 }
