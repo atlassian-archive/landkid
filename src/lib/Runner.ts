@@ -469,7 +469,7 @@ export class Runner {
 
     await landRequestStatus.request.setStatus(
       'queued',
-      `moved to the top of the queue by user ${user.aaid}`,
+      `moved to the top of the queue by user ${user.displayName || user.aaid}`,
       topDate,
     );
     return true;
