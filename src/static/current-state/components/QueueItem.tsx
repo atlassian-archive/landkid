@@ -258,7 +258,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             </StatusItem>
           ))}
         </div>
-        {status.reason && status.state !== 'success' ? (
+        {status.reason && status.reason !== 'queued' ? (
           <div className="queue-item__status-line">
             <StatusItem title="Reason:">{status.reason}</StatusItem>
           </div>
