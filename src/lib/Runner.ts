@@ -214,8 +214,7 @@ export class Runner {
         pullRequestId,
         lockId,
       });
-      const user = await this.client.getUser(landRequest.triggererAaid);
-      return landRequest.setStatus('success', `Landed by ${user.displayName || user.aaid}`);
+      return landRequest.setStatus('success');
     } catch (err) {
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
@@ -250,7 +249,7 @@ export class Runner {
           await landRequest.update({ dependsOn: null });
           await this.client.stopLandBuild(landRequest.buildId, lockId);
           const user = await this.client.getUser(landRequest.triggererAaid);
-          return landRequest.setStatus('queued', `queued by ${user.displayName || user.aaid}`);
+          return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
         }
         if (landRequestStatus.state === 'awaiting-merge') {
           const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
@@ -327,7 +326,7 @@ export class Runner {
 
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Cancelled by user "${user.displayName || user.aaid}"`,
+      `Cancelled by user ${user.displayName || user.aaid}`,
     );
     if (landRequestStatus.request.buildId) {
       return this.client.stopLandBuild(landRequestStatus.request.buildId);
@@ -405,7 +404,7 @@ export class Runner {
     if (await this.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     const user = await this.client.getUser(request.triggererAaid);
-    return request.setStatus('queued', `queued by ${user.displayName || user.aaid}`);
+    return request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
   };
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
@@ -430,7 +429,7 @@ export class Runner {
       if (status && status.state !== 'will-queue-when-ready') continue;
 
       const user = await this.client.getUser(request.triggererAaid);
-      await request.setStatus('queued', `queued by ${user.displayName || user.aaid}`);
+      await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
     }
     Logger.info('Moving landRequests from waiting to queue', {
       namespace: 'lib:runner:moveFromWaitingToQueued',
@@ -447,7 +446,7 @@ export class Runner {
     const displayName = user.displayName || user.aaid;
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Removed from queue by user "${displayName}"`,
+      `Removed from queue by user ${displayName}`,
     );
     Logger.info('Removing landRequest from queue', {
       namespace: 'lib:removeLandRequestFromQueue',
@@ -469,7 +468,7 @@ export class Runner {
 
     await landRequestStatus.request.setStatus(
       'queued',
-      `moved to the top of the queue by user ${user.displayName || user.aaid}`,
+      `Moved to the top of the queue by user ${user.displayName || user.aaid}`,
       topDate,
     );
     return true;
