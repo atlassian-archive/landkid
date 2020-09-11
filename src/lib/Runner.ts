@@ -248,8 +248,8 @@ export class Runner {
           await landRequest.setStatus('fail', failReason);
           await landRequest.update({ dependsOn: null });
           await this.client.stopLandBuild(landRequest.buildId, lockId);
-          // await landRequest.request.save();
-          return landRequest.setStatus('queued');
+          const user = await this.client.getUser(landRequest.triggererAaid);
+          return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
         }
         if (landRequestStatus.state === 'awaiting-merge') {
           const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
@@ -326,7 +326,7 @@ export class Runner {
 
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Cancelled by user "${user.aaid}" (${user.displayName})`,
+      `Cancelled by user ${user.displayName || user.aaid}`,
     );
     if (landRequestStatus.request.buildId) {
       return this.client.stopLandBuild(landRequestStatus.request.buildId);
@@ -403,7 +403,8 @@ export class Runner {
     // TODO: Ensure no land request is pending for this PR
     if (await this.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
-    await request.setStatus('queued');
+    const user = await this.client.getUser(request.triggererAaid);
+    return request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
   };
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
@@ -427,7 +428,8 @@ export class Runner {
       const status = await request.getStatus();
       if (status && status.state !== 'will-queue-when-ready') continue;
 
-      await request.setStatus('queued');
+      const user = await this.client.getUser(request.triggererAaid);
+      await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
     }
     Logger.info('Moving landRequests from waiting to queue', {
       namespace: 'lib:runner:moveFromWaitingToQueued',
@@ -444,7 +446,7 @@ export class Runner {
     const displayName = user.displayName || user.aaid;
     await landRequestStatus.request.setStatus(
       'aborted',
-      `Removed from queue by user "${displayName}`,
+      `Removed from queue by user ${displayName}`,
     );
     Logger.info('Removing landRequest from queue', {
       namespace: 'lib:removeLandRequestFromQueue',
@@ -466,7 +468,7 @@ export class Runner {
 
     await landRequestStatus.request.setStatus(
       'queued',
-      `moved to the top of the queue by user ${user.aaid}`,
+      `Moved to the top of the queue by user ${user.displayName || user.aaid}`,
       topDate,
     );
     return true;

@@ -226,7 +226,6 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
 
   renderMoreInfo = (status: IStatusUpdate, dependsOn: string[], bitbucketBaseUrl: string) => {
     if (this.state.landRequestInfo === null) return null;
-
     const buildId = status.request.buildId;
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
 
@@ -259,10 +258,21 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             </StatusItem>
           ))}
         </div>
-        {status.reason ? (
+        {status.reason && status.state !== 'queued' ? (
           <div className="queue-item__status-line">
             <StatusItem title="Reason:">{status.reason}</StatusItem>
           </div>
+        ) : null}
+        {status.request.triggererAaid ? (
+          <StatusItem title="Landed by:">
+            <Lozenge>
+              <User aaid={status.request.triggererAaid}>
+                {user => {
+                  return user.displayName;
+                }}
+              </User>
+            </Lozenge>
+          </StatusItem>
         ) : null}
         {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
           <div className="queue-item__status-line">
