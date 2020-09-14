@@ -44,6 +44,15 @@ declare namespace BB {
     url: string;
   };
 
+  type MergeStatusResponse =
+    | {
+        task_status: 'PENDING';
+      }
+    | {
+        task_status: 'SUCCESS';
+        merge_result: any;
+      };
+
   type PullRequest = {
     pullRequestId: number;
     title: string;
