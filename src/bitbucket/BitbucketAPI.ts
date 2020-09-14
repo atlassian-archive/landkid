@@ -42,7 +42,10 @@ export class BitbucketAPI {
     // Polls result of merge task if the merge takes more than 28 seconds
     // API returns 202 if this is required
     const pollTaskResult = async (pollUrl: string, attemptNumber = 1): Promise<any> => {
-      const res = await axios.get(pollUrl);
+      const res = await axios.get<BB.MergeStatusResponse>(
+        pollUrl,
+        await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', pollUrl)),
+      );
       if (res.data.task_status === 'PENDING') {
         if (attemptNumber === 100) {
           Logger.info('Stopping merge task, taking too long', {
