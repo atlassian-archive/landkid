@@ -66,7 +66,7 @@ describe('mergePullRequest', () => {
   });
 
   test('Successful timeout merge', async () => {
-    mockedAxios.post.mockResolvedValue({ status: 202, headers: { Location: '' } });
+    mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
     mockedAxios.get
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'SUCCESSFUL' } });
@@ -76,7 +76,7 @@ describe('mergePullRequest', () => {
   });
 
   test('Failed timeout merge', async () => {
-    mockedAxios.post.mockResolvedValue({ status: 202, headers: { Location: '' } });
+    mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
     mockedAxios.get
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })

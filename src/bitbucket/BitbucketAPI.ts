@@ -51,6 +51,7 @@ export class BitbucketAPI {
             response: {
               statusCode: res.status,
               statusText: res.statusText,
+              headers: res.headers,
               data: res.data,
             },
             pullRequestId,
@@ -108,7 +109,7 @@ export class BitbucketAPI {
       // Need to poll merge result because of timeout, throws if merge fails
       if (res.status === 202) {
         Logger.info('Received timeout response, starting merge task polling', {
-          pollUrl: res.headers.Location,
+          pollUrl: res.headers.location,
           namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
           response: {
             statusCode: status,
@@ -122,7 +123,7 @@ export class BitbucketAPI {
           landRequestId,
           landRequestStatus,
         });
-        return pollTaskResult(res.headers.Location).catch(err => {
+        return pollTaskResult(res.headers.location).catch(err => {
           if (err.response) onFailure(err.response);
           onFailure({ status: 0, statusText: '', headers: {}, data: err, config: {} });
         });
