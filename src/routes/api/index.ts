@@ -250,7 +250,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
 
       const landRequest: LandRequestOptions = {
         prId,
-        triggererAaid: req.user ? req.user.aaid : 'landkid',
+        // Must always have a valid aaid, so lets set it to Luke's aaid
+        triggererAaid: req.user ? req.user.aaid : '557057:9512f4e4-3319-4d30-a78d-7d5f8ed243ae',
         commit: prInfo.commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
@@ -275,6 +276,20 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       Logger.verbose('Deleting history', { namespace: 'routes:api:delete-history' });
       await runner.clearHistory();
       res.json({ response: 'You better be sure about this captain... Done!' });
+    }),
+  );
+
+  router.delete(
+    '/clear-land-when-able-queue',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      Logger.verbose('Deleting land-when-able queue', {
+        namespace: 'routes:api:clear-land-when-able-queue',
+      });
+      await runner.clearLandWhenAbleQueue();
+      res.json({
+        response: 'You may not be a threat, but you better stop pretending to be a hero... Done!',
+      });
     }),
   );
 
