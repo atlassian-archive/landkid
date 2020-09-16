@@ -278,6 +278,18 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.delete(
+    '/clear-land-when-able-queue',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      Logger.verbose('Deleting land-when-able queue', { namespace: 'routes:api:delete-history' });
+      await runner.clearLandWhenAbleQueue();
+      res.json({
+        response: 'You may not be a threat but you better stop pretending to be a hero... Done!',
+      });
+    }),
+  );
+
   router.post(
     '/to-the-top/:id',
     requireAuth('admin'),

@@ -616,6 +616,16 @@ export class Runner {
     await PullRequest.truncate();
   };
 
+  clearLandWhenAbleQueue = async () => {
+    const awaitingRequests = await this.queue.getStatusesForWaitingRequests();
+    for (const status of awaitingRequests) {
+      await status.request.setStatus(
+        'aborted',
+        'Removed from land-when-able-queue manually by admin',
+      );
+    }
+  };
+
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
     const [
