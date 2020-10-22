@@ -35,15 +35,24 @@ export class BitbucketPipelinesAPI {
       !statusEvent.commit_status.url ||
       typeof statusEvent.commit_status.url !== 'string'
     ) {
-      Logger.error('Status event receieved that does not match the shape we were expecting', {
-        namespace: 'bitbucket:pipelines:processStatusWebhook',
+      // Logger.error('Status event received that does not match the shape we were expecting', {
+      //   namespace: 'bitbucket:pipelines:processStatusWebhook',
+      //   statusEvent: body,
+      // });
+      Logger.error('Status event received that does not match the shape we were expecting', {
+        namespace: 'status-debugging',
         statusEvent: body,
       });
       return null;
     }
     const buildStatus = statusEvent.commit_status.state;
     const buildUrl = statusEvent.commit_status.url;
-    Logger.info('Received build status event', { buildUrl, buildStatus });
+    // Logger.info('Received build status event', { buildUrl, buildStatus });
+    Logger.info('Correct build status event', {
+      buildUrl,
+      buildStatus,
+      namespace: 'status-debugging',
+    });
 
     // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
     const buildUrlParts = buildUrl.split('/');

@@ -268,21 +268,36 @@ export class Runner {
 
   // onStatusUpdate only updates status' for landrequests, never moves a state and always exits early
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
+    Logger.info('Received status update', {
+      statusEvent,
+      namespace: 'status-debugging',
+    });
     const running = await this.getRunning();
     if (!running.length) {
+      // Logger.info('No builds running, status event is irrelevant', {
+      //   namespace: 'lib:runner:onStatusUpdate',
+      //   statusEvent,
+      // });
       Logger.info('No builds running, status event is irrelevant', {
-        namespace: 'lib:runner:onStatusUpdate',
+        namespace: 'status-debugging',
         statusEvent,
       });
       return;
     }
     for (const landRequestStatus of running) {
       const landRequest = landRequestStatus.request;
-      if (statusEvent.buildId !== landRequest.buildId) continue; // check next landRequest
+      if (statusEvent.buildId !== landRequest.buildId) {
+        Logger.info('Status build id does not match request build id', {
+          landRequestStatus,
+          statusEvent,
+          namespace: 'status-debugging',
+        });
+        continue; // check next landRequest
+      }
       switch (statusEvent.buildStatus) {
         case 'SUCCESSFUL':
           Logger.info('Moving landRequest to awaiting-merge state', {
-            namespace: 'lib:runner:onStatusUpdate',
+            namespace: 'status-debugging',
             landRequestId: landRequest.id,
             pullRequestId: landRequest.pullRequestId,
             landRequestStatus,
@@ -291,7 +306,7 @@ export class Runner {
           return this.next();
         case 'FAILED':
           Logger.info('Moving landRequest to failed state', {
-            namespace: 'lib:runner:onStatusUpdate',
+            namespace: 'status-debugging',
             landRequestId: landRequest.id,
             pullRequestId: landRequest.pullRequestId,
             landRequestStatus,
@@ -300,7 +315,7 @@ export class Runner {
           return this.next();
         case 'STOPPED':
           Logger.info('Moving landRequest to aborted state', {
-            namespace: 'lib:runner:onStatusUpdate',
+            namespace: 'status-debugging',
             landRequestId: landRequest.id,
             pullRequestId: landRequest.pullRequestId,
             landRequestStatus,
@@ -309,8 +324,9 @@ export class Runner {
           return this.next();
         default:
           Logger.info('Dont know what to do with build status, ignoring', {
-            namespace: 'lib:runner:onStatusUpdate',
+            namespace: 'status-debugging',
             statusEvent,
+            landRequestStatus,
           });
           break;
       }
