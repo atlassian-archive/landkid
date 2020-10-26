@@ -297,7 +297,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             </StatusItem>
           </div>
         ) : null}
-        {status.state === 'running' || status.state === 'awaiting-merge' ? (
+        {['running', 'awaiting-merge'].includes(status.state) ? (
           <div className="queue-item__status-line">
             <StatusItem title="Admin Controls:">
               <button
@@ -374,7 +374,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </StatusItem>
         </div>
 
-        {(status.state === 'queued' || status.state === 'running') && dependsOnPRs.length > 0 ? (
+        {['running', 'awaiting-merge'].includes(status.state) && dependsOnPRs.length > 0 ? (
           <div className="queue-item__status-line">
             <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
           </div>

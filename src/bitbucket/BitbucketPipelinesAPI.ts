@@ -43,7 +43,11 @@ export class BitbucketPipelinesAPI {
     }
     const buildStatus = statusEvent.commit_status.state;
     const buildUrl = statusEvent.commit_status.url;
-    Logger.info('Received build status event', { buildUrl, buildStatus });
+    Logger.info('Received build status event', {
+      namespace: 'bitbucket:pipelines:processStatusWebhook',
+      buildUrl,
+      buildStatus,
+    });
 
     // Status webhooks dont give you build uuid's or even build numbers. We need to get from url
     const buildUrlParts = buildUrl.split('/');
