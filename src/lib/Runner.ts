@@ -53,7 +53,10 @@ export class Runner {
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
     const runningTargetingSameBranch = running.filter(
-      build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+      build =>
+        build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch &&
+        // Failsafe to prevent self-dependencies
+        build.request.pullRequestId !== landRequest.pullRequestId,
     );
     const maxConcurrentBuilds = this.getMaxConcurrentBuilds();
     if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
@@ -222,7 +225,7 @@ export class Runner {
 
   // Next must always return early if ever doing a single state transition
   next = async () => {
-    await withLock('status-transition', async (lockId: Date) => {
+    const runNextAgain = await withLock('status-transition', async (lockId: Date) => {
       const queue = await this.queue.getQueue();
       Logger.info('Next() called', {
         namespace: 'lib:runner:next',
@@ -249,21 +252,26 @@ export class Runner {
           await landRequest.update({ dependsOn: null });
           await this.client.stopLandBuild(landRequest.buildId, lockId);
           const user = await this.client.getUser(landRequest.triggererAaid);
-          return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+          await landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+          return true;
         }
         if (landRequestStatus.state === 'awaiting-merge') {
           const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
           // if we moved, we need to exit early, otherwise, just keep checking the queue
-          if (didChangeState) return this.next();
+          return !!didChangeState;
         } else if (landRequestStatus.state === 'queued') {
-          const movedState = await this.moveFromQueueToRunning(landRequestStatus, lockId);
+          const didChangeState = await this.moveFromQueueToRunning(landRequestStatus, lockId);
           // if the landrequest was able to move from queued to running, exit early, otherwise, keep
           // checking the rest of the queue
-          if (movedState) return this.next();
+          return !!didChangeState;
         }
         // otherwise, we must just be running, nothing to do here
       }
+      return false;
     });
+    if (runNextAgain) {
+      await this.next();
+    }
   };
 
   // onStatusUpdate only updates status' for landrequests, never moves a state and always exits early
@@ -416,27 +424,22 @@ export class Runner {
     this.checkWaitingLandRequests();
   };
 
-  moveFromWaitingToQueued = async (pullRequestId: number) => {
-    if (await this.getPauseState()) return;
+  moveFromWaitingToQueued = async (landRequestStatus: LandRequestStatus) => {
+    if (await this.getPauseState()) return false;
 
-    const requests = await LandRequest.findAll<LandRequest>({
-      where: {
-        pullRequestId,
-      },
-    });
-    for (const request of requests) {
-      const status = await request.getStatus();
-      if (status && status.state !== 'will-queue-when-ready') continue;
-
-      const user = await this.client.getUser(request.triggererAaid);
-      await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
-    }
-    Logger.info('Moving landRequests from waiting to queue', {
+    Logger.info('Moving land request from waiting to queue', {
       namespace: 'lib:runner:moveFromWaitingToQueued',
-      requests,
+      landRequestStatus,
+      landRequestId: landRequestStatus.requestId,
+      pullRequestId: landRequestStatus.request.pullRequestId,
     });
 
-    this.next();
+    const { request } = landRequestStatus;
+
+    const user = await this.client.getUser(request.triggererAaid);
+    await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+
+    return true;
   };
 
   removeLandRequestFromQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
@@ -452,6 +455,7 @@ export class Runner {
       namespace: 'lib:removeLandRequestFromQueue',
       landRequestId: landRequestStatus.requestId,
       landRequestStatus,
+      pullRequestId: landRequestStatus.request.pullRequestId,
     });
     return true;
   };
@@ -476,11 +480,14 @@ export class Runner {
 
   checkWaitingLandRequests = async () => {
     await withLock('status-transition', async () => {
+      const waitingRequestStatuses = await this.queue.getStatusesForWaitingRequests();
+
       Logger.info('Checking for waiting landrequests ready to queue', {
         namespace: 'lib:runner:checkWaitingLandRequests',
+        waitingRequestStatuses,
       });
 
-      for (let landRequestStatus of await this.queue.getStatusesForWaitingRequests()) {
+      for (const landRequestStatus of waitingRequestStatuses) {
         const landRequest = landRequestStatus.request;
         const pullRequestId = landRequest.pullRequestId;
         const triggererUserMode = await permissionService.getPermissionForUser(
@@ -504,7 +511,8 @@ export class Runner {
             await landRequest.setStatus('aborted', 'Already has existing Land build');
             continue;
           }
-          await this.moveFromWaitingToQueued(pullRequestId);
+          const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
+          if (movedState) return this.next();
         }
       }
     });
