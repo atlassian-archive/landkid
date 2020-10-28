@@ -103,6 +103,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
         { transaction: t },
       );
     });
+    return true;
   };
 
   getDependencies = async () => {

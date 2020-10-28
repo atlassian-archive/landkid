@@ -252,18 +252,17 @@ export class Runner {
           await landRequest.update({ dependsOn: null });
           await this.client.stopLandBuild(landRequest.buildId, lockId);
           const user = await this.client.getUser(landRequest.triggererAaid);
-          await landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
-          return true;
+          return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
         }
         if (landRequestStatus.state === 'awaiting-merge') {
           const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
           // if we moved, we need to exit early, otherwise, just keep checking the queue
-          return !!didChangeState;
+          if (didChangeState) return true;
         } else if (landRequestStatus.state === 'queued') {
           const didChangeState = await this.moveFromQueueToRunning(landRequestStatus, lockId);
           // if the landrequest was able to move from queued to running, exit early, otherwise, keep
           // checking the rest of the queue
-          return !!didChangeState;
+          if (didChangeState) return true;
         }
         // otherwise, we must just be running, nothing to do here
       }
@@ -412,7 +411,7 @@ export class Runner {
     if (await this.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     const user = await this.client.getUser(request.triggererAaid);
-    return request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+    await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
   };
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
