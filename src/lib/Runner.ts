@@ -59,10 +59,7 @@ export class Runner {
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
     const runningTargetingSameBranch = running.filter(
-      build =>
-        build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch &&
-        // Failsafe to prevent self-dependencies
-        build.request.pullRequestId !== landRequest.pullRequestId,
+      build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
     const maxConcurrentBuilds = this.getMaxConcurrentBuilds();
     if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
@@ -127,8 +124,12 @@ export class Runner {
       return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
     }
 
+    const runningExceptSelf = runningTargetingSameBranch.filter(
+      // Failsafe to prevent self-dependencies
+      build => build.request.pullRequestId !== landRequest.pullRequestId,
+    );
     const dependencies = [];
-    for (const queueItem of runningTargetingSameBranch) {
+    for (const queueItem of runningExceptSelf) {
       if ((await queueItem.request.getFailedDependencies()).length === 0) {
         dependencies.push(queueItem);
       }

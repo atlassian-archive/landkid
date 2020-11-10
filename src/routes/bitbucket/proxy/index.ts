@@ -6,7 +6,6 @@ import { config } from '../../../lib/Config';
 import { LandRequestOptions } from '../../../types';
 import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
-import { exist } from 'joi';
 
 export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
