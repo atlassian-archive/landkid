@@ -17,7 +17,7 @@ export class BitbucketClient {
 
   constructor(private config: Config) {}
 
-  async isAllowedToLand(pullRequestId: number, permissionLevel: IPermissionMode) {
+  async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
     const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
     const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
     const author = pullRequest.author;

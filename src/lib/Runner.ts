@@ -49,6 +49,12 @@ export class Runner {
     return this.queue.getRunning();
   };
 
+  getWaitingAndQueued = async () => {
+    const queued = await this.getQueue();
+    const waiting = await this.queue.getStatusesForWaitingRequests();
+    return [...queued, ...waiting];
+  };
+
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
@@ -76,9 +82,10 @@ export class Runner {
       landRequest.triggererAaid,
     );
     const commit = landRequest.forCommit;
-    const isAllowedToLand = await this.client.isAllowedToLand(
+    const isAllowedToLand = await this.isAllowedToLand(
       landRequest.pullRequestId,
       triggererUserMode,
+      this.getRunning,
     );
 
     // ToDo: Extra checks, should probably not be here, but this will do for now
@@ -108,10 +115,10 @@ export class Runner {
       return landRequest.setStatus('aborted', 'PR commit changed between landing and running');
     }
 
-    if (isAllowedToLand.errors.length > 0) {
+    if (isAllowedToLand.errors.length > 0 || isAllowedToLand.existingRequest) {
       Logger.error('LandRequest no longer passes land checks', {
         namespace: 'lib:runner:moveFromQueueToRunning',
-        errors: isAllowedToLand.errors,
+        isAllowedToLand,
         landRequestStatus,
         pullRequestId: landRequest.pullRequestId,
         landRequestId: landRequest.id,
@@ -492,19 +499,18 @@ export class Runner {
         const triggererUserMode = await permissionService.getPermissionForUser(
           landRequest.triggererAaid,
         );
-        const isAllowedToLand = await this.client.isAllowedToLand(pullRequestId, triggererUserMode);
+        const isAllowedToLand = await this.isAllowedToLand(
+          pullRequestId,
+          triggererUserMode,
+          this.getQueue,
+        );
 
         if (isAllowedToLand.errors.length === 0) {
-          const queue = await this.getQueue();
-          const existingBuild = queue.find(
-            q => q.request.pullRequestId === landRequest.pullRequestId,
-          );
-          if (existingBuild) {
+          if (isAllowedToLand.existingRequest) {
             Logger.warn('Already has existing Land build', {
               pullRequestId,
               landRequestId: landRequest.id,
               landRequestStatus,
-              existingBuild,
               namespace: 'lib:runner:checkWaitingLandRequests',
             });
             await landRequest.setStatus('aborted', 'Already has existing Land build');
@@ -632,6 +638,26 @@ export class Runner {
       );
     }
   };
+
+  async isAllowedToLand(
+    pullRequestId: number,
+    permissionLevel: IPermissionMode,
+    queueFetcher: () => Promise<LandRequestStatus[]>,
+  ) {
+    const isAllowedToMerge = await this.client.isAllowedToMerge(pullRequestId, permissionLevel);
+    let existingRequest = false;
+    const queue = await queueFetcher();
+    for (const queueItem of queue) {
+      if (queueItem.request.pullRequestId === pullRequestId) {
+        existingRequest = true;
+        break;
+      }
+    }
+    return {
+      existingRequest,
+      ...isAllowedToMerge,
+    };
+  }
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
