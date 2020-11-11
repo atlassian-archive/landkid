@@ -30,7 +30,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const errors: string[] = [];
       const warnings: string[] = [];
-      const landCheckErrors: string[] = [];
+      let existingRequest = false;
       const bannerMessage = await runner.getBannerMessageState();
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
@@ -39,19 +39,16 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
-          const landChecks = await client.isAllowedToLand(prId, permissionLevel);
+          const landChecks = await runner.isAllowedToLand(
+            prId,
+            permissionLevel,
+            runner.getWaitingAndQueued,
+          );
           warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
-          landCheckErrors.push(...landChecks.errors);
-
-          const queued = await runner.queue.getQueue();
-          const waiting = await runner.queue.getStatusesForWaitingRequests();
-
-          for (const queueItem of [...queued, ...waiting]) {
-            if (queueItem.request.pullRequest.prId === prId) {
-              errors.push('This PR has already been queued, patience young padawan');
-              break;
-            }
+          if (landChecks.existingRequest) {
+            existingRequest = true;
+            errors.push('This PR has already been queued, patience young padawan');
           }
         }
       } else {
@@ -66,7 +63,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       res.json({
         canLand: errors.length === 0,
-        canLandWhenAble: errors.length === landCheckErrors.length && prSettings.allowLandWhenAble,
+        canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
         errors,
         warnings,
         bannerMessage,
