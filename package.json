@@ -102,6 +102,9 @@
     "umzug": "^2.2.0",
     "winston": "^3.1.0"
   },
+  "engines": {
+    "node": "^12.20.0"
+  },
   "lint-staged": {
     "*.js": [
       "prettier --write",
