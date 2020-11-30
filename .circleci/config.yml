@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12.20
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
@@ -20,7 +20,7 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/node:12.20
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
@@ -40,7 +40,7 @@ jobs:
 
   unit_test:
     docker:
-      - image: circleci/node:12.20
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
