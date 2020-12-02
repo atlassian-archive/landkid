@@ -33,7 +33,8 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "yarn.lock" }}
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           command: ./.circleci/publish-landkid-docker.sh
           name: Deploy to Docker
