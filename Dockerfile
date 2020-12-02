@@ -19,9 +19,6 @@ COPY webpack.*.js README.md /opt/service/
 
 COPY tools /opt/service/tools
 
-#TODO: remove
-RUN yarn config set unsafe-perm true
-
 # Install dependencies
 RUN yarn --cache-folder ../ycach && NODE_ENV=production yarn build && yarn --production --cache-folder ../ycache && rm -rf ../ycache && rm -rf src && rm -rf tools && rm -rf typings
 
