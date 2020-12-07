@@ -126,20 +126,21 @@ export class BitbucketPipelinesAPI {
       lockId,
     });
     const endpoint = `${this.apiBaseUrl}/pipelines/${buildId}/stopPipeline`;
-    const resp = await axios.post(
-      endpoint,
-      null,
-      await bitbucketAuthenticator.getAuthConfig(
-        jwtTools.fromMethodAndUrl('post', endpoint),
-        axiosPostConfig,
-      ),
-    );
-    if (resp.status !== 204) {
+    try {
+      await axios.post(
+        endpoint,
+        null,
+        await bitbucketAuthenticator.getAuthConfig(
+          jwtTools.fromMethodAndUrl('post', endpoint),
+          axiosPostConfig,
+        ),
+      );
+    } catch (err) {
       Logger.info('Build could not be cancelled', {
         namespace: 'bitbucket:pipelines:stopLandBuild',
         buildId,
         lockId,
-        response: resp.data,
+        error: err,
       });
       return false;
     }
