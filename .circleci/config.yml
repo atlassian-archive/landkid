@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:8.12
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
@@ -20,7 +20,7 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/node:8.12
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
@@ -33,14 +33,15 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "yarn.lock" }}
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           command: ./.circleci/publish-landkid-docker.sh
           name: Deploy to Docker
 
   unit_test:
     docker:
-      - image: circleci/node:8.12
+      - image: cimg/node:12.20 
     working_directory: ~/repo
     steps:
       - checkout
@@ -57,7 +58,7 @@ jobs:
 
   integration_test:
     docker:
-      - image: cypress/base:10
+      - image: cypress/base:12
     working_directory: ~/repo
     steps:
       - checkout
