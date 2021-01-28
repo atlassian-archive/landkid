@@ -7,6 +7,16 @@ services:
   postgres:
     image: 'postgres'
     ports:
-      - '5432:5432'
+      - '5434:5432'
     environment:
       POSTGRES_HOST_AUTH_METHOD: 'trust'
+  statsd-mock-sidecar:
+    image: docker.atl-paas.net/sox/observability/statsd-docker:latest
+    ports:
+      - '8125:8125/udp'
+    environment:
+      STATSD_BUSINESS_UNIT: 'Fabric'
+      STATSD_RESOURCE_OWNER: 'lbatchelor'
+      STATSD_SERVICE_NAME: 'atlassian-frontend-landkid'
+      STATSD_HOSTNAME: 'platform-statsd'
+      STATSD_USER_TAGS: "'service_name:atlassian-frontend-landkid', 'aws_region:local'"
