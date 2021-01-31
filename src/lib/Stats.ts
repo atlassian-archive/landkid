@@ -5,7 +5,6 @@ const { MICROS_ENV, MICROS_ENVTYPE, NODE_ENV } = process.env;
 let client;
 
 if (!MICROS_ENV || !MICROS_ENVTYPE) {
-  console.log('Using dummy client');
   client = {
     increment: (stat: string, tags?: StatsD.Tags) => {},
   };

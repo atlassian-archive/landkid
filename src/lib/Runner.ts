@@ -15,6 +15,7 @@ import {
   BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
+import { stats } from '../lib/Stats';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -225,8 +226,10 @@ export class Runner {
         pullRequestId,
         lockId,
       });
+      stats.increment('pull_request.land.success');
       return landRequest.setStatus('success');
     } catch (err) {
+      stats.increment('pull_request.land.fail');
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
