@@ -1,20 +1,20 @@
 import * as StatsD from 'hot-shots';
+import { config } from '../Config';
 
-const { MICROS_ENV, MICROS_ENVTYPE, NODE_ENV } = process.env;
+const { MICROS_ENV, MICROS_ENVTYPE } = process.env;
 
 let client;
 
-if (!MICROS_ENV || !MICROS_ENVTYPE) {
+if (!MICROS_ENV || !MICROS_ENVTYPE || !config.metrics) {
   client = {
     increment: (stat: string, tags?: StatsD.Tags) => {},
   };
 } else {
-  const HOST = NODE_ENV === 'production' ? 'platform-statsd' : 'localhost';
-
+  const { host, port, prefix } = config.metrics;
   client = new StatsD.StatsD({
-    host: HOST,
-    port: 8125,
-    prefix: 'atlassian_frontend_landkid.',
+    host,
+    port,
+    prefix,
     globalTags: {
       micros_env: MICROS_ENV,
       micros_envtype: MICROS_ENVTYPE,
