@@ -42,11 +42,11 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       try {
         Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
         const state = await runner.getState(req.user!);
-        stats.increment('.get_state.success');
+        stats.increment('get_state.success');
         res.header('Access-Control-Allow-Origin', '*').json(state);
       } catch {
         Logger.error('Error getting current state', { namespace: 'routes:api:current-state' });
-        stats.increment('.get_state.fail');
+        stats.increment('get_state.fail');
         res.sendStatus(500);
       }
     }),

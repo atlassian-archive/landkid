@@ -227,16 +227,16 @@ export class Runner {
         lockId,
       });
 
-      stats.increment('.pull_request.merge.success');
+      const end = Date.now();
+      stats.increment('pull_request.merge.success');
       const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
       if (queuedDate) {
         const start = queuedDate.getTime();
-        const end = Date.now();
-        stats.timing('.pull_request.queued_duration', end - start);
+        stats.timing('pull_request.queued_duration_ms', end - start);
       }
       return landRequest.setStatus('success');
     } catch (err) {
-      stats.increment('.pull_request.merge.fail');
+      stats.increment('pull_request.merge.fail');
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
