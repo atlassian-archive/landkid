@@ -8,6 +8,13 @@ let client;
 if (!MICROS_ENV || !MICROS_ENVTYPE || !config.metrics) {
   client = {
     increment: (stat: string, tags?: StatsD.Tags) => {},
+    timing: (
+      stat: string | string[],
+      value: number | Date,
+      sampleRate?: number,
+      tags?: StatsD.Tags,
+      callback?: StatsD.StatsCb,
+    ) => {},
   };
 } else {
   const { host, port, prefix } = config.metrics;

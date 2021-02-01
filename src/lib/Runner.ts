@@ -226,7 +226,14 @@ export class Runner {
         pullRequestId,
         lockId,
       });
+
       stats.increment('.pull_request.merge.success');
+      const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+      if (queuedDate) {
+        const start = queuedDate.getTime();
+        const end = Date.now();
+        stats.timing('.pull_request.queued_duration', end - start);
+      }
       return landRequest.setStatus('success');
     } catch (err) {
       stats.increment('.pull_request.merge.fail');
@@ -547,6 +554,17 @@ export class Runner {
       statuses[requestId] = landRequestStatuses;
     }
     return statuses;
+  };
+
+  getLandRequestQueuedDate = async (requestId: string): Promise<Date | null> => {
+    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId,
+        state: 'queued',
+      },
+      order: [['date', 'ASC']],
+    });
+    return status ? status.date : null;
   };
 
   private getUsersPermissions = async (
