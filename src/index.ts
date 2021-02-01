@@ -17,6 +17,7 @@ import { routes } from './routes';
 import { initializePassport } from './auth/bitbucket';
 import { LandRequestHistory } from './lib/History';
 import { Logger } from './lib/Logger';
+import { stats } from './lib/utils/stats';
 
 const RedisStore = connectRedis(session);
 
@@ -62,6 +63,8 @@ async function main() {
   const runner = new Runner(queue, history, client, config);
 
   await routes(server, client, runner);
+
+  stats.increment('.startup');
 
   // TODO: lookup all admins in user service to add them to the redis cache
 

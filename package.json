@@ -85,6 +85,7 @@
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "express-winston": "^3.0.1",
+    "hot-shots": "^8.3.0",
     "micromatch": "^4.0.2",
     "passport": "^0.4.0",
     "passport-oauth2": "^1.4.0",

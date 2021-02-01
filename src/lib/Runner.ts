@@ -15,6 +15,7 @@ import {
   BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
+import { stats } from './utils/stats';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -225,8 +226,17 @@ export class Runner {
         pullRequestId,
         lockId,
       });
+
+      stats.increment('.pull_request.merge.success');
+      const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+      if (queuedDate) {
+        const start = queuedDate.getTime();
+        const end = Date.now();
+        stats.timing('.pull_request.queued_duration', end - start);
+      }
       return landRequest.setStatus('success');
     } catch (err) {
+      stats.increment('.pull_request.merge.fail');
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
@@ -544,6 +554,17 @@ export class Runner {
       statuses[requestId] = landRequestStatuses;
     }
     return statuses;
+  };
+
+  getLandRequestQueuedDate = async (requestId: string): Promise<Date | null> => {
+    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId,
+        state: 'queued',
+      },
+      order: [['date', 'ASC']],
+    });
+    return status ? status.date : null;
   };
 
   private getUsersPermissions = async (

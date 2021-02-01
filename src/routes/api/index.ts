@@ -7,6 +7,7 @@ import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
 import { Config, LandRequestOptions } from '../../types';
+import { stats } from '../../lib/utils/stats';
 
 const landKidTag = process.env.LANDKID_TAG || 'Unknown';
 
@@ -38,9 +39,16 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     '/current-state',
     requireAuth('read'),
     wrap(async (req, res) => {
-      const state = await runner.getState(req.user!);
-      Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
-      res.header('Access-Control-Allow-Origin', '*').json(state);
+      try {
+        Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
+        const state = await runner.getState(req.user!);
+        stats.increment('.get_state.success');
+        res.header('Access-Control-Allow-Origin', '*').json(state);
+      } catch {
+        Logger.error('Error getting current state', { namespace: 'routes:api:current-state' });
+        stats.increment('.get_state.fail');
+        res.sendStatus(500);
+      }
     }),
   );
 

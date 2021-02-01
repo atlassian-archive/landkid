@@ -6,6 +6,7 @@ import { config } from '../../../lib/Config';
 import { LandRequestOptions } from '../../../types';
 import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
+import { stats } from '../../../lib/utils/stats';
 
 export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
@@ -82,6 +83,8 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
+        stats.increment('.pull_request.queue.fail');
+
         res.sendStatus(404);
         return;
       }
@@ -98,11 +101,13 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       };
 
       await runner.enqueue(landRequest);
-      Logger.info('Pull request landed', {
+      Logger.info('Pull request queued', {
         namespace: 'routes:bitbucket:proxy:land',
         pullRequestId: prId,
         landRequest,
       });
+
+      stats.increment('.pull_request.queue.success');
 
       res.sendStatus(200);
       runner.next();
@@ -120,6 +125,8 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
+        stats.increment('.pull_request.queue_when_able.fail');
+
         res.sendStatus(400);
         return;
       }
@@ -140,6 +147,8 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         pullRequestId: prId,
         landRequest,
       });
+
+      stats.increment('.pull_request.queue_when_able.success');
 
       res.sendStatus(200);
     }),

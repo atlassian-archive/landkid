@@ -65,6 +65,12 @@ export type OAuthConfig = {
   secret: string;
 };
 
+type MetricsConfig = {
+  host: string;
+  port: number;
+  prefix?: string;
+};
+
 export type Config = {
   name?: string;
   key?: string;
@@ -78,6 +84,7 @@ export type Config = {
   permissionsMessage: string;
   sequelize?: any;
   easterEgg?: any;
+  metrics?: MetricsConfig;
 };
 
 export type RunnerState = {
