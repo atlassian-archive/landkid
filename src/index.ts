@@ -64,7 +64,7 @@ async function main() {
 
   await routes(server, client, runner);
 
-  stats.increment('.startup');
+  stats.increment('startup');
 
   // TODO: lookup all admins in user service to add them to the redis cache
 

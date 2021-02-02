@@ -228,15 +228,15 @@ export class Runner {
       });
 
       const end = Date.now();
-      stats.increment('.pull_request.merge.success');
+      stats.increment('pull_request.merge.success');
       const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
       if (queuedDate) {
         const start = queuedDate.getTime();
-        stats.timing('.pull_request.queued_duration_ms', end - start);
+        stats.timing('pull_request.queued_duration_ms', end - start);
       }
       return landRequest.setStatus('success');
     } catch (err) {
-      stats.increment('.pull_request.merge.fail');
+      stats.increment('pull_request.merge.fail');
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
