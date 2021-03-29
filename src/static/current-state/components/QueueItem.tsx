@@ -5,7 +5,7 @@ import { Lozenge } from './Lozenge';
 import { LozengeAppearance } from './types';
 import { User } from './User';
 
-let queueItemStyles = css({
+const queueItemStyles = css({
   display: 'block',
   boxSizing: 'border-box',
   padding: '14px 14px 14px',
@@ -96,7 +96,7 @@ let queueItemStyles = css({
   },
 });
 
-let queueItemJoinedStyles = css({
+const queueItemJoinedStyles = css({
   paddingTop: '27px',
   position: 'relative',
   '&:before': {
@@ -112,18 +112,32 @@ let queueItemJoinedStyles = css({
   },
 });
 
-let icon = css({
+const icon = css({
   height: '11px',
   width: '11px',
   marginBottom: '-1px',
   paddingRight: '2px',
 });
 
-let duration = (start: number, end: number) => {
-  let diffMs = end - start;
-  let rawSeconds = diffMs / 1000;
-  let minutes = Math.floor(rawSeconds / 60);
-  let seconds = Math.floor(rawSeconds - minutes * 60);
+const pipeSeparator = css({
+  fontWeight: 'normal',
+  color: '#CCC',
+});
+
+const prTitleLink = css`
+  text-decoration: none;
+  color: #344563;
+
+  &:hover {
+    color: #222;
+  }
+`;
+
+const duration = (start: number, end: number) => {
+  const diffMs = end - start;
+  const rawSeconds = diffMs / 1000;
+  const minutes = Math.floor(rawSeconds / 60);
+  const seconds = Math.floor(rawSeconds - minutes * 60);
   return `${minutes}m ${seconds}s`;
 };
 
@@ -224,22 +238,10 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
       );
   };
 
-  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[], bitbucketBaseUrl: string) => {
+  renderMoreInfo = (status: IStatusUpdate, dependsOn: string[]) => {
     if (this.state.landRequestInfo === null) return null;
-    const buildId = status.request.buildId;
-    const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
-
     return (
       <div className="queue-item__more-info">
-        {buildId ? (
-          <div className="queue-item__status-line">
-            <StatusItem title="Pipelines link:">
-              <a href={buildUrl} target="_blank">
-                #{buildId}
-              </a>
-            </StatusItem>
-          </div>
-        ) : null}
         <div className="queue-item__status-line">
           {this.state.landRequestInfo.map((status, index, statuses) => (
             <StatusItem
@@ -320,6 +322,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
       request: { dependsOn, pullRequestId, pullRequest },
     } = status;
 
+    const buildId = status.request.buildId;
+    const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
     const dependsOnPRs: string[] = [];
     if (dependsOn && queue) {
       dependsOn.split(',').forEach(depId => {
@@ -336,10 +340,20 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     return (
       <div className={`${queueItemStyles} queue-item`}>
         <div className="queue-item__title">
-          <a href={prUrlFromId(bitbucketBaseUrl, pullRequestId)} target="_blank">
-            [PR #{pullRequestId}]
-          </a>{' '}
-          {pullRequest.title}
+          {buildId && (
+            <>
+              {'Build '}
+              <a href={buildUrl} target="_blank">{`#${buildId}`}</a>
+              <span className={pipeSeparator}> | </span>
+            </>
+          )}
+          <a
+            className={prTitleLink}
+            href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}
+            target="_blank"
+          >
+            {pullRequest.title}
+          </a>
         </div>
         <div className="queue-item__status-line">
           <StatusItem title="Status:">
@@ -396,7 +410,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             <StatusItem title={this.state.landRequestInfo ? 'Show less' : 'Show more...'} />
           </div>
         </div>
-        {this.renderMoreInfo(status, dependsOnPRs, bitbucketBaseUrl)}
+        {this.renderMoreInfo(status, dependsOnPRs)}
       </div>
     );
   }
