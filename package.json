@@ -19,7 +19,7 @@
     "clean": "rimraf dist",
     "test:unit": "jest",
     "pretest:integration": "node tools/test-local.js",
-    "test:integration": "yarn test:staging",
+    "test:integration": "yarn test:integration:staging",
     "posttest:integration": "node tools/revert-test-local.js",
     "test:integration:staging": "cypress run --reporter junit",
     "format": "prettier --write src/**/*.ts src/**/*.tsx",
