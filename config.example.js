@@ -45,9 +45,14 @@ module.exports = {
      * otherwise return the error message to be displayed on the PR
      */
   },
-  metrics: {
-    host: process.env.NODE_ENV === 'production' ? 'platform-statsd' : 'localhost',
-    port: 8125,
-    prefix: 'myname_landkid', // This is optional
-  },
+  eventListeners: [
+    // {
+    //   event: 'EXAMPLE_EVENT_1',
+    //   listeners: [() => {}]
+    // },
+    // {
+    //   event: 'EXAMPLE_EVENT_2',
+    //   listener: () => {}
+    // }
+  ],
 };

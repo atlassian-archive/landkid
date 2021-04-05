@@ -65,10 +65,10 @@ export type OAuthConfig = {
   secret: string;
 };
 
-type MetricsConfig = {
-  host: string;
-  port: number;
-  prefix?: string;
+type EventListener = {
+  event: string;
+  listeners?: ((args?: any) => void)[];
+  listener?: (args?: any) => void;
 };
 
 export type Config = {
@@ -83,8 +83,8 @@ export type Config = {
   maxConcurrentBuilds?: number;
   permissionsMessage: string;
   sequelize?: any;
+  eventListeners?: EventListener[];
   easterEgg?: any;
-  metrics?: MetricsConfig;
 };
 
 export type RunnerState = {
