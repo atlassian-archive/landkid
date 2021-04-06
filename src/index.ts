@@ -17,7 +17,7 @@ import { routes } from './routes';
 import { initializePassport } from './auth/bitbucket';
 import { LandRequestHistory } from './lib/History';
 import { Logger } from './lib/Logger';
-import { EventEmitter } from 'events';
+import { initializeEventListeners, eventEmitter } from './lib/Events';
 
 const RedisStore = connectRedis(session);
 
@@ -62,10 +62,11 @@ async function main() {
   const history = new LandRequestHistory();
   const runner = new Runner(queue, history, client, config);
 
+  initializeEventListeners();
+
   await routes(server, client, runner);
 
-  const emitter = new EventEmitter();
-  emitter.emit('STARTUP');
+  eventEmitter.emit('STARTUP');
   // TODO: lookup all admins in user service to add them to the redis cache
 
   server.listen(config.port, () => {

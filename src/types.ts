@@ -67,8 +67,7 @@ export type OAuthConfig = {
 
 type EventListener = {
   event: string;
-  listeners?: ((args?: any) => void)[];
-  listener?: (args?: any) => void;
+  listener: (...args: any[]) => void;
 };
 
 export type Config = {

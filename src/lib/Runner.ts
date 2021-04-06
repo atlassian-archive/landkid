@@ -15,7 +15,7 @@ import {
   BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
-import { EventEmitter } from 'events';
+import { eventEmitter } from './Events';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -197,7 +197,6 @@ export class Runner {
   moveFromAwaitingMerge = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     const landRequest = landRequestStatus.request;
     const dependencies = await landRequest.getDependencies();
-    const emitter = new EventEmitter();
 
     if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
       Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
@@ -229,15 +228,11 @@ export class Runner {
       });
 
       const end = Date.now();
-      emitter.emit('PULL_REQUEST.MERGE.SUCCESS');
-      const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-      if (queuedDate) {
-        const start = queuedDate.getTime();
-        emitter.emit('PULL_REQUEST.QUEUED_DURATION_MS', end - start);
-      }
+      const start = landRequestStatus.date.getTime();
+      eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', end - start);
       return landRequest.setStatus('success');
     } catch (err) {
-      emitter.emit('PULL_REQUEST.MERGE.FAIL');
+      eventEmitter.emit('PULL_REQUEST.MERGE.FAIL');
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
@@ -555,17 +550,6 @@ export class Runner {
       statuses[requestId] = landRequestStatuses;
     }
     return statuses;
-  };
-
-  getLandRequestQueuedDate = async (requestId: string): Promise<Date | null> => {
-    const status = await LandRequestStatus.findOne<LandRequestStatus>({
-      where: {
-        requestId,
-        state: 'queued',
-      },
-      order: [['date', 'ASC']],
-    });
-    return status ? status.date : null;
   };
 
   private getUsersPermissions = async (

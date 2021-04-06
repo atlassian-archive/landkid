@@ -7,10 +7,9 @@ import { BitbucketClient } from '../../bitbucket/BitbucketClient';
 import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
 import { Config, LandRequestOptions } from '../../types';
-import { EventEmitter } from 'events';
+import { eventEmitter } from '../../lib/Events';
 
 const landKidTag = process.env.LANDKID_TAG || 'Unknown';
-const emitter = new EventEmitter();
 
 export function apiRoutes(runner: Runner, client: BitbucketClient, config: Config) {
   const router = express();
@@ -43,11 +42,11 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       try {
         Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
         const state = await runner.getState(req.user!);
-        emitter.emit('GET_STATE.SUCCESS');
+        eventEmitter.emit('GET_STATE.SUCCESS');
         res.header('Access-Control-Allow-Origin', '*').json(state);
       } catch {
         Logger.error('Error getting current state', { namespace: 'routes:api:current-state' });
-        emitter.emit('GET_STATE.FAIL');
+        eventEmitter.emit('GET_STATE.FAIL');
         res.sendStatus(500);
       }
     }),
