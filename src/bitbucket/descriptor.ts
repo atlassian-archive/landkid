@@ -11,7 +11,9 @@ export const makeDescriptor = () => ({
   vendor: {
     name: 'Fabric Build',
   },
-  scopes: ['pullrequest', 'pullrequest:write', 'repository', 'pipeline', 'pipeline:write'],
+  // :write implies base scope (e.g. pullrequest:write implies pullrequest)
+  // pullrequest:write requires repository:write so we don't need to define that as well
+  scopes: ['account', 'pullrequest:write', 'pipeline:write'],
   authentication: {
     type: 'jwt',
   },
