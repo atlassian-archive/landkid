@@ -263,6 +263,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         commit: prInfo.commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
 

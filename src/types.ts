@@ -5,6 +5,7 @@ export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
   prTitle: string;
+  prSourceBranch: string;
   prTargetBranch: string;
   triggererAaid: string;
   commit: string;

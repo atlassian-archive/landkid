@@ -102,6 +102,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
 
@@ -149,6 +150,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
       await runner.addToWaitingToLand(landRequest);

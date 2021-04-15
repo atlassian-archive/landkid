@@ -425,6 +425,7 @@ export class Runner {
     // Unfortunately, because we decided to make PR id's be the primary key, we need this
     // hack to update target branches in case a PR relands with a new target branch
     pr.targetBranch = landRequestOptions.prTargetBranch;
+    pr.sourceBranch = landRequestOptions.prSourceBranch;
     await pr.save();
 
     return LandRequest.create<LandRequest>({
