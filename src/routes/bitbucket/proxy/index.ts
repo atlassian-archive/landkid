@@ -86,6 +86,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         eventEmitter.emit('PULL_REQUEST.QUEUE.FAIL', {
           pullRequestId: prId,
           commit: commit,
+          sourceBranch: 'unknown',
           targetBranch: 'unknown',
         });
 
@@ -114,6 +115,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       eventEmitter.emit('PULL_REQUEST.QUEUE.SUCCESS', {
         pullRequestId: prId,
         commit: commit,
+        sourceBranch: prInfo.sourceBranch,
         targetBranch: prInfo.targetBranch,
       });
 

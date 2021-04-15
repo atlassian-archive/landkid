@@ -234,6 +234,7 @@ export class Runner {
         landRequestId: landRequestStatus.requestId,
         pullRequestId: landRequest.pullRequestId,
         commit: landRequest.forCommit,
+        sourceBranch: pullRequest.sourceBranch,
         targetBranch: pullRequest.targetBranch,
         duration: end - start,
       });
@@ -243,6 +244,7 @@ export class Runner {
         landRequestId: landRequestStatus.requestId,
         pullRequestId: landRequest.pullRequestId,
         commit: landRequest.forCommit,
+        sourceBranch: pullRequest.sourceBranch,
         targetBranch: pullRequest.targetBranch,
       });
       return landRequest.setStatus('fail', 'Unable to merge pull request');

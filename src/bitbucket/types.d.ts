@@ -26,6 +26,9 @@ declare namespace BB {
       commit: {
         hash: string;
       };
+      branch: {
+        name: string;
+      };
     };
     destination: {
       branch: {
@@ -63,6 +66,7 @@ declare namespace BB {
     targetBranch: string;
     commit: string;
     state: PRState;
+    sourceBranch: string;
     approvals: Array<string>;
     openTasks: number;
   };
