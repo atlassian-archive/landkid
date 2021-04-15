@@ -196,6 +196,7 @@ export class Runner {
 
   moveFromAwaitingMerge = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     const landRequest = landRequestStatus.request;
+    const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
 
     if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
@@ -229,10 +230,21 @@ export class Runner {
 
       const end = Date.now();
       const start = landRequestStatus.date.getTime();
-      eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', end - start);
+      eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequest.pullRequestId,
+        commit: landRequest.forCommit,
+        targetBranch: pullRequest.targetBranch,
+        duration: end - start,
+      });
       return landRequest.setStatus('success');
     } catch (err) {
-      eventEmitter.emit('PULL_REQUEST.MERGE.FAIL');
+      eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequest.pullRequestId,
+        commit: landRequest.forCommit,
+        targetBranch: pullRequest.targetBranch,
+      });
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };

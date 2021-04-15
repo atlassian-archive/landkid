@@ -83,7 +83,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
-        eventEmitter.emit('PULL_REQUEST.QUEUE.FAIL');
+        eventEmitter.emit('PULL_REQUEST.QUEUE.FAIL', {
+          pullRequestId: prId,
+          commit: commit,
+          targetBranch: 'unknown',
+        });
 
         res.sendStatus(404);
         return;
@@ -107,7 +111,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         landRequest,
       });
 
-      eventEmitter.emit('PULL_REQUEST.QUEUE.SUCCESS');
+      eventEmitter.emit('PULL_REQUEST.QUEUE.SUCCESS', {
+        pullRequestId: prId,
+        commit: commit,
+        targetBranch: prInfo.targetBranch,
+      });
 
       res.sendStatus(200);
       runner.next();
@@ -125,7 +133,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
-        eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL');
+        eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL', {});
 
         res.sendStatus(400);
         return;
@@ -148,7 +156,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         landRequest,
       });
 
-      eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS');
+      eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS', {
+        pullRequestId: prId,
+        commit,
+        targetBranch: prInfo.targetBranch,
+      });
 
       res.sendStatus(200);
     }),

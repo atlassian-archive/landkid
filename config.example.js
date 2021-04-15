@@ -46,13 +46,11 @@ module.exports = {
      */
   },
   eventListeners: [
-    // {
-    //   event: 'EXAMPLE_EVENT_1',
-    //   listeners: [() => {}]
-    // },
-    // {
-    //   event: 'EXAMPLE_EVENT_2',
-    //   listener: () => {}
-    // }
+    {
+      event: 'PULL_REQUEST.MERGE.SUCCESS',
+      listener: ({ landRequestId, pullRequestId, targetBranch, commit, duration }) => {
+        // send data to metrics tooling
+      },
+    },
   ],
 };

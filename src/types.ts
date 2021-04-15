@@ -65,9 +65,17 @@ export type OAuthConfig = {
   secret: string;
 };
 
+export type EventData = {
+  landRequestId?: string;
+  pullRequestId?: string;
+  targetBranch?: string;
+  commit?: string;
+  duration?: number;
+};
+
 type EventListener = {
   event: string;
-  listener: (...args: any[]) => void;
+  listener: (data: EventData) => void;
 };
 
 export type Config = {
