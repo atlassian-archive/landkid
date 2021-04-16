@@ -163,6 +163,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS', {
         pullRequestId: prId,
         commit,
+        sourceBranch: prInfo.sourceBranch,
         targetBranch: prInfo.targetBranch,
       });
 

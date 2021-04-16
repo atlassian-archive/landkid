@@ -48,7 +48,14 @@ module.exports = {
   eventListeners: [
     {
       event: 'PULL_REQUEST.MERGE.SUCCESS',
-      listener: ({ landRequestId, pullRequestId, targetBranch, commit, duration }) => {
+      listener: ({
+        landRequestId,
+        pullRequestId,
+        sourceBranch,
+        targetBranch,
+        commit,
+        duration,
+      }) => {
         // send data to metrics tooling
       },
     },

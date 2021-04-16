@@ -69,6 +69,7 @@ export type OAuthConfig = {
 export type EventData = {
   landRequestId?: string;
   pullRequestId?: string;
+  sourceBranch?: string;
   targetBranch?: string;
   commit?: string;
   duration?: number;
