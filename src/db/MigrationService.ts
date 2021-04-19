@@ -13,7 +13,7 @@ export class MigrationService {
       migrations: {
         params: [sequelize.getQueryInterface(), sequelize.constructor],
         path: resolve(__dirname, 'migrations'),
-        pattern: /^\d{2}__[^ /]+?\.(j|t)s$/,
+        pattern: /^\d{2}__[^ /]+?\.js$/,
       },
     });
     this.migrator.on('migrating', this.logEvent('migrating'));

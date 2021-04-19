@@ -6,7 +6,7 @@ import { config } from '../../../lib/Config';
 import { LandRequestOptions } from '../../../types';
 import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
-import { eventEmitter } from '../../../lib/Events';
+import { stats } from '../../../lib/utils/stats';
 
 export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
@@ -83,12 +83,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
-        eventEmitter.emit('PULL_REQUEST.QUEUE.FAIL', {
-          pullRequestId: prId,
-          commit: commit,
-          sourceBranch: 'unknown',
-          targetBranch: 'unknown',
-        });
+        stats.increment('pull_request.queue.fail');
 
         res.sendStatus(404);
         return;
@@ -102,7 +97,6 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
-        prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
 
@@ -113,12 +107,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         landRequest,
       });
 
-      eventEmitter.emit('PULL_REQUEST.QUEUE.SUCCESS', {
-        pullRequestId: prId,
-        commit: commit,
-        sourceBranch: prInfo.sourceBranch,
-        targetBranch: prInfo.targetBranch,
-      });
+      stats.increment('pull_request.queue.success');
 
       res.sendStatus(200);
       runner.next();
@@ -136,7 +125,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
-        eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL', {});
+        stats.increment('pull_request.queue_when_able.fail');
 
         res.sendStatus(400);
         return;
@@ -150,7 +139,6 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
-        prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
       await runner.addToWaitingToLand(landRequest);
@@ -160,12 +148,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         landRequest,
       });
 
-      eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS', {
-        pullRequestId: prId,
-        commit,
-        sourceBranch: prInfo.sourceBranch,
-        targetBranch: prInfo.targetBranch,
-      });
+      stats.increment('pull_request.queue_when_able.success');
 
       res.sendStatus(200);
     }),

@@ -189,7 +189,6 @@ export class BitbucketAPI {
       commit: data.source.commit.hash,
       targetBranch: data.destination.branch.name,
       state: data.state,
-      sourceBranch: data.source.branch.name,
       approvals: approvals,
       openTasks: data.task_count,
     };
