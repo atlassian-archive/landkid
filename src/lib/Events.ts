@@ -9,9 +9,9 @@ export const eventEmitter = new EventEmitter();
 export const initializeEventListeners = () => {
   if (config.eventListeners) {
     config.eventListeners.forEach(({ event, listener }) => {
-      eventEmitter.addListener(event, (data: EventData) => {
-        Logger.info(`Emitting event ${event}`, data);
-        listener(data);
+      eventEmitter.addListener(event, (data?: EventData) => {
+        Logger.info(`Emitting event ${event}`, { data });
+        listener(data || {});
       });
     });
   }

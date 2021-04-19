@@ -136,7 +136,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       if (!pullRequestId || !aaid || !commit) {
-        eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL', {});
+        eventEmitter.emit('PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL');
 
         res.sendStatus(400);
         return;

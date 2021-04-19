@@ -66,7 +66,7 @@ async function main() {
 
   await routes(server, client, runner);
 
-  eventEmitter.emit('STARTUP', {});
+  eventEmitter.emit('STARTUP');
   // TODO: lookup all admins in user service to add them to the redis cache
 
   server.listen(config.port, () => {
