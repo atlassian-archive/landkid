@@ -15,7 +15,7 @@ import {
   BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
-import { stats } from './utils/stats';
+import { eventEmitter } from './Events';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -196,6 +196,7 @@ export class Runner {
 
   moveFromAwaitingMerge = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     const landRequest = landRequestStatus.request;
+    const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
 
     if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
@@ -228,15 +229,24 @@ export class Runner {
       });
 
       const end = Date.now();
-      stats.increment('pull_request.merge.success');
-      const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-      if (queuedDate) {
-        const start = queuedDate.getTime();
-        stats.timing('pull_request.queued_duration_ms', end - start);
-      }
+      const start = landRequestStatus.date.getTime();
+      eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequest.pullRequestId,
+        commit: landRequest.forCommit,
+        sourceBranch: pullRequest.sourceBranch,
+        targetBranch: pullRequest.targetBranch,
+        duration: end - start,
+      });
       return landRequest.setStatus('success');
     } catch (err) {
-      stats.increment('pull_request.merge.fail');
+      eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequest.pullRequestId,
+        commit: landRequest.forCommit,
+        sourceBranch: pullRequest.sourceBranch,
+        targetBranch: pullRequest.targetBranch,
+      });
       return landRequest.setStatus('fail', 'Unable to merge pull request');
     }
   };
@@ -415,6 +425,7 @@ export class Runner {
     // Unfortunately, because we decided to make PR id's be the primary key, we need this
     // hack to update target branches in case a PR relands with a new target branch
     pr.targetBranch = landRequestOptions.prTargetBranch;
+    pr.sourceBranch = landRequestOptions.prSourceBranch;
     await pr.save();
 
     return LandRequest.create<LandRequest>({
@@ -554,17 +565,6 @@ export class Runner {
       statuses[requestId] = landRequestStatuses;
     }
     return statuses;
-  };
-
-  getLandRequestQueuedDate = async (requestId: string): Promise<Date | null> => {
-    const status = await LandRequestStatus.findOne<LandRequestStatus>({
-      where: {
-        requestId,
-        state: 'queued',
-      },
-      order: [['date', 'ASC']],
-    });
-    return status ? status.date : null;
   };
 
   private getUsersPermissions = async (

@@ -5,6 +5,7 @@ export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
   prTitle: string;
+  prSourceBranch: string;
   prTargetBranch: string;
   triggererAaid: string;
   commit: string;
@@ -65,10 +66,18 @@ export type OAuthConfig = {
   secret: string;
 };
 
-type MetricsConfig = {
-  host: string;
-  port: number;
-  prefix?: string;
+export type EventData = {
+  landRequestId?: string;
+  pullRequestId?: string;
+  sourceBranch?: string;
+  targetBranch?: string;
+  commit?: string;
+  duration?: number;
+};
+
+type EventListener = {
+  event: string;
+  listener: (data: EventData) => void;
 };
 
 export type Config = {
@@ -83,8 +92,8 @@ export type Config = {
   maxConcurrentBuilds?: number;
   permissionsMessage: string;
   sequelize?: any;
+  eventListeners?: EventListener[];
   easterEgg?: any;
-  metrics?: MetricsConfig;
 };
 
 export type RunnerState = {

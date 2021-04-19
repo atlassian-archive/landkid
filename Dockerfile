@@ -20,7 +20,7 @@ COPY webpack.*.js README.md /opt/service/
 COPY tools /opt/service/tools
 
 # Install dependencies
-RUN yarn --cache-folder ../ycach && NODE_ENV=production yarn build && yarn --production --cache-folder ../ycache && rm -rf ../ycache && rm -rf src && rm -rf tools && rm -rf typings
+RUN yarn --cache-folder ../ycach && NODE_ENV=production yarn build && yarn --production --cache-folder ../ycache && rm -rf ../ycache && rm -rf src && rm -rf typings
 
 ENV NODE_ENV=production
 

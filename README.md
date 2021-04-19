@@ -17,9 +17,9 @@ so that your master builds stay green and your devs stay happy!
 
 It really is quite simple. The key to keeping master green is simple:
 
-* Make sure all branch builds are run whilst rebased against latest master
+- Make sure all branch builds are run whilst rebased against latest master
   before merging
-* Make sure only one build can be being merged at a time
+- Make sure only one build can be being merged at a time
 
 That's it!
 
@@ -31,14 +31,30 @@ automatically!
 
 #### Supported Hosts
 
-* [x] Bitbucket
-* [ ] GitHub (Help Wanted!)
+- [x] Bitbucket
+- [ ] GitHub (Help Wanted!)
 
 #### Supported CI Services
 
-* [x] Bitbucket Pipelines
-* [ ] TravisCI (Help Wanted!)
-* [ ] CircleCI (Help Wanted!)
+- [x] Bitbucket Pipelines
+- [ ] TravisCI (Help Wanted!)
+- [ ] CircleCI (Help Wanted!)
+
+#### Metrics
+
+Landkid emits events for metrics integrations:
+
+- 'STARTUP'
+- 'PULL_REQUEST.MERGE.SUCCESS'
+- 'PULL_REQUEST.MERGE.FAIL'
+- 'GET_STATE.SUCCESS'
+- 'GET_STATE.FAIL'
+- 'PULL_REQUEST.QUEUE.SUCCESS'
+- 'PULL_REQUEST.QUEUE.FAIL'
+- 'PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS'
+- 'PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL'
+
+Add event listeners to `config.js` to use these events.
 
 ### Setting up your own Landkid server (Bitbucket)
 
