@@ -104,7 +104,8 @@
     "winston": "^3.1.0"
   },
   "resolutions": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "color-string": "^1.5.5"
   },
   "lint-staged": {
     "*.js": [
