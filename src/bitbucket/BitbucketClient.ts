@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Config } from '../types';
+import { Config, MergeOptions } from '../types';
 import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
@@ -98,8 +98,8 @@ export class BitbucketClient {
     return this.pipelines.stopLandBuild(buildId, lockId);
   }
 
-  async mergePullRequest(landRequestStatus: LandRequestStatus) {
-    return this.bitbucket.mergePullRequest(landRequestStatus);
+  async mergePullRequest(landRequestStatus: LandRequestStatus, options?: MergeOptions) {
+    return this.bitbucket.mergePullRequest(landRequestStatus, options);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {

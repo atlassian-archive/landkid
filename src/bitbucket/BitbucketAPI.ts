@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import * as jwtTools from 'atlassian-jwt';
 import delay from 'delay';
 
-import { RepoConfig } from '../types';
+import { MergeOptions, RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
 import { LandRequestStatus } from '../db';
@@ -14,7 +14,7 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (landRequestStatus: LandRequestStatus) => {
+  mergePullRequest = async (landRequestStatus: LandRequestStatus, options: MergeOptions = {}) => {
     const {
       id: landRequestId,
       request: {
@@ -23,7 +23,10 @@ export class BitbucketAPI {
       },
     } = landRequestStatus;
     const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
-    const message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
+    let message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
+    if (options.skipCI) {
+      message += '\n\n[skip ci]';
+    }
     const requestBody = {
       close_source_branch: true,
       message,

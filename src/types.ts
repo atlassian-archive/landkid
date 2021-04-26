@@ -94,6 +94,16 @@ export type Config = {
   sequelize?: any;
   eventListeners?: EventListener[];
   easterEgg?: any;
+  mergeSettings?: MergeSettings;
+};
+
+export type MergeSettings = {
+  /** Skip the destination branch build when there are successful dependent requests awaiting merge.
+   * This prevents multiple branch builds triggering multiple merges happen in quick succession.
+   * Achieved by adding [skip ci] to the merge commit message
+   */
+  skipBuildOnDependentsAwaitingMerge?: boolean;
+  // waitForBuild?: { // TBD };
 };
 
 export type RunnerState = {
@@ -105,4 +115,8 @@ export type RunnerState = {
   bannerMessageState: IMessageState | null;
   bitbucketBaseUrl: string;
   permissionsMessage: string;
+};
+
+export type MergeOptions = {
+  skipCI?: boolean;
 };

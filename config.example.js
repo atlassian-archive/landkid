@@ -45,6 +45,9 @@ module.exports = {
      * otherwise return the error message to be displayed on the PR
      */
   },
+  mergeSettings: {
+    skipBuildOnDependentsAwaitingMerge: false,
+  },
   eventListeners: [
     {
       event: 'PULL_REQUEST.MERGE.SUCCESS',
