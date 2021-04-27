@@ -86,4 +86,17 @@ describe('mergePullRequest', () => {
     expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
     expect(mockedDelay).toHaveBeenCalledTimes(2);
   });
+
+  test('Skip-ci merge', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    await bitbucketAPI.mergePullRequest(landRequestStatus as any, { skipCI: true });
+    expect(loggerInfoSpy).toHaveBeenCalledWith(
+      'Attempting to merge pull request',
+      expect.objectContaining({
+        postRequest: expect.objectContaining({
+          message: expect.stringContaining('[skip ci]'),
+        }),
+      }),
+    );
+  });
 });

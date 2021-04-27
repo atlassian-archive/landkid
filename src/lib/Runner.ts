@@ -194,7 +194,11 @@ export class Runner {
     return true;
   };
 
-  moveFromAwaitingMerge = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
+  moveFromAwaitingMerge = async (
+    landRequestStatus: LandRequestStatus,
+    lockId: Date,
+    dependentsAwaitingMerge: LandRequestStatus[],
+  ) => {
     const landRequest = landRequestStatus.request;
     const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
@@ -213,6 +217,11 @@ export class Runner {
 
     // Try to merge PR
     try {
+      // skip CI if there is a dependent PR that is awaiting merge
+      const skipCI =
+        dependentsAwaitingMerge.length > 0 &&
+        this.config.mergeSettings &&
+        this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
       const pullRequestId = landRequest.pullRequestId;
       Logger.verbose('Attempting merge pull request', {
         namespace: 'lib:runner:moveFromAwaitingMerge',
@@ -220,7 +229,7 @@ export class Runner {
         landRequestId: landRequest.id,
         lockId,
       });
-      await this.client.mergePullRequest(landRequestStatus);
+      await this.client.mergePullRequest(landRequestStatus, { skipCI });
       Logger.info('Successfully merged PR', {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         landRequestId: landRequest.id,
@@ -284,7 +293,12 @@ export class Runner {
           return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
         }
         if (landRequestStatus.state === 'awaiting-merge') {
-          const didChangeState = await this.moveFromAwaitingMerge(landRequestStatus, lockId);
+          const awaitingMergeQueue = Runner.getDependentsAwaitingMerge(queue, landRequestStatus);
+          const didChangeState = await this.moveFromAwaitingMerge(
+            landRequestStatus,
+            lockId,
+            awaitingMergeQueue,
+          );
           // if we moved, we need to exit early, otherwise, just keep checking the queue
           if (didChangeState) return true;
         } else if (landRequestStatus.state === 'queued') {
@@ -729,4 +743,12 @@ export class Runner {
       permissionsMessage: this.config.permissionsMessage,
     };
   };
+
+  static getDependentsAwaitingMerge(queue: LandRequestStatus[], currentStatus: LandRequestStatus) {
+    return queue.filter(
+      status =>
+        status.state === 'awaiting-merge' &&
+        status.request.dependsOn.split(',').includes(String(currentStatus.request.id)),
+    );
+  }
 }
