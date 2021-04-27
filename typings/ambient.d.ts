@@ -52,6 +52,7 @@ declare interface IStatusUpdate {
     | 'queued'
     | 'running'
     | 'awaiting-merge'
+    | 'merging'
     | 'success'
     | 'fail'
     | 'aborted';

@@ -229,26 +229,34 @@ export class Runner {
         landRequestId: landRequest.id,
         lockId,
       });
-      await this.client.mergePullRequest(landRequestStatus, { skipCI });
-      Logger.info('Successfully merged PR', {
+
+      await landRequest.setStatus('merging');
+      this.client.mergePullRequest(
+        landRequestStatus,
+        async () => {
+          const end = Date.now();
+          const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+          const start = queuedDate!.getTime();
+          eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+            duration: end - start,
+          });
+          landRequest.setStatus('success');
+        },
+        { skipCI },
+      );
+
+      Logger.info('Moved request to merging', {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         landRequestId: landRequest.id,
         pullRequestId,
         lockId,
       });
-
-      const end = Date.now();
-      const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-      const start = queuedDate!.getTime();
-      eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
-        landRequestId: landRequestStatus.requestId,
-        pullRequestId: landRequest.pullRequestId,
-        commit: landRequest.forCommit,
-        sourceBranch: pullRequest.sourceBranch,
-        targetBranch: pullRequest.targetBranch,
-        duration: end - start,
-      });
-      return landRequest.setStatus('success');
+      return true;
     } catch (err) {
       eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
         landRequestId: landRequestStatus.requestId,
@@ -263,54 +271,58 @@ export class Runner {
 
   // Next must always return early if ever doing a single state transition
   next = async () => {
-    const runNextAgain = await withLock('status-transition', async (lockId: Date) => {
-      const queue = await this.queue.getQueue();
-      Logger.info('Next() called', {
-        namespace: 'lib:runner:next',
-        lockId,
-        queue,
-      });
+    const runNextAgain = await withLock(
+      'status-transition',
+      async (lockId: Date) => {
+        const queue = await this.queue.getQueue();
+        Logger.info('Next() called', {
+          namespace: 'lib:runner:next',
+          lockId,
+          queue,
+        });
 
-      for (const landRequestStatus of queue) {
-        // Check for this _before_ looking at the state so that we don't have to wait until
-        const landRequest = landRequestStatus.request;
-        const failedDeps = await landRequest.getFailedDependencies();
-        if (failedDeps.length !== 0) {
-          Logger.info('LandRequest failed due to failing dependency', {
-            namespace: 'lib:runner:next',
-            lockId,
-            landRequestId: landRequest.id,
-            pullRequestId: landRequest.pullRequestId,
-            landRequestStatus,
-            failedDeps,
-          });
-          const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
-          const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
-          await landRequest.setStatus('fail', failReason);
-          await landRequest.update({ dependsOn: null });
-          await this.client.stopLandBuild(landRequest.buildId, lockId);
-          const user = await this.client.getUser(landRequest.triggererAaid);
-          return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+        for (const landRequestStatus of queue) {
+          // Check for this _before_ looking at the state so that we don't have to wait until
+          const landRequest = landRequestStatus.request;
+          const failedDeps = await landRequest.getFailedDependencies();
+          if (failedDeps.length !== 0) {
+            Logger.info('LandRequest failed due to failing dependency', {
+              namespace: 'lib:runner:next',
+              lockId,
+              landRequestId: landRequest.id,
+              pullRequestId: landRequest.pullRequestId,
+              landRequestStatus,
+              failedDeps,
+            });
+            const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
+            const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
+            await landRequest.setStatus('fail', failReason);
+            await landRequest.update({ dependsOn: null });
+            await this.client.stopLandBuild(landRequest.buildId, lockId);
+            const user = await this.client.getUser(landRequest.triggererAaid);
+            return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+          }
+          if (landRequestStatus.state === 'awaiting-merge') {
+            const awaitingMergeQueue = Runner.getDependentsAwaitingMerge(queue, landRequestStatus);
+            const didChangeState = await this.moveFromAwaitingMerge(
+              landRequestStatus,
+              lockId,
+              awaitingMergeQueue,
+            );
+            // if we moved, we need to exit early, otherwise, just keep checking the queue
+            if (didChangeState) return true;
+          } else if (landRequestStatus.state === 'queued') {
+            const didChangeState = await this.moveFromQueueToRunning(landRequestStatus, lockId);
+            // if the landrequest was able to move from queued to running, exit early, otherwise, keep
+            // checking the rest of the queue
+            if (didChangeState) return true;
+          }
+          // otherwise, we must just be running, nothing to do here
         }
-        if (landRequestStatus.state === 'awaiting-merge') {
-          const awaitingMergeQueue = Runner.getDependentsAwaitingMerge(queue, landRequestStatus);
-          const didChangeState = await this.moveFromAwaitingMerge(
-            landRequestStatus,
-            lockId,
-            awaitingMergeQueue,
-          );
-          // if we moved, we need to exit early, otherwise, just keep checking the queue
-          if (didChangeState) return true;
-        } else if (landRequestStatus.state === 'queued') {
-          const didChangeState = await this.moveFromQueueToRunning(landRequestStatus, lockId);
-          // if the landrequest was able to move from queued to running, exit early, otherwise, keep
-          // checking the rest of the queue
-          if (didChangeState) return true;
-        }
-        // otherwise, we must just be running, nothing to do here
-      }
-      return false;
-    });
+        return false;
+      },
+      false,
+    );
     if (runNextAgain) {
       await this.next();
     }
@@ -522,42 +534,46 @@ export class Runner {
   };
 
   checkWaitingLandRequests = async () => {
-    await withLock('status-transition', async () => {
-      const waitingRequestStatuses = await this.queue.getStatusesForWaitingRequests();
+    await withLock(
+      'status-transition',
+      async () => {
+        const waitingRequestStatuses = await this.queue.getStatusesForWaitingRequests();
 
-      Logger.info('Checking for waiting landrequests ready to queue', {
-        namespace: 'lib:runner:checkWaitingLandRequests',
-        waitingRequestStatuses,
-      });
+        Logger.info('Checking for waiting landrequests ready to queue', {
+          namespace: 'lib:runner:checkWaitingLandRequests',
+          waitingRequestStatuses,
+        });
 
-      for (const landRequestStatus of waitingRequestStatuses) {
-        const landRequest = landRequestStatus.request;
-        const pullRequestId = landRequest.pullRequestId;
-        const triggererUserMode = await permissionService.getPermissionForUser(
-          landRequest.triggererAaid,
-        );
-        const isAllowedToLand = await this.isAllowedToLand(
-          pullRequestId,
-          triggererUserMode,
-          this.getQueue,
-        );
+        for (const landRequestStatus of waitingRequestStatuses) {
+          const landRequest = landRequestStatus.request;
+          const pullRequestId = landRequest.pullRequestId;
+          const triggererUserMode = await permissionService.getPermissionForUser(
+            landRequest.triggererAaid,
+          );
+          const isAllowedToLand = await this.isAllowedToLand(
+            pullRequestId,
+            triggererUserMode,
+            this.getQueue,
+          );
 
-        if (isAllowedToLand.errors.length === 0) {
-          if (isAllowedToLand.existingRequest) {
-            Logger.warn('Already has existing Land build', {
-              pullRequestId,
-              landRequestId: landRequest.id,
-              landRequestStatus,
-              namespace: 'lib:runner:checkWaitingLandRequests',
-            });
-            await landRequest.setStatus('aborted', 'Already has existing Land build');
-            continue;
+          if (isAllowedToLand.errors.length === 0) {
+            if (isAllowedToLand.existingRequest) {
+              Logger.warn('Already has existing Land build', {
+                pullRequestId,
+                landRequestId: landRequest.id,
+                landRequestStatus,
+                namespace: 'lib:runner:checkWaitingLandRequests',
+              });
+              await landRequest.setStatus('aborted', 'Already has existing Land build');
+              continue;
+            }
+            const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
+            if (movedState) return this.next();
           }
-          const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
-          if (movedState) return this.next();
         }
-      }
-    });
+      },
+      undefined,
+    );
   };
 
   getStatusesForLandRequests = async (

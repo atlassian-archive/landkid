@@ -172,6 +172,7 @@ export class LandRequestStatus extends Model<LandRequestStatus> implements IStat
         'queued',
         'running',
         'awaiting-merge',
+        'merging',
         'success',
         'fail',
         'aborted',

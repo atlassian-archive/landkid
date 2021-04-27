@@ -154,9 +154,10 @@ export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
 
 const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> = {
   'will-queue-when-ready': 'new',
-  'awaiting-merge': 'new',
   queued: 'new',
   running: 'inprogress',
+  'awaiting-merge': 'new',
+  merging: 'new',
   success: 'success',
   fail: 'removed',
   aborted: 'moved',
@@ -164,9 +165,10 @@ const landStatusToAppearance: Record<IStatusUpdate['state'], LozengeAppearance> 
 
 const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Waiting to Land',
-  'awaiting-merge': 'Awaiting Merge',
   queued: 'In Queue',
   running: 'Running',
+  'awaiting-merge': 'Awaiting Merge',
+  merging: 'Merging',
   success: 'Succeeded',
   aborted: 'Aborted',
   fail: 'Failed',
@@ -174,9 +176,10 @@ const landStatusToNiceString: Record<IStatusUpdate['state'], string> = {
 
 const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
   'will-queue-when-ready': 'Told To Land When Ready',
-  'awaiting-merge': 'Told to Merge',
   queued: 'Told To Land',
   running: 'Started',
+  'awaiting-merge': 'Ready to Merge',
+  merging: 'Merge Started',
   success: 'Succeeded',
   fail: 'Failed',
   aborted: 'Aborted',

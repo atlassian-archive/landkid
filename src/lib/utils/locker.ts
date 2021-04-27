@@ -4,7 +4,11 @@ import { Logger } from '../Logger';
 
 const redlock = new RedLock([client]);
 
-export const withLock = async <T>(resource: string, fn: (lockId: Date) => Promise<T>) => {
+export const withLock = async <T>(
+  resource: string,
+  fn: (lockId: Date) => Promise<T>,
+  fallback: T,
+) => {
   let lock: RedLock.Lock;
   let lockId: Date;
   try {
@@ -15,7 +19,7 @@ export const withLock = async <T>(resource: string, fn: (lockId: Date) => Promis
       lockId,
     });
   } catch {
-    return;
+    return fallback;
   }
   let result: T;
   try {

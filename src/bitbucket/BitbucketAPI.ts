@@ -14,7 +14,11 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (landRequestStatus: LandRequestStatus, options: MergeOptions = {}) => {
+  mergePullRequest = async (
+    landRequestStatus: LandRequestStatus,
+    callback: () => Promise<void>,
+    options: MergeOptions = {},
+  ) => {
     const {
       id: landRequestId,
       request: {
@@ -169,6 +173,8 @@ export class BitbucketAPI {
       landRequestStatus,
       pullRequestId,
     });
+
+    await callback();
   };
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
