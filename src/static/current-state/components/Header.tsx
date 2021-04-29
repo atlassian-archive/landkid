@@ -18,14 +18,7 @@ const userInfoStyles = css({
 });
 
 const userNameStyles = css({
-  marginRight: 8,
   fontWeight: 'bold',
-});
-
-const userImgStyles = css({
-  height: 32,
-  width: 32,
-  borderRadius: '100%',
 });
 
 interface HeaderProps {
@@ -38,10 +31,6 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ user }) => (
     {user ? (
       <div className={userInfoStyles}>
         <span className={userNameStyles}>{user.displayName}</span>
-        <img
-          src={`https://bitbucket.org/account/${user.username}/avatar/`}
-          className={userImgStyles}
-        />
       </div>
     ) : null}
   </div>

@@ -215,58 +215,48 @@ export class Runner {
       return false; // did not move state, return false
     }
 
-    // Try to merge PR
-    try {
-      // skip CI if there is a dependent PR that is awaiting merge
-      const skipCI =
-        dependentsAwaitingMerge.length > 0 &&
-        this.config.mergeSettings &&
-        this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
-      const pullRequestId = landRequest.pullRequestId;
-      Logger.verbose('Attempting merge pull request', {
-        namespace: 'lib:runner:moveFromAwaitingMerge',
-        pullRequestId,
-        landRequestId: landRequest.id,
-        lockId,
-      });
+    Logger.info('Triggering merge attempt', {
+      namespace: 'lib:runner:moveFromAwaitingMerge',
+      pullRequestId: landRequest.pullRequestId,
+      landRequestId: landRequest.id,
+      lockId,
+    });
 
-      await landRequest.setStatus('merging');
-      this.client.mergePullRequest(
-        landRequestStatus,
-        async () => {
-          const end = Date.now();
-          const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-          const start = queuedDate!.getTime();
-          eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
-            landRequestId: landRequestStatus.requestId,
-            pullRequestId: landRequest.pullRequestId,
-            commit: landRequest.forCommit,
-            sourceBranch: pullRequest.sourceBranch,
-            targetBranch: pullRequest.targetBranch,
-            duration: end - start,
-          });
-          landRequest.setStatus('success');
-        },
-        { skipCI },
-      );
+    // Start merge attempt
+    await landRequest.setStatus('merging');
 
-      Logger.info('Moved request to merging', {
-        namespace: 'lib:runner:moveFromAwaitingMerge',
-        landRequestId: landRequest.id,
-        pullRequestId,
-        lockId,
+    // skip CI if there is a dependent PR that is awaiting merge
+    const skipCI =
+      dependentsAwaitingMerge.length > 0 &&
+      this.config.mergeSettings &&
+      this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
+
+    this.client
+      .mergePullRequest(landRequestStatus, { skipCI })
+      .then(async () => {
+        const end = Date.now();
+        const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+        const start = queuedDate!.getTime();
+        eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+          landRequestId: landRequestStatus.requestId,
+          pullRequestId: landRequest.pullRequestId,
+          commit: landRequest.forCommit,
+          sourceBranch: pullRequest.sourceBranch,
+          targetBranch: pullRequest.targetBranch,
+          duration: end - start,
+        });
+        await landRequest.setStatus('success');
+      })
+      .catch(async () => {
+        eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
+          landRequestId: landRequestStatus.requestId,
+          pullRequestId: landRequest.pullRequestId,
+          commit: landRequest.forCommit,
+          sourceBranch: pullRequest.sourceBranch,
+          targetBranch: pullRequest.targetBranch,
+        });
+        await landRequest.setStatus('fail', 'Unable to merge pull request');
       });
-      return true;
-    } catch (err) {
-      eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
-        landRequestId: landRequestStatus.requestId,
-        pullRequestId: landRequest.pullRequestId,
-        commit: landRequest.forCommit,
-        sourceBranch: pullRequest.sourceBranch,
-        targetBranch: pullRequest.targetBranch,
-      });
-      return landRequest.setStatus('fail', 'Unable to merge pull request');
-    }
   };
 
   // Next must always return early if ever doing a single state transition

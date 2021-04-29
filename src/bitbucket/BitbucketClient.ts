@@ -98,12 +98,8 @@ export class BitbucketClient {
     return this.pipelines.stopLandBuild(buildId, lockId);
   }
 
-  async mergePullRequest(
-    landRequestStatus: LandRequestStatus,
-    callback: () => Promise<void>,
-    options?: MergeOptions,
-  ) {
-    return this.bitbucket.mergePullRequest(landRequestStatus, callback, options);
+  async mergePullRequest(landRequestStatus: LandRequestStatus, options?: MergeOptions) {
+    return this.bitbucket.mergePullRequest(landRequestStatus, options);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {

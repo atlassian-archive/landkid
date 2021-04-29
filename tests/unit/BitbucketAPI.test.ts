@@ -35,7 +35,7 @@ const bitbucketAPI = new BitbucketAPI({
 });
 
 const mergePullRequest = (request: any, opts?: MergeOptions) =>
-  bitbucketAPI.mergePullRequest(request, async () => {}, opts);
+  bitbucketAPI.mergePullRequest(request, opts);
 
 describe('mergePullRequest', () => {
   beforeEach(() => {

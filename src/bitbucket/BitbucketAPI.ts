@@ -14,11 +14,7 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (
-    landRequestStatus: LandRequestStatus,
-    callback: () => Promise<void>,
-    options: MergeOptions = {},
-  ) => {
+  mergePullRequest = async (landRequestStatus: LandRequestStatus, options: MergeOptions = {}) => {
     const {
       id: landRequestId,
       request: {
@@ -166,15 +162,13 @@ export class BitbucketAPI {
     // 5 attempts total
     await attemptMerge(1, 4);
 
-    // We throw before here if the merge is unsuccessul
+    // We throw before here if the merge is unsuccessful
     Logger.info('Merged Pull Request', {
       namespace: 'bitbucket:api:mergePullRequest',
       landRequestId,
       landRequestStatus,
       pullRequestId,
     });
-
-    await callback();
   };
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
