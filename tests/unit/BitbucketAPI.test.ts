@@ -2,6 +2,7 @@ import axios from 'axios';
 import delay from 'delay';
 import { Logger } from '../../src/lib/Logger';
 import { BitbucketAPI } from '../../src/bitbucket/BitbucketAPI';
+import { MergeOptions } from '../../src/types';
 
 jest.mock('axios');
 const mockedAxios = (axios as unknown) as jest.Mocked<typeof axios>;
@@ -33,6 +34,9 @@ const bitbucketAPI = new BitbucketAPI({
   repoOwner: 'owner',
 });
 
+const mergePullRequest = (request: any, opts?: MergeOptions) =>
+  bitbucketAPI.mergePullRequest(request, opts);
+
 describe('mergePullRequest', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -40,27 +44,27 @@ describe('mergePullRequest', () => {
 
   test('Successful merge first try', async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
-    await bitbucketAPI.mergePullRequest(landRequestStatus as any);
+    await mergePullRequest(landRequestStatus);
     expect(loggerInfoSpy).toHaveBeenCalledTimes(2);
   });
 
   test('Legitimate 4xx merge failure', async () => {
     mockedAxios.post.mockResolvedValue({ status: 400 });
-    await expect(bitbucketAPI.mergePullRequest(landRequestStatus as any)).rejects.toThrow();
+    await expect(mergePullRequest(landRequestStatus)).rejects.toThrow();
     expect(loggerInfoSpy).toHaveBeenCalledTimes(1);
     expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
   });
 
   test('Retry because of 5xx error and fail all attempts', async () => {
     mockedAxios.post.mockResolvedValue({ status: 500 });
-    await expect(bitbucketAPI.mergePullRequest(landRequestStatus as any)).rejects.toThrow();
+    await expect(mergePullRequest(landRequestStatus)).rejects.toThrow();
     expect(loggerInfoSpy).toHaveBeenCalledTimes(1);
     expect(loggerErrorSpy).toHaveBeenCalledTimes(6);
   });
 
   test('Succeed on first retry', async () => {
     mockedAxios.post.mockResolvedValueOnce({ status: 500 }).mockResolvedValueOnce({ status: 200 });
-    await bitbucketAPI.mergePullRequest(landRequestStatus as any);
+    await mergePullRequest(landRequestStatus);
     expect(loggerInfoSpy).toHaveBeenCalledTimes(2);
     expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
   });
@@ -70,7 +74,7 @@ describe('mergePullRequest', () => {
     mockedAxios.get
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'SUCCESSFUL' } });
-    await bitbucketAPI.mergePullRequest(landRequestStatus as any);
+    await mergePullRequest(landRequestStatus);
     expect(loggerInfoSpy).toHaveBeenCalledTimes(3);
     expect(mockedDelay).toHaveBeenCalledTimes(1);
   });
@@ -81,7 +85,7 @@ describe('mergePullRequest', () => {
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockRejectedValueOnce({ response: {} });
-    await expect(bitbucketAPI.mergePullRequest(landRequestStatus as any)).rejects.toThrow();
+    await expect(mergePullRequest(landRequestStatus)).rejects.toThrow();
     expect(loggerInfoSpy).toHaveBeenCalledTimes(2);
     expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
     expect(mockedDelay).toHaveBeenCalledTimes(2);
@@ -89,7 +93,7 @@ describe('mergePullRequest', () => {
 
   test('Skip-ci merge', async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
-    await bitbucketAPI.mergePullRequest(landRequestStatus as any, { skipCI: true });
+    await mergePullRequest(landRequestStatus, { skipCI: true });
     expect(loggerInfoSpy).toHaveBeenCalledWith(
       'Attempting to merge pull request',
       expect.objectContaining({

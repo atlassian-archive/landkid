@@ -162,7 +162,7 @@ export class BitbucketAPI {
     // 5 attempts total
     await attemptMerge(1, 4);
 
-    // We throw before here if the merge is unsuccessul
+    // We throw before here if the merge is unsuccessful
     Logger.info('Merged Pull Request', {
       namespace: 'bitbucket:api:mergePullRequest',
       landRequestId,
