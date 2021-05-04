@@ -1,5 +1,16 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
+const order = [
+  'success',
+  'fail',
+  'aborted',
+  'merging',
+  'awaiting-merge',
+  'running',
+  'queued',
+  'will-queue-when-ready',
+];
+
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
     return LandRequestStatus.findAll<LandRequestStatus>({
@@ -17,14 +28,14 @@ export class LandRequestQueue {
     });
   };
 
-  // returns the list of queued, running and awaiting-merge items as these are the actual "queue" per se
+  // returns the list of queued, running, awaiting-merge, and merging items as these are the actual "queue" per se
   // all the status' we display on the frontend
   public getQueue = async (): Promise<LandRequestStatus[]> => {
     const queue = await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {
-          $in: ['queued', 'running', 'awaiting-merge'],
+          $in: ['queued', 'running', 'awaiting-merge', 'merging'],
         },
       },
       order: [['date', 'ASC']],
@@ -35,23 +46,20 @@ export class LandRequestQueue {
         },
       ],
     });
-    const sortedQueue = [...queue].sort((a, b) => {
-      if (b.state === 'awaiting-merge' && a.state !== 'awaiting-merge') {
-        return 1;
-      }
-      return 0;
-    });
+    const sortedQueue = [...queue].sort((a, b) =>
+      order.indexOf(b.state) < order.indexOf(a.state) ? 1 : -1,
+    );
     return sortedQueue;
   };
 
-  // returns builds that are running or awaiting-merge, used to find the dependencies of a request
+  // returns builds that are running, awaiting-merge, or merging, used to find the dependencies of a request
   // that is about to move to running state
   public getRunning = async (): Promise<LandRequestStatus[]> => {
     return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {
-          $in: ['running', 'awaiting-merge'],
+          $in: ['running', 'awaiting-merge', 'merging'],
         },
       },
       order: [['date', 'ASC']],
