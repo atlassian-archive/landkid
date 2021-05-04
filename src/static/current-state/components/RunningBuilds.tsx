@@ -8,7 +8,7 @@ export type Props = {
 };
 
 function findRunning(updates: IStatusUpdate[]) {
-  return updates.filter(update => ['running', 'awaiting-merge'].includes(update.state));
+  return updates.filter(update => ['running', 'awaiting-merge', 'merging'].includes(update.state));
 }
 
 export const RunningBuilds: React.FunctionComponent<Props> = props => {
