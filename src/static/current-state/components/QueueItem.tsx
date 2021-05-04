@@ -391,7 +391,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </StatusItem>
         </div>
 
-        {['running', 'awaiting-merge'].includes(status.state) && dependsOnPRs.length > 0 ? (
+        {['running', 'awaiting-merge', 'merging'].includes(status.state) &&
+        dependsOnPRs.length > 0 ? (
           <div className="queue-item__status-line">
             <StatusItem title="Build depends on:">{dependsOnPRs.join(', ')}</StatusItem>
           </div>
