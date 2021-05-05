@@ -944,7 +944,7 @@
     "@types/bson" "*"
     "@types/node" "*"
 
-"@types/node@*":
+"@types/node@*", "@types/node@^15.0.2":
   version "15.3.0"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/node/-/node-15.3.0.tgz#d6fed7d6bc6854306da3dea1af9f874b00783e26"
   integrity sha1-1v7X1rxoVDBto96hr5+HSwB4PiY=
@@ -953,11 +953,6 @@
   version "11.12.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/node/-/node-11.12.2.tgz#d7f302e74b10e9801d52852137f652d9ee235da8"
   integrity sha1-1/MC50sQ6YAdUoUhN/ZS2e4jXag=
-
-"@types/node@^10.12.7":
-  version "10.17.60"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/node/-/node-10.17.60.tgz#35f3d6213daed95da7f0f73e75bcc6980e90597b"
-  integrity sha1-NfPWIT2u2V2n8Pc+dbzGmA6QWXs=
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -9131,10 +9126,10 @@ typedarray@^0.0.6:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.1.6:
-  version "3.9.9"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/typescript/-/typescript-3.9.9.tgz#e69905c54bc0681d0518bd4d587cc6f2d0b1a674"
-  integrity sha1-5pkFxUvAaB0FGL1NWHzG8tCxpnQ=
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
+  integrity sha1-hhC1l0feAo/aiYqK7w4QPxVtCWE=
 
 ua-parser-js@^0.7.18, ua-parser-js@^0.7.24:
   version "0.7.28"

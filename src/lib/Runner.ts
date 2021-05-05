@@ -16,6 +16,7 @@ import {
 } from '../db';
 import { permissionService } from './PermissionService';
 import { eventEmitter } from './Events';
+import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -231,9 +232,8 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
-    this.client
-      .mergePullRequest(landRequestStatus, { skipCI })
-      .then(async () => {
+    this.client.mergePullRequest(landRequestStatus, { skipCI }).then(async result => {
+      if (result === BitbucketAPI.SUCCESS) {
         const end = Date.now();
         const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
         const start = queuedDate!.getTime();
@@ -246,8 +246,7 @@ export class Runner {
           duration: end - start,
         });
         await landRequest.setStatus('success');
-      })
-      .catch(async () => {
+      } else if (result === BitbucketAPI.FAILED) {
         eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
           landRequestId: landRequestStatus.requestId,
           pullRequestId: landRequest.pullRequestId,
@@ -256,7 +255,17 @@ export class Runner {
           targetBranch: pullRequest.targetBranch,
         });
         await landRequest.setStatus('fail', 'Unable to merge pull request');
-      });
+      } else if (result === BitbucketAPI.ABORTED) {
+        eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
+          landRequestId: landRequestStatus.requestId,
+          pullRequestId: landRequest.pullRequestId,
+          commit: landRequest.forCommit,
+          sourceBranch: pullRequest.sourceBranch,
+          targetBranch: pullRequest.targetBranch,
+        });
+        await landRequest.setStatus('aborted', 'Merging aborted due to timeout or manual cancel');
+      }
+    });
   };
 
   // Next must always return early if ever doing a single state transition
