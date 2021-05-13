@@ -1,16 +1,5 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
-const order = [
-  'success',
-  'fail',
-  'aborted',
-  'merging',
-  'awaiting-merge',
-  'running',
-  'queued',
-  'will-queue-when-ready',
-];
-
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
     return LandRequestStatus.findAll<LandRequestStatus>({
@@ -46,10 +35,7 @@ export class LandRequestQueue {
         },
       ],
     });
-    const sortedQueue = [...queue].sort((a, b) =>
-      order.indexOf(b.state) < order.indexOf(a.state) ? 1 : -1,
-    );
-    return sortedQueue;
+    return queue;
   };
 
   // returns builds that are running, awaiting-merge, or merging, used to find the dependencies of a request
