@@ -8,10 +8,11 @@ export type QueueTabProps = {
   loggedInUser: ISessionUser;
   queue: IStatusUpdate[];
   permissionsMessage: string;
+  refreshData: () => void;
 };
 
-export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
-  const { bitbucketBaseUrl, loggedInUser, queue, permissionsMessage } = props;
+export const QueueTab: React.FunctionComponent<QueueTabProps> = (props) => {
+  const { bitbucketBaseUrl, loggedInUser, queue, permissionsMessage, refreshData } = props;
   return (
     <div>
       <QueueItemsList
@@ -25,6 +26,7 @@ export const QueueTab: React.FunctionComponent<QueueTabProps> = props => {
             </EmptyState>
           </TabContent>
         )}
+        refreshData={refreshData}
       />
     </div>
   );

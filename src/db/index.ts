@@ -67,6 +67,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.STRING)
   dependsOn: string;
 
+  @AllowNull(true)
+  @Default(0)
+  @Column(Sequelize.INTEGER)
+  priority: number;
+
   getStatus = async () => {
     return LandRequestStatus.findOne<LandRequestStatus>({
       where: {
@@ -78,7 +83,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   };
 
   setStatus = async (state: LandRequestStatus['state'], reason?: string, date?: Date) => {
-    await this.sequelize.transaction(async t => {
+    await this.sequelize.transaction(async (t) => {
       // First we'll check if there is an old status for this LandRequest
       await LandRequestStatus.update(
         {
@@ -145,6 +150,15 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
     });
 
     return failedDependencies;
+  };
+
+  updatePriority = (newPriority: number) => {
+    this.priority = newPriority;
+    return this.save();
+  };
+
+  incrementPriority = () => {
+    return this.updatePriority(this.priority + 1);
   };
 }
 

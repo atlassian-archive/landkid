@@ -8,6 +8,7 @@ export type SystemTabProps = {
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
   bannerMessageState: IMessageState | null;
+  refreshData: () => void;
 };
 
 export type SystemTabsState = {
@@ -23,6 +24,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   }
 
   handlePauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { refreshData } = this.props;
     const checked = e.target.checked;
     if (checked) {
       const reason = window.prompt(
@@ -36,31 +38,32 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
         body: JSON.stringify({ reason }),
       }).then(() => {
         this.setState({ paused: true });
-        location.reload();
+        refreshData();
       });
     } else {
       fetch('/api/unpause', { method: 'POST' }).then(() => {
         this.setState({ paused: false });
-        location.reload();
+        refreshData();
       });
     }
   };
 
   handleNextClick = () => {
+    const { refreshData } = this.props;
     fetch('/api/next', { method: 'POST' })
-      .then(response => response.json())
-      .then(json => {
+      .then((response) => response.json())
+      .then((json) => {
         if (json.error) {
           console.error(json.error);
           window.alert(json.error);
         } else {
-          location.reload();
+          refreshData();
         }
       });
   };
 
   render() {
-    const { users, loggedInUser, bannerMessageState } = this.props;
+    const { users, loggedInUser, bannerMessageState, refreshData } = this.props;
     return (
       <TabContent>
         <div style={{ marginTop: '27px' }}>
@@ -96,7 +99,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   Next Build
                 </button>
               </div>
-              <Messenger bannerMessageState={bannerMessageState} />
+              <Messenger bannerMessageState={bannerMessageState} refreshData={refreshData} />
             </React.Fragment>
           )}
           <UsersList users={users} loggedInUser={loggedInUser} />

@@ -145,7 +145,7 @@ export type StatusItemProps = {
   title: string;
 };
 
-export const StatusItem: React.FunctionComponent<StatusItemProps> = props => (
+export const StatusItem: React.FunctionComponent<StatusItemProps> = (props) => (
   <div className="queue-item__status-item">
     <span className="queue-item__status-item-title">{props.title}</span>
     {props.children}
@@ -188,7 +188,7 @@ const landStatusToPastTense: Record<IStatusUpdate['state'], string> = {
 const ADMIN_CONTROLS = {
   REMOVE: 'remove',
   CANCEL: 'cancel',
-  TOTHETOP: 'to-the-top',
+  PRIORITY: 'priority',
 };
 
 const targetBranchToAppearance = (branch?: string) =>
@@ -202,6 +202,7 @@ export type QueueItemProps = {
   status: IStatusUpdate;
   bitbucketBaseUrl: string;
   queue?: IStatusUpdate[];
+  refreshData: () => void;
 };
 
 type QueueItemState = {
@@ -215,23 +216,32 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     landRequestInfo: null,
   };
 
-  handleAdminControlClick = (action: string) => {
-    fetch(`/api/${action}/${this.props.status.requestId}`, { method: 'POST' })
-      .then(response => response.json())
-      .then(json => {
+  refreshCard = () => {
+    this.displayMoreInfo();
+    this.props.refreshData();
+  };
+
+  handleAdminControlClick = (action: string, body?: any) => {
+    fetch(`/api/${action}/${this.props.status.requestId}`, {
+      method: 'POST',
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body || {}),
+    })
+      .then((response) => response.json())
+      .then((json) => {
         if (json.error) {
           console.error(json.error);
           window.alert(json.error);
         } else {
-          location.reload();
+          this.refreshCard();
         }
       });
   };
 
   displayMoreInfo = () => {
-    fetch(`/api/landrequests?ids=${this.props.status.requestId}`, { method: 'GET' })
-      .then(response => response.json())
-      .then(landRequestInfo =>
+    return fetch(`/api/landrequests?ids=${this.props.status.requestId}`, { method: 'GET' })
+      .then((response) => response.json())
+      .then((landRequestInfo) =>
         this.setState({
           status: landRequestInfo.statuses[this.props.status.requestId].find(
             (status: IStatusUpdate) => status.isLatest === true,
@@ -269,19 +279,49 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           </div>
         ) : null}
         {status.request.triggererAaid ? (
-          <StatusItem title="Landed by:">
-            <Lozenge>
-              <User aaid={status.request.triggererAaid}>
-                {user => {
-                  return user.displayName;
-                }}
-              </User>
-            </Lozenge>
-          </StatusItem>
+          <div className="queue-item__status-line">
+            <StatusItem title="Landed by:">
+              <Lozenge>
+                <User aaid={status.request.triggererAaid}>
+                  {(user) => {
+                    return user.displayName;
+                  }}
+                </User>
+              </Lozenge>
+            </StatusItem>
+          </div>
         ) : null}
         {['success', 'fail', 'aborted'].includes(status.state) && dependsOn.length > 0 ? (
           <div className="queue-item__status-line">
             <StatusItem title="Depended On:">{dependsOn.join(', ')}</StatusItem>
+          </div>
+        ) : null}
+        {status.state === 'queued' && status.request.priority !== null ? (
+          <div className="queue-item__status-line">
+            <StatusItem title="Priority:">
+              {status.request.priority}
+              &nbsp;
+              <button
+                className="queue-item__button"
+                onClick={() =>
+                  this.handleAdminControlClick(ADMIN_CONTROLS.PRIORITY, {
+                    priority: (status.request.priority ?? 0) + 1,
+                  })
+                }
+              >
+                ▲
+              </button>
+              <button
+                className="queue-item__button"
+                onClick={() =>
+                  this.handleAdminControlClick(ADMIN_CONTROLS.PRIORITY, {
+                    priority: (status.request.priority ?? 0) - 1,
+                  })
+                }
+              >
+                ▼
+              </button>
+            </StatusItem>
           </div>
         ) : null}
         {status.state === 'queued' ? (
@@ -295,9 +335,13 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
               </button>
               <button
                 className="queue-item__button"
-                onClick={() => this.handleAdminControlClick(ADMIN_CONTROLS.TOTHETOP)}
+                onClick={() =>
+                  this.handleAdminControlClick(ADMIN_CONTROLS.PRIORITY, {
+                    priority: (status.request.priority ?? 0) + 1,
+                  })
+                }
               >
-                Move to top
+                Increment priority
               </button>
             </StatusItem>
           </div>
@@ -329,8 +373,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
     const dependsOnPRs: string[] = [];
     if (dependsOn && queue) {
-      dependsOn.split(',').forEach(depId => {
-        const depItem = queue.find(item => item.requestId === depId);
+      dependsOn.split(',').forEach((depId) => {
+        const depItem = queue.find((item) => item.requestId === depId);
         if (!depItem) {
           console.error(`Cannot find dependency PR with request id ${status.requestId}`);
           dependsOnPRs.push('??');
@@ -368,7 +412,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
           <StatusItem title="Author:">
             <Lozenge>
               <User aaid={pullRequest.authorAaid}>
-                {user => {
+                {(user) => {
                   return user.displayName;
                 }}
               </User>
@@ -420,7 +464,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   }
 }
 
-export const QueueItemJoined: React.FunctionComponent<QueueItemProps> = props => (
+export const QueueItemJoined: React.FunctionComponent<QueueItemProps> = (props) => (
   <div className={`${queueItemJoinedStyles} queue-item-joined`}>
     <QueueItem {...props} />
   </div>

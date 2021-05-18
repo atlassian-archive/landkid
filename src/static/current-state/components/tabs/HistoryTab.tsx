@@ -5,7 +5,6 @@ import { TabContent } from './TabContent';
 import { EmptyState } from '../EmptyState';
 import { QueueItemJoined } from '../QueueItem';
 import { WithAPIData } from '../WithAPIData';
-import { Section } from '../Section';
 
 // export type HistoryItemsListProps = {
 //   history: Array<HistoryItem>;
@@ -56,9 +55,8 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
     return (
       <WithAPIData<HistoryResponse>
         poll={false}
-        renderLoading={() => <Section>Loading...</Section>}
         endpoint={`api/history?page=${this.state.page}`}
-        render={historyResponse => {
+        render={(historyResponse, refresh) => {
           const { history, pageLen, count } = historyResponse;
           if (history === undefined || !history.length) {
             return (
@@ -76,12 +74,13 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
 
           return (
             <div>
-              {history.map(item => (
+              {history.map((item) => (
                 <QueueItemJoined
                   bitbucketBaseUrl={this.props.bitbucketBaseUrl}
                   status={item}
                   key={item.request.id}
                   queue={history}
+                  refreshData={refresh}
                 />
               ))}
               <div style={{ marginTop: '30px' }}>

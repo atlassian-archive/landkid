@@ -303,19 +303,24 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   );
 
   router.post(
-    '/to-the-top/:id',
+    '/priority/:id',
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
-      Logger.verbose('Moving landrequest to the top of the queue', {
-        namespace: 'routes:api:to-the-top',
+      if (!req.body || req.body.priority === undefined || req.body.priority === null) {
+        return res.status(400).json({ err: 'req.body.priority expected', body: req.body });
+      }
+      const { priority } = req.body;
+      Logger.verbose('Updating priority of land request', {
+        namespace: 'routes:api:priority',
         requestId,
+        priority,
       });
-      const success = await runner.moveRequestToTopOfQueue(requestId, req.user!);
+      const success = await runner.updateLandRequestPriority(requestId, priority);
       if (success) {
-        res.json({ message: 'Request moved to top of queue' });
+        res.json({ message: 'Updated priority of request' });
       } else {
-        res.status(400).json({ error: 'Request either does not exist or is not queued' });
+        res.status(404).json({ error: 'Request does not exist' });
       }
     }),
   );

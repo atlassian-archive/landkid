@@ -283,6 +283,30 @@ export class Runner {
     });
   };
 
+  failDueToDependency = async (
+    landRequestStatus: LandRequestStatus,
+    failedDeps: LandRequestStatus[],
+    lockId: Date,
+  ) => {
+    const { request: landRequest } = landRequestStatus;
+    Logger.info('LandRequest failed due to failing dependency', {
+      namespace: 'lib:runner:next',
+      lockId,
+      landRequestId: landRequest.id,
+      pullRequestId: landRequest.pullRequestId,
+      landRequestStatus,
+      failedDeps,
+    });
+    const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
+    const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
+    await landRequest.setStatus('fail', failReason);
+    await landRequest.update({ dependsOn: null });
+    await this.client.stopLandBuild(landRequest.buildId, lockId);
+    const user = await this.client.getUser(landRequest.triggererAaid);
+    await landRequest.incrementPriority();
+    return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+  };
+
   // Next must always return early if ever doing a single state transition
   next = async () => {
     const runNextAgain = await withLock(
@@ -297,24 +321,9 @@ export class Runner {
 
         for (const landRequestStatus of queue) {
           // Check for this _before_ looking at the state so that we don't have to wait until
-          const landRequest = landRequestStatus.request;
-          const failedDeps = await landRequest.getFailedDependencies();
+          const failedDeps = await landRequestStatus.request.getFailedDependencies();
           if (failedDeps.length !== 0) {
-            Logger.info('LandRequest failed due to failing dependency', {
-              namespace: 'lib:runner:next',
-              lockId,
-              landRequestId: landRequest.id,
-              pullRequestId: landRequest.pullRequestId,
-              landRequestStatus,
-              failedDeps,
-            });
-            const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
-            const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
-            await landRequest.setStatus('fail', failReason);
-            await landRequest.update({ dependsOn: null });
-            await this.client.stopLandBuild(landRequest.buildId, lockId);
-            const user = await this.client.getUser(landRequest.triggererAaid);
-            return landRequest.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+            return this.failDueToDependency(landRequestStatus, failedDeps, lockId);
           }
           if (landRequestStatus.state === 'awaiting-merge') {
             const awaitingMergeQueue = Runner.getDependentsAwaitingMerge(queue, landRequestStatus);
@@ -531,21 +540,10 @@ export class Runner {
     return true;
   };
 
-  moveRequestToTopOfQueue = async (requestId: string, user: ISessionUser): Promise<boolean> => {
-    const landRequestStatus = await this.queue.maybeGetStatusForQueuedRequestById(requestId);
-    if (!landRequestStatus) return false;
-
-    const queue = await this.getQueue();
-    if (queue.length === 0) return true;
-
-    const requestAtTop = queue[0];
-    const topDate = new Date(requestAtTop.date.getTime() - 1);
-
-    await landRequestStatus.request.setStatus(
-      'queued',
-      `Moved to the top of the queue by user ${user.displayName || user.aaid}`,
-      topDate,
-    );
+  updateLandRequestPriority = async (requestId: string, newPriority: number) => {
+    const landRequest = await LandRequest.findById<LandRequest>(requestId);
+    if (!landRequest) return false;
+    await landRequest.updatePriority(newPriority);
     return true;
   };
 

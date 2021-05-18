@@ -1,15 +1,16 @@
 import * as React from 'react';
+import { Section } from './Section';
 
 const DEFAULT_POLLING_INTERVAL = 15 * 1000; // 15 sec
 
-const defaultLoading = () => <div>Loading...</div>;
+const defaultLoading = () => <Section>Loading...</Section>;
 
 export type Props<D> = {
   endpoint: string;
   poll?: number | boolean;
-  renderError?: (err: Error) => React.ReactNode;
+  renderError?: (err: Error, refresh: () => void) => React.ReactNode;
   renderLoading?: () => React.ReactNode;
-  render?: (data: D) => React.ReactNode;
+  render?: (data: D, refresh: () => void) => React.ReactNode;
 };
 
 export type State = {
@@ -28,9 +29,9 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
 
   fetchData() {
     fetch(`/${this.props.endpoint}`)
-      .then(res => res.json())
-      .then(data => this.setState({ data }))
-      .catch(error => this.setState({ error }));
+      .then((res) => res.json())
+      .then((data) => this.setState({ data }))
+      .catch((error) => this.setState({ error }));
   }
 
   componentDidMount() {
@@ -63,9 +64,9 @@ export class WithAPIData<T> extends React.Component<Props<T>, State> {
     let { renderError, render, renderLoading } = this.props;
 
     if (error) {
-      return renderError ? renderError(error) : null;
+      return renderError ? renderError(error, this.fetchData.bind(this)) : null;
     } else if (data) {
-      return render ? render(data) : null;
+      return render ? render(data, this.fetchData.bind(this)) : null;
     }
 
     return renderLoading ? renderLoading() : defaultLoading();

@@ -26,6 +26,7 @@ declare interface ILandRequest {
   created: Date;
   pullRequest: IPullRequest;
   dependsOn: string | null;
+  priority: number | null;
 }
 
 declare interface IPullRequest {
