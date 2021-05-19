@@ -8,6 +8,10 @@ declare namespace JSX {
   }
 }
 
+declare namespace Express {
+  interface User extends ISessionUser {}
+}
+
 declare interface Window {
   landClicked: () => void;
   landWhenAbleClicked: () => void;
@@ -86,12 +90,6 @@ declare interface IUserNote {
 
 declare interface UserState extends IPermission {
   note?: string;
-}
-
-declare namespace Express {
-  interface Request {
-    user?: ISessionUser;
-  }
 }
 
 declare type HistoryResponse = {
