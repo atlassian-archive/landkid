@@ -13,9 +13,9 @@ export class BitbucketAPI {
   private baseUrl = `${BBAPIBaseUrl}/${this.config.repoOwner}/${this.config.repoName}`;
   private bitbucketMerger = new BitbucketMerger(this.baseUrl);
 
-  static SUCCESS = 'success' as const;
-  static FAILED = 'failed' as const;
-  static ABORTED = 'aborted' as const;
+  static readonly SUCCESS = 'success';
+  static readonly FAILED = 'failed';
+  static readonly ABORTED = 'aborted';
 
   constructor(private config: RepoConfig) {}
 

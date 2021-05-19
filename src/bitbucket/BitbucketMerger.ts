@@ -5,7 +5,7 @@ import delay from 'delay';
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
 
 export class BitbucketMerger {
-  private mergePollIntervals: Map<number, boolean>;
+  private mergePollIntervals = new Map<number, boolean>();
   private MAX_POLL_ATTEMPTS = 120; // 30 mins
 
   constructor(private baseUrl: string) {}

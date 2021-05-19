@@ -1,15 +1,14 @@
 import * as Joi from 'joi';
 
-const queued = Joi.string().valid('queued');
-const running = Joi.string().valid('running');
-const awaitingmerge = Joi.string().valid('awaitingmerge');
-const merging = Joi.string().valid('merging');
-const fail = Joi.string().valid('fail');
-const success = Joi.string().valid('success');
+const queued = Joi.string().only('queued');
+const running = Joi.string().only('running');
+const merging = Joi.string().only('merging');
+const fail = Joi.string().only('fail');
+const success = Joi.string().only('success');
 
-const successfulFlow = [queued, running, awaitingmerge, merging, success];
+const successfulFlow = [queued, running, merging, success];
 const failedFlow = [queued, running, fail];
-const failedDepFlow = [queued, running, awaitingmerge.optional(), fail];
+const failedDepFlow = [queued, running, fail];
 
 export const successful = Joi.array().ordered(...successfulFlow);
 export const failed = Joi.array().ordered(...failedFlow);
@@ -19,3 +18,9 @@ export const doubleReentrySuccess = Joi.array().ordered(
   ...failedDepFlow,
   ...successfulFlow,
 );
+
+// Including the `awaiting-merge` status check introduced flakiness
+// because of Bitbucket build times, merge times, and other factors
+export const validate = (statuses: string[], schema: Joi.ArraySchema) => {
+  return schema.validate(statuses.filter(status => status !== 'awaiting-merge'));
+};

@@ -1,4 +1,4 @@
-import { successful } from './utils';
+import { validate, successful } from './utils';
 
 describe('Sequence of successful PRs', () => {
   let branch1: string, branch2: string, branch3: string;
@@ -19,8 +19,8 @@ describe('Sequence of successful PRs', () => {
   });
 
   it('All Successful', async () => {
-    assert(successful.validate(prs[branch1].statuses));
-    assert(successful.validate(prs[branch2].statuses));
-    assert(successful.validate(prs[branch3].statuses));
+    assert(await validate(prs[branch1].statuses, successful));
+    assert(await validate(prs[branch2].statuses, successful));
+    assert(await validate(prs[branch3].statuses, successful));
   });
 });
