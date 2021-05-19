@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
+import * as redis from 'redis';
 import * as connectRedis from 'connect-redis';
 import * as express from 'express';
 import * as expressSession from 'express-session';
 import * as expressWinston from 'express-winston';
 import * as passport from 'passport';
-import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
 
 import { initializeSequelize, MigrationService } from './db';
@@ -19,7 +19,7 @@ import { LandRequestHistory } from './lib/History';
 import { Logger } from './lib/Logger';
 import { initializeEventListeners, eventEmitter } from './lib/Events';
 
-const RedisStore = connectRedis(session);
+const RedisStore = connectRedis(expressSession);
 
 async function main() {
   if (!hasConfig) {
@@ -33,6 +33,11 @@ async function main() {
   initializePassport(config.deployment.oAuth);
 
   const server = express();
+
+  const redisClient = redis.createClient({
+    host: config.deployment.redis.endpoint,
+    port: config.deployment.redis.port,
+  });
 
   server.use(
     expressWinston.logger({
@@ -49,8 +54,7 @@ async function main() {
       secret: config.deployment.secret,
       saveUninitialized: true,
       store: new RedisStore({
-        host: config.deployment.redis.endpoint,
-        port: config.deployment.redis.port,
+        client: redisClient,
       }),
     }),
   );

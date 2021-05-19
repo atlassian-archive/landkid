@@ -6,12 +6,12 @@ import { config } from '../lib/Config';
 import { OAuthConfig } from '../types';
 
 export function initializePassport(oAuthConfig: OAuthConfig) {
-  passport.deserializeUser<ISessionUser, string>((serialized, done) => {
-    done(null, JSON.parse(serialized));
+  passport.serializeUser<string>((user, done) => {
+    done(null, JSON.stringify(user));
   });
 
-  passport.serializeUser<ISessionUser, string>((user, done) => {
-    done(null, JSON.stringify(user));
+  passport.deserializeUser<string>((serialized, done) => {
+    done(null, JSON.parse(serialized));
   });
 
   passport.use(
@@ -24,13 +24,7 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
         clientID: oAuthConfig.key,
         clientSecret: oAuthConfig.secret,
       },
-      async (
-        accessToken: string,
-        refreshToken: string,
-        results: any,
-        profile: any,
-        verified: VerifyCallback,
-      ) => {
+      async (accessToken: string, refreshToken: string, profile: any, verified: VerifyCallback) => {
         let userInfo: ISessionUser;
         try {
           const userResponse = await axios.get('https://api.bitbucket.org/2.0/user', {

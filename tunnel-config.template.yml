@@ -1,0 +1,7 @@
+# This file is used by tools/tunnel.sh to generate a private tunnel-config.yml file
+tunnel: <TUNNELID>
+credentials-file: <CREDFILE>
+ingress:
+  - hostname: <HOSTNAME>.public.atlastunnel.com
+    service: http://localhost:3000
+  - service: http_status:404
