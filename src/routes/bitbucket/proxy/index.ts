@@ -58,6 +58,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       Logger.info('Land checks determined', {
         namespace: 'routes:bitbucket:proxy:can-land',
+        pullRequestId,
         errors,
         warnings,
       });

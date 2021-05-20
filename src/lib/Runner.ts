@@ -263,7 +263,22 @@ export class Runner {
           sourceBranch: pullRequest.sourceBranch,
           targetBranch: pullRequest.targetBranch,
         });
-        await landRequest.setStatus('aborted', 'Merging aborted due to timeout or manual cancel');
+        await landRequest.setStatus(
+          'aborted',
+          'Merging aborted due to manual cancel (PR may still merge anyway)',
+        );
+      } else if (result === BitbucketAPI.TIMEOUT) {
+        eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
+          landRequestId: landRequestStatus.requestId,
+          pullRequestId: landRequest.pullRequestId,
+          commit: landRequest.forCommit,
+          sourceBranch: pullRequest.sourceBranch,
+          targetBranch: pullRequest.targetBranch,
+        });
+        await landRequest.setStatus(
+          'aborted',
+          'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
+        );
       }
     });
   };
@@ -390,10 +405,12 @@ export class Runner {
       `Cancelled by user ${user.displayName || user.aaid}`,
     );
     if (landRequestStatus.request.buildId) {
-      return this.client.stopLandBuild(landRequestStatus.request.buildId);
-    } else {
-      return false;
+      await this.client.stopLandBuild(landRequestStatus.request.buildId);
     }
+    if (landRequestStatus.state === 'merging') {
+      this.client.cancelMergePolling(landRequestStatus.request.pullRequestId);
+    }
+    return true;
   };
 
   pause = async (reason: string, user: ISessionUser) => {
@@ -752,9 +769,7 @@ export class Runner {
       // @ts-ignore
       waitingToQueue,
       bannerMessageState,
-      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${
-        this.config.repoConfig.repoName
-      }`,
+      bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${this.config.repoConfig.repoName}`,
       permissionsMessage: this.config.permissionsMessage,
     };
   };

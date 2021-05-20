@@ -71,6 +71,12 @@ describe('mergePullRequest', () => {
     expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.FAILED);
   });
 
+  test('Timeout merge polling', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
+    mockedAxios.get.mockResolvedValue({ data: { task_status: 'PENDING' } });
+    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.TIMEOUT);
+  });
+
   test('Skip-ci merge', async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
     await mergePullRequest(landRequestStatus, { skipCI: true });

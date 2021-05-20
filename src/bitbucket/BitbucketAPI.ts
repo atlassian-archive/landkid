@@ -16,6 +16,7 @@ export class BitbucketAPI {
   static readonly SUCCESS = 'success';
   static readonly FAILED = 'failed';
   static readonly ABORTED = 'aborted';
+  static readonly TIMEOUT = 'timeout';
 
   constructor(private config: RepoConfig) {}
 
@@ -34,7 +35,7 @@ export class BitbucketAPI {
 
     const onMergeSuccess = () => {
       Logger.info('Merged Pull Request', {
-        namespace: 'bitbucket:api:mergePullRequest',
+        namespace: 'bitbucket:api:mergePullRequest:onMergeSuccess',
         landRequestId,
         landRequestStatus,
         pullRequestId,
@@ -44,7 +45,7 @@ export class BitbucketAPI {
 
     const onMergeFailure = ({ status, statusText, headers, data }: AxiosResponse) => {
       Logger.error('Unable to merge pull request', {
-        namespace: 'bitbucket:api:mergePullRequest:onFailure',
+        namespace: 'bitbucket:api:mergePullRequest:onMergeFailure',
         response: {
           statusCode: status,
           statusText,
@@ -60,12 +61,22 @@ export class BitbucketAPI {
 
     const onMergeAbort = () => {
       Logger.info('Aborted PR merging', {
-        namespace: 'bitbucket:api:mergePullRequest:onFailure',
+        namespace: 'bitbucket:api:mergePullRequest:onMergeAbort',
         pullRequestId,
         landRequestId,
         landRequestStatus,
       });
       return BitbucketAPI.ABORTED;
+    };
+
+    const onMergeTimeout = () => {
+      Logger.info('PR merge polling exceeded max attempts', {
+        namespace: 'bitbucket:api:mergePullRequest:onMergeTimeout',
+        pullRequestId,
+        landRequestId,
+        landRequestStatus,
+      });
+      return BitbucketAPI.TIMEOUT;
     };
 
     Logger.info('Attempting to merge pull request', {
@@ -89,7 +100,7 @@ export class BitbucketAPI {
     if (status === 202) {
       Logger.info('Received timeout response, starting merge task polling', {
         pollUrl: headers.location,
-        namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
+        namespace: 'bitbucket:api:mergePullRequest:mergePullRequest',
         response: {
           statusCode: status,
           statusText,
@@ -109,12 +120,18 @@ export class BitbucketAPI {
         return onMergeSuccess();
       } else if (pollResult.task_status === 'FAILED') {
         return onMergeFailure(pollResult.response);
-      } else {
+      } else if (pollResult.task_status === 'ABORTED') {
         return onMergeAbort();
+      } else {
+        return onMergeTimeout();
       }
     }
 
     return onMergeFailure({ status, statusText, headers, data, config: {} });
+  };
+
+  cancelMergePolling = (prId: number) => {
+    return this.bitbucketMerger.cancelMergePolling(prId);
   };
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {

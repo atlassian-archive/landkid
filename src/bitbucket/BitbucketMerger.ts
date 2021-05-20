@@ -7,6 +7,7 @@ import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticato
 export class BitbucketMerger {
   private mergePollIntervals = new Map<number, boolean>();
   private MAX_POLL_ATTEMPTS = 120; // 30 mins
+  private POLL_DELAY = 15 * 1000; // 15 seconds
 
   constructor(private baseUrl: string) {}
 
@@ -39,31 +40,44 @@ export class BitbucketMerger {
     return res.data;
   };
 
+  /**
+   * We continue polling as long as we receive the PENDING response
+   * Return upon success, failure, exceeding max attempts, or manual cancel
+   */
   triggerMergePolling = async (prId: number, pollUrl: string) => {
     this.mergePollIntervals.set(prId, true);
-    // Poll while we still have attempts left and it hasn't been cancelled
-    for (let i = 0; i < this.MAX_POLL_ATTEMPTS && this.mergePollIntervals.has(prId); i++) {
+    let result;
+    for (let i = 0; ; i++) {
+      if (i >= this.MAX_POLL_ATTEMPTS) {
+        result = {
+          task_status: 'TIMEOUT' as const,
+        };
+        break;
+      }
+      if (!this.mergePollIntervals.has(prId)) {
+        result = {
+          task_status: 'ABORTED' as const,
+        };
+        break;
+      }
       try {
-        const result = await this.pollMergeStatus(pollUrl);
-        if (result.task_status === 'SUCCESS') {
-          this.cancelMergePolling(prId);
-          return result;
+        const pollResult = await this.pollMergeStatus(pollUrl);
+        if (pollResult.task_status === 'SUCCESS') {
+          result = pollResult;
+          break;
         }
       } catch (err) {
-        this.cancelMergePolling(prId);
-        return {
+        result = {
           task_status: 'FAILED' as const,
           response: err.response,
         };
+        break;
       }
-      // Poll every 15 seconds
-      await delay(15 * 1000);
+      await delay(this.POLL_DELAY);
     }
     // Cleanup the map entry
     this.cancelMergePolling(prId);
-    return {
-      task_status: 'ABORTED' as const,
-    };
+    return result;
   };
 
   cancelMergePolling = (prId: number) => {
