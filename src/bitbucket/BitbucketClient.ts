@@ -94,12 +94,16 @@ export class BitbucketClient {
     return this.pipelines.createLandBuild(requestId, commit, variables, lockId);
   }
 
-  async stopLandBuild(buildId: number, lockId?: Date) {
+  stopLandBuild(buildId: number, lockId?: Date) {
     return this.pipelines.stopLandBuild(buildId, lockId);
   }
 
-  async mergePullRequest(landRequestStatus: LandRequestStatus, options?: MergeOptions) {
+  mergePullRequest(landRequestStatus: LandRequestStatus, options?: MergeOptions) {
     return this.bitbucket.mergePullRequest(landRequestStatus, options);
+  }
+
+  cancelMergePolling(prId: number) {
+    return this.bitbucket.cancelMergePolling(prId);
   }
 
   processStatusWebhook(body: any): BB.BuildStatusEvent | null {
@@ -112,7 +116,7 @@ export class BitbucketClient {
     return repo.uuid;
   }
 
-  async getUser(aaid: string): Promise<ISessionUser> {
+  getUser(aaid: string): Promise<ISessionUser> {
     return this.bitbucket.getUser(aaid);
   }
 }

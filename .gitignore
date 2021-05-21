@@ -11,6 +11,7 @@ env
 env.sh
 .logs
 cypress.env.json
-/cypress/screenshots
+tests/integration/screenshots/
+tests/integration/junit-reports/
 config.js
 rules/

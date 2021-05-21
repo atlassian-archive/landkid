@@ -1,4 +1,4 @@
-import { failed, reentryFail, doubleReentrySuccess } from './utils';
+import { validate, failed, reentryFail, doubleReentrySuccess } from './utils';
 
 describe('Re-entry into queue', () => {
   let branch1: string, branch2: string, branch3: string;
@@ -19,9 +19,9 @@ describe('Re-entry into queue', () => {
   });
 
   it('Requests are re-entered into queue after the failure of dependency', async () => {
-    assert(failed.validate(prs[branch1].statuses));
-    assert(reentryFail.validate(prs[branch2].statuses));
-    assert(doubleReentrySuccess.validate(prs[branch3].statuses));
+    assert(await validate(prs[branch1].statuses, failed));
+    assert(await validate(prs[branch2].statuses, reentryFail));
+    assert(await validate(prs[branch3].statuses, doubleReentrySuccess));
   });
 
   afterEach(() => {

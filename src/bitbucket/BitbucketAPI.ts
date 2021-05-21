@@ -1,16 +1,22 @@
 import axios, { AxiosResponse } from 'axios';
 import * as jwtTools from 'atlassian-jwt';
-import delay from 'delay';
 
 import { MergeOptions, RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
-import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
+import { bitbucketAuthenticator } from './BitbucketAuthenticator';
 import { LandRequestStatus } from '../db';
+import { BitbucketMerger } from './BitbucketMerger';
 
-const baseApiUrl = 'https://api.bitbucket.org/2.0/repositories';
+const BBAPIBaseUrl = 'https://api.bitbucket.org/2.0/repositories';
 
 export class BitbucketAPI {
-  private apiBaseUrl = `${baseApiUrl}/${this.config.repoOwner}/${this.config.repoName}`;
+  private baseUrl = `${BBAPIBaseUrl}/${this.config.repoOwner}/${this.config.repoName}`;
+  private bitbucketMerger = new BitbucketMerger(this.baseUrl);
+
+  static readonly SUCCESS = 'success';
+  static readonly FAILED = 'failed';
+  static readonly ABORTED = 'aborted';
+  static readonly TIMEOUT = 'timeout';
 
   constructor(private config: RepoConfig) {}
 
@@ -22,15 +28,55 @@ export class BitbucketAPI {
         pullRequest: { targetBranch },
       },
     } = landRequestStatus;
-    const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/merge`;
     let message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
     if (options.skipCI) {
       message += '\n\n[skip ci]';
     }
-    const requestBody = {
-      close_source_branch: true,
-      message,
-      merge_strategy: 'merge_commit',
+
+    const onMergeSuccess = () => {
+      Logger.info('Merged Pull Request', {
+        namespace: 'bitbucket:api:mergePullRequest:onMergeSuccess',
+        landRequestId,
+        landRequestStatus,
+        pullRequestId,
+      });
+      return BitbucketAPI.SUCCESS;
+    };
+
+    const onMergeFailure = ({ status, statusText, headers, data }: AxiosResponse) => {
+      Logger.error('Unable to merge pull request', {
+        namespace: 'bitbucket:api:mergePullRequest:onMergeFailure',
+        response: {
+          statusCode: status,
+          statusText,
+          headers,
+          data,
+        },
+        pullRequestId,
+        landRequestId,
+        landRequestStatus,
+      });
+      return BitbucketAPI.FAILED;
+    };
+
+    const onMergeAbort = () => {
+      Logger.info('Aborted PR merging', {
+        namespace: 'bitbucket:api:mergePullRequest:onMergeAbort',
+        pullRequestId,
+        landRequestId,
+        landRequestStatus,
+      });
+      return BitbucketAPI.ABORTED;
+    };
+
+    const onMergeTimeout = () => {
+      Logger.info('PR merge polling exceeded max attempts', {
+        namespace: 'bitbucket:api:mergePullRequest:onMergeTimeout',
+        pullRequestId,
+        landRequestId,
+        landRequestStatus,
+      });
+      return BitbucketAPI.TIMEOUT;
     };
 
     Logger.info('Attempting to merge pull request', {
@@ -39,140 +85,57 @@ export class BitbucketAPI {
       landRequestId,
       targetBranch,
       landRequestStatus,
-      postRequest: { endpoint, ...requestBody },
+      commitMessage: message,
     });
 
-    // Polls result of merge task if the merge takes more than 28 seconds
-    // API returns 202 if this is required
-    const pollTaskResult = async (pollUrl: string, attemptNumber = 1): Promise<any> => {
-      const res = await axios.get<BB.MergeStatusResponse>(
-        pollUrl,
-        await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', pollUrl)),
-      );
-      if (res.data.task_status === 'PENDING') {
-        if (attemptNumber === 100) {
-          Logger.info('Stopping merge task, taking too long', {
-            namespace: 'bitbucket:api:mergePullRequest:pollTaskResult',
-            pollUrl,
-            response: {
-              statusCode: res.status,
-              statusText: res.statusText,
-              headers: res.headers,
-              data: res.data,
-            },
-            pullRequestId,
-            landRequestId,
-          });
-          // Allow 5 minutes maximum
-          throw {
-            response: res,
-          };
-        }
-        // poll every 3 seconds
-        await delay(3000);
-        return pollTaskResult(pollUrl);
-      }
-      return res.data.merge_result;
-    };
-
-    // Call on complete failure (not when a retry should occur)
-    // Throws to exit function
-    const onFailure = ({ status, statusText, headers, data }: AxiosResponse) => {
-      Logger.error('Unable to merge pull request', {
-        namespace: 'bitbucket:api:mergePullRequest:onFailure',
-        response: {
-          statusCode: status,
-          statusText,
-          headers,
-          data,
-        },
-        pullRequestId,
-        landRequestId,
-        landRequestStatus,
-      });
-      throw new Error(data);
-    };
-
-    const attemptMerge = async (attemptNumber: number, attemptsLeft: number): Promise<void> => {
-      const res = await axios.post(
-        endpoint,
-        JSON.stringify(requestBody),
-        await bitbucketAuthenticator.getAuthConfig(
-          jwtTools.fromMethodAndPathAndBody('post', endpoint, requestBody),
-          {
-            ...axiosPostConfig,
-            // Handling error codes ourself
-            validateStatus: () => true,
-          },
-        ),
-      );
-
-      // Merge successful
-      if (res.status === 200) {
-        return;
-      }
-      const { status, statusText, headers, data } = res;
-      // Need to poll merge result because of timeout, throws if merge fails
-      if (res.status === 202) {
-        Logger.info('Received timeout response, starting merge task polling', {
-          pollUrl: res.headers.location,
-          namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
-          response: {
-            statusCode: status,
-            statusText,
-            headers,
-            data,
-          },
-          attemptNumber,
-          attemptsLeft,
-          pullRequestId,
-          landRequestId,
-          landRequestStatus,
-        });
-        return pollTaskResult(res.headers.location).catch(err => {
-          if (err.response) onFailure(err.response);
-          onFailure({ status: 0, statusText: '', headers: {}, data: err, config: {} });
-        });
-      }
-      // Legitimate merge failure, not worth retrying
-      if (res.status < 500) {
-        onFailure(res);
-      }
-      // Otherwise we failed with a 5xx error (SHOULD NOTIFY BB IF THIS HAPPENS)
-      Logger.error('Merge attempt failed, trying again', {
-        namespace: 'bitbucket:api:mergePullRequest:attemptMerge',
-        response: {
-          statusCode: status,
-          statusText,
-          headers,
-          data,
-        },
-        attemptNumber,
-        attemptsLeft,
-        pullRequestId,
-        landRequestId,
-        landRequestStatus,
-      });
-      if (attemptsLeft === 0) {
-        onFailure(res);
-      }
-      return attemptMerge(attemptNumber + 1, attemptsLeft - 1);
-    };
-
-    // 5 attempts total
-    await attemptMerge(1, 4);
-
-    // We throw before here if the merge is unsuccessful
-    Logger.info('Merged Pull Request', {
-      namespace: 'bitbucket:api:mergePullRequest',
-      landRequestId,
-      landRequestStatus,
+    const { status, statusText, headers, data } = await this.bitbucketMerger.attemptMerge(
       pullRequestId,
-    });
+      message,
+    );
+
+    if (status === 200) {
+      return onMergeSuccess();
+    }
+
+    if (status === 202) {
+      Logger.info('Received timeout response, starting merge task polling', {
+        pollUrl: headers.location,
+        namespace: 'bitbucket:api:mergePullRequest:mergePullRequest',
+        response: {
+          statusCode: status,
+          statusText,
+          headers,
+          data,
+        },
+        pullRequestId,
+        landRequestId,
+        landRequestStatus,
+      });
+      const pollResult = await this.bitbucketMerger.triggerMergePolling(
+        pullRequestId,
+        headers.location,
+      );
+
+      if (pollResult.task_status === 'SUCCESS') {
+        return onMergeSuccess();
+      } else if (pollResult.task_status === 'FAILED') {
+        return onMergeFailure(pollResult.response);
+      } else if (pollResult.task_status === 'ABORTED') {
+        return onMergeAbort();
+      } else {
+        return onMergeTimeout();
+      }
+    }
+
+    return onMergeFailure({ status, statusText, headers, data, config: {} });
+  };
+
+  cancelMergePolling = (prId: number) => {
+    return this.bitbucketMerger.cancelMergePolling(prId);
   };
 
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
-    const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}`;
+    const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}`;
     const resp = await axios.get<BB.PullRequestResponse>(
       endpoint,
       await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
@@ -199,7 +162,7 @@ export class BitbucketAPI {
   };
 
   getPullRequestBuildStatuses = async (pullRequestId: number): Promise<Array<BB.BuildStatus>> => {
-    const endpoint = `${this.apiBaseUrl}/pullrequests/${pullRequestId}/statuses`;
+    const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(
       endpoint,
       await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
@@ -232,7 +195,7 @@ export class BitbucketAPI {
   };
 
   getRepository = async (): Promise<BB.Repository> => {
-    const endpoint = this.apiBaseUrl;
+    const endpoint = this.baseUrl;
     Logger.info('fetching uuid for repository', {
       namespace: 'bitbucket:api:getRepository',
       endpoint,

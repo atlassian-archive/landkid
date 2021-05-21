@@ -41,7 +41,7 @@
     "@types/faker": "^4.1.12",
     "@types/jest": "^26.0.5",
     "@types/joi": "^14.3.4",
-    "@types/node": "^10.12.7",
+    "@types/node": "^15.0.2",
     "@types/p-retry": "^2.0.0",
     "@types/passport": "^1.0.6",
     "@types/passport-oauth2": "^1.4.10",
@@ -98,7 +98,7 @@
     "sequelize": "^4.44.0",
     "sequelize-typescript": "^0.6.6",
     "styled-components": "^3.2.6",
-    "typescript": "^3.1.6",
+    "typescript": "^4.2.4",
     "ua-parser-js": "^0.7.24",
     "umzug": "^2.2.0",
     "winston": "^3.1.0"
