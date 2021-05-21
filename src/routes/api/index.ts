@@ -8,6 +8,7 @@ import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
 import { Config, LandRequestOptions } from '../../types';
 import { eventEmitter } from '../../lib/Events';
+import { LandRequest } from '../../db';
 
 const landKidTag = process.env.LANDKID_TAG || 'Unknown';
 
@@ -256,7 +257,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         return res.status(400).json({ err: 'Could not find PR with that ID' });
       }
 
-      const landRequest: LandRequestOptions = {
+      const landRequestOptions: LandRequestOptions = {
         prId,
         // Must always have a valid aaid, so lets set it to Luke's aaid
         triggererAaid: req.user ? req.user.aaid : '557057:9512f4e4-3319-4d30-a78d-7d5f8ed243ae',
@@ -267,12 +268,21 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         prTargetBranch: prInfo.targetBranch,
       };
 
+      let request: LandRequest | undefined;
       if (req.body.entryPoint === 'land-when-able') {
-        await runner.addToWaitingToLand(landRequest);
+        request = await runner.addToWaitingToLand(landRequestOptions);
       } else {
-        await runner.enqueue(landRequest);
+        request = await runner.enqueue(landRequestOptions);
       }
-      Logger.info('Landrequest created', { landRequest });
+      if (req.body.priority === 'low' && request) {
+        await request.decrementPriority();
+      } else if (req.body.priority === 'high' && request) {
+        await request.incrementPriority();
+      }
+      Logger.info('Land request created', {
+        namespace: 'routes:api:create-landrequest',
+        landRequestOptions,
+      });
 
       res.sendStatus(200);
     }),

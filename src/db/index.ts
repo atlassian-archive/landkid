@@ -160,6 +160,10 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   incrementPriority = () => {
     return this.updatePriority(this.priority + 1);
   };
+
+  decrementPriority = () => {
+    return this.updatePriority(this.priority - 1);
+  };
 }
 
 @Table

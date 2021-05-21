@@ -61,7 +61,7 @@ export class Runner {
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
     const runningTargetingSameBranch = running.filter(
-      build => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+      (build) => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
     const maxConcurrentBuilds = this.getMaxConcurrentBuilds();
     if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
@@ -128,7 +128,7 @@ export class Runner {
 
     const runningExceptSelf = runningTargetingSameBranch.filter(
       // Failsafe to prevent self-dependencies
-      build => build.request.pullRequestId !== landRequest.pullRequestId,
+      (build) => build.request.pullRequestId !== landRequest.pullRequestId,
     );
     const dependencies = [];
     for (const queueItem of runningExceptSelf) {
@@ -139,7 +139,7 @@ export class Runner {
 
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
-    const dependsOnStr = dependencies.map(queueItem => queueItem.request.id).join(',');
+    const dependsOnStr = dependencies.map((queueItem) => queueItem.request.id).join(',');
 
     Logger.info('Attempting to move from queued to running', {
       namespace: 'lib:runner:moveFromQueueToRunning',
@@ -154,7 +154,7 @@ export class Runner {
       landRequest.id,
       commit,
       {
-        dependencyCommits: dependencies.map(queueItem => queueItem.request.forCommit),
+        dependencyCommits: dependencies.map((queueItem) => queueItem.request.forCommit),
         targetBranch: landRequest.pullRequest.targetBranch,
       },
       lockId,
@@ -174,7 +174,7 @@ export class Runner {
     if (dependencies.length > 0) {
       depPrsStr =
         'Started with PR dependencies: ' +
-        dependencies.map(queueItem => queueItem.request.pullRequestId).join(', ');
+        dependencies.map((queueItem) => queueItem.request.pullRequestId).join(', ');
     }
 
     await landRequest.setStatus('running', depPrsStr);
@@ -204,7 +204,7 @@ export class Runner {
     const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
 
-    if (!dependencies.every(dep => dep.statuses[0].state === 'success')) {
+    if (!dependencies.every((dep) => dep.statuses[0].state === 'success')) {
       Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         pullRequestId: landRequest.pullRequestId,
@@ -232,7 +232,7 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
-    this.client.mergePullRequest(landRequestStatus, { skipCI }).then(async result => {
+    this.client.mergePullRequest(landRequestStatus, { skipCI }).then(async (result) => {
       if (result === BitbucketAPI.SUCCESS) {
         const end = Date.now();
         const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
@@ -297,7 +297,7 @@ export class Runner {
       landRequestStatus,
       failedDeps,
     });
-    const failedPrIds = failedDeps.map(d => d.request.pullRequestId).join(', ');
+    const failedPrIds = failedDeps.map((d) => d.request.pullRequestId).join(', ');
     const failReason = `Failed due to failed dependency builds: ${failedPrIds}`;
     await landRequest.setStatus('fail', failReason);
     await landRequest.update({ dependsOn: null });
@@ -406,7 +406,7 @@ export class Runner {
     const running = await this.getRunning();
     if (!running || !running.length) return false;
 
-    const landRequestStatus = running.find(status => status.requestId === requestId);
+    const landRequestStatus = running.find((status) => status.requestId === requestId);
     if (!landRequestStatus) return false;
 
     await landRequestStatus.request.setStatus(
@@ -487,12 +487,13 @@ export class Runner {
     });
   };
 
-  enqueue = async (landRequestOptions: LandRequestOptions): Promise<void> => {
+  enqueue = async (landRequestOptions: LandRequestOptions) => {
     // TODO: Ensure no land request is pending for this PR
     if (await this.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     const user = await this.client.getUser(request.triggererAaid);
     await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
+    return request;
   };
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
@@ -502,6 +503,7 @@ export class Runner {
     await request.setStatus('will-queue-when-ready');
 
     this.checkWaitingLandRequests();
+    return request;
   };
 
   moveFromWaitingToQueued = async (landRequestStatus: LandRequestStatus) => {
@@ -739,21 +741,15 @@ export class Runner {
 
   getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
-    const [
-      daysSinceLastFailure,
-      pauseState,
-      queue,
-      users,
-      waitingToQueue,
-      bannerMessageState,
-    ] = await Promise.all([
-      this.getDatesSinceLastFailures(),
-      this.getPauseState(),
-      requestingUserMode === 'read' ? [] : this.getQueue(),
-      this.getUsersPermissions(requestingUserMode),
-      requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
-      this.getBannerMessageState(),
-    ]);
+    const [daysSinceLastFailure, pauseState, queue, users, waitingToQueue, bannerMessageState] =
+      await Promise.all([
+        this.getDatesSinceLastFailures(),
+        this.getPauseState(),
+        requestingUserMode === 'read' ? [] : this.getQueue(),
+        this.getUsersPermissions(requestingUserMode),
+        requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
+        this.getBannerMessageState(),
+      ]);
     // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
     return {
@@ -774,7 +770,7 @@ export class Runner {
 
   static getDependentsAwaitingMerge(queue: LandRequestStatus[], currentStatus: LandRequestStatus) {
     return queue.filter(
-      status =>
+      (status) =>
         status.state === 'awaiting-merge' &&
         status.request.dependsOn.split(',').includes(String(currentStatus.request.id)),
     );
