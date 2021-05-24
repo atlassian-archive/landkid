@@ -317,10 +317,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
-      if (!req.body || req.body.priority === undefined || req.body.priority === null) {
-        return res.status(400).json({ err: 'req.body.priority expected', body: req.body });
+      if (!req.body) {
+        return res.status(400).json({ err: 'body expected' });
       }
-      const { priority } = req.body;
+      const priority = parseInt(req.body.priority, 10);
+      if (isNaN(priority)) {
+        return res.status(400).json({ err: 'body.priority is required and needs to be a number ' });
+      }
       Logger.verbose('Updating priority of land request', {
         namespace: 'routes:api:priority',
         requestId,
@@ -330,7 +333,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       if (success) {
         res.json({ message: 'Updated priority of request' });
       } else {
-        res.status(404).json({ error: 'Request does not exist' });
+        res.status(404).json({ error: 'Land request does not exist' });
       }
     }),
   );
