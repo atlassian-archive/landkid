@@ -1,7 +1,7 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
 
 export class LandRequestQueue {
-  public getStatusesForWaitingRequests = async (): Promise<LandRequestStatus[]> => {
+  public getStatusesForWaitingRequests = async () => {
     return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
@@ -19,7 +19,7 @@ export class LandRequestQueue {
 
   // returns the list of queued, running, awaiting-merge, and merging items as these are the actual "queue" per se
   // all the status' we display on the frontend
-  public getQueue = async (): Promise<LandRequestStatus[]> => {
+  public getQueue = async () => {
     const queue = await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
@@ -27,7 +27,10 @@ export class LandRequestQueue {
           $in: ['queued', 'running', 'awaiting-merge', 'merging'],
         },
       },
-      order: [['date', 'ASC']],
+      order: [
+        [LandRequestStatus.associations?.request, 'priority', 'DESC'],
+        ['date', 'ASC'],
+      ],
       include: [
         {
           model: LandRequest,
@@ -40,7 +43,7 @@ export class LandRequestQueue {
 
   // returns builds that are running, awaiting-merge, or merging, used to find the dependencies of a request
   // that is about to move to running state
-  public getRunning = async (): Promise<LandRequestStatus[]> => {
+  public getRunning = async () => {
     return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
@@ -58,7 +61,7 @@ export class LandRequestQueue {
     });
   };
 
-  public maybeGetStatusForNextRequestInQueue = async (): Promise<LandRequestStatus | null> => {
+  public maybeGetStatusForNextRequestInQueue = async () => {
     const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         isLatest: true,
@@ -77,25 +80,7 @@ export class LandRequestQueue {
     return requestStatus;
   };
 
-  public maybeGetStatusForRunningRequests = async (): Promise<LandRequestStatus[]> => {
-    const runningLandRequests = await LandRequestStatus.findAll<LandRequestStatus>({
-      where: {
-        isLatest: true,
-        state: 'running',
-      },
-      include: [
-        {
-          model: LandRequest,
-          include: [PullRequest],
-        },
-      ],
-    });
-    return runningLandRequests;
-  };
-
-  public maybeGetStatusForQueuedRequestById = async (
-    requestId: string,
-  ): Promise<LandRequestStatus | null> => {
+  public maybeGetStatusForQueuedRequestById = async (requestId: string) => {
     const requestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         requestId,

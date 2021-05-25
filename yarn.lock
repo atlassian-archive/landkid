@@ -937,17 +937,17 @@
   integrity sha1-8Owl2/Lw5LGGRzE6wDETTKWySyE=
 
 "@types/mongodb@*":
-  version "3.6.14"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/mongodb/-/mongodb-3.6.14.tgz#5ffb28d2913a5e1b089956af1fe7d7d67f0702f9"
-  integrity sha1-X/so0pE6XhsImVavH+fX1n8HAvk=
+  version "3.6.15"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/mongodb/-/mongodb-3.6.15.tgz#a2fb99bf14bebbccbd5452449b3409e38a902f88"
+  integrity sha1-ovuZvxS+u8y9VFJEmzQJ44qQL4g=
   dependencies:
     "@types/bson" "*"
     "@types/node" "*"
 
 "@types/node@*", "@types/node@^15.0.2":
-  version "15.3.0"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/node/-/node-15.3.0.tgz#d6fed7d6bc6854306da3dea1af9f874b00783e26"
-  integrity sha1-1v7X1rxoVDBto96hr5+HSwB4PiY=
+  version "15.3.1"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/node/-/node-15.3.1.tgz#23a06b87eedb524016616e886b116b8fdcb180af"
+  integrity sha1-I6Brh+7bUkAWYW6IaxFrj9yxgK8=
 
 "@types/node@11.12.2":
   version "11.12.2"
@@ -2584,6 +2584,11 @@ cookie@0.4.0:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha1-vrQ35wIrO21JAZ0IhmUwPr6cFLo=
 
+cookie@0.4.1:
+  version "0.4.1"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/cookie/-/cookie-0.4.1.tgz#afd713fe26ebd21ba95ceb61f9a8116e50a537d1"
+  integrity sha1-r9cT/ibr0hupXOth+agRblClN9E=
+
 copy-concurrently@^1.0.0:
   version "1.0.5"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/copy-concurrently/-/copy-concurrently-1.0.5.tgz#92297398cae34937fcafd6ec8139c18051f0b5e0"
@@ -3200,9 +3205,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.723:
-  version "1.3.731"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/electron-to-chromium/-/electron-to-chromium-1.3.731.tgz#9f17f7e16f798eaddb21409d80aa755b5b5053dc"
-  integrity sha1-nxf34W95jq3bIUCdgKp1W1tQU9w=
+  version "1.3.735"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/electron-to-chromium/-/electron-to-chromium-1.3.735.tgz#fa1a8660f2790662291cb2136f0e446a444cdfdc"
+  integrity sha1-+hqGYPJ5BmIpHLITbw5EakRM39w=
 
 elegant-spinner@^1.0.1:
   version "1.0.1"
@@ -3560,17 +3565,17 @@ expect@^25.5.0:
     jest-regex-util "^25.2.6"
 
 express-session@^1.17.1:
-  version "1.17.1"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/express-session/-/express-session-1.17.1.tgz#36ecbc7034566d38c8509885c044d461c11bf357"
-  integrity sha1-Nuy8cDRWbTjIUJiFwETUYcEb81c=
+  version "1.17.2"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/express-session/-/express-session-1.17.2.tgz#397020374f9bf7997f891b85ea338767b30d0efd"
+  integrity sha1-OXAgN0+b95l/iRuF6jOHZ7MNDv0=
   dependencies:
-    cookie "0.4.0"
+    cookie "0.4.1"
     cookie-signature "1.0.6"
     debug "2.6.9"
     depd "~2.0.0"
     on-headers "~1.0.2"
     parseurl "~1.3.3"
-    safe-buffer "5.2.0"
+    safe-buffer "5.2.1"
     uid-safe "~2.1.5"
 
 express-winston@^3.0.1:
@@ -7285,10 +7290,10 @@ prepend-http@^1.0.1:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
   integrity sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
 
-prettier@^1.8.2:
-  version "1.19.1"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/prettier/-/prettier-1.19.1.tgz#f7d7f5ff8a9cd872a7be4ca142095956a60797cb"
-  integrity sha1-99f1/4qc2HKnvkyhQglZVqYHl8s=
+prettier@^2.3.0:
+  version "2.3.0"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/prettier/-/prettier-2.3.0.tgz#b6a5bf1284026ae640f17f7ff5658a7567fc0d18"
+  integrity sha1-tqW/EoQCauZA8X9/9WWKdWf8DRg=
 
 pretty-bytes@^5.3.0:
   version "5.6.0"
@@ -7979,12 +7984,7 @@ safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
   integrity sha1-mR7GnSluAxN0fVm9/St0XDX4go0=
 
-safe-buffer@5.2.0:
-  version "5.2.0"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/safe-buffer/-/safe-buffer-5.2.0.tgz#b74daec49b1148f88c64b68d49b1e815c1f2f519"
-  integrity sha1-t02uxJsRSPiMZLaNSbHoFcHy9Rk=
-
-safe-buffer@>=5.1.0, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@^5.2.0, safe-buffer@~5.2.0:
+safe-buffer@5.2.1, safe-buffer@>=5.1.0, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@^5.2.0, safe-buffer@~5.2.0:
   version "5.2.1"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha1-Hq+fqb2x/dTsdfWPnNtOa3gn7sY=

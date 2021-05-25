@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { RunnerState } from '../../../types';
-import { Section } from './Section';
 import { WithAPIData } from './WithAPIData';
 import { CurrentState } from './CurrentState';
 import { RunningBuilds } from './RunningBuilds';
@@ -12,7 +11,7 @@ export const App: React.FunctionComponent = () => (
     <WithAPIData<{ loggedIn: boolean; user?: ISessionUser; permission: IPermissionMode }>
       endpoint="auth/whoami"
       renderLoading={() => <Header />}
-      render={userInfo => {
+      render={(userInfo) => {
         if (userInfo.loggedIn) {
           const loggedInUser = { ...userInfo.user!, permission: userInfo.permission };
           return (
@@ -21,11 +20,14 @@ export const App: React.FunctionComponent = () => (
               <WithAPIData<RunnerState>
                 poll={true}
                 endpoint="api/current-state"
-                renderLoading={() => <Section>Loading...</Section>}
-                render={data => (
+                render={(data, refresh) => (
                   <div>
                     <CurrentState {...data} />
-                    <RunningBuilds queue={data.queue} bitbucketBaseUrl={data.bitbucketBaseUrl} />
+                    <RunningBuilds
+                      queue={data.queue}
+                      bitbucketBaseUrl={data.bitbucketBaseUrl}
+                      refreshData={refresh}
+                    />
                     <Tabs
                       bitbucketBaseUrl={data.bitbucketBaseUrl}
                       selected={1}
@@ -35,6 +37,7 @@ export const App: React.FunctionComponent = () => (
                       paused={data.pauseState !== null}
                       bannerMessageState={data.bannerMessageState}
                       permissionsMessage={data.permissionsMessage}
+                      refreshData={refresh}
                     />
                   </div>
                 )}

@@ -2,6 +2,7 @@ import * as React from 'react';
 
 export type MessengerProps = {
   bannerMessageState: IMessageState | null;
+  refreshData: () => void;
 };
 
 type MessengerState = {
@@ -28,17 +29,19 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
   };
 
   sendMessage = () => {
+    const { refreshData } = this.props;
     const { message, type } = this.state;
     if (!message) return;
     fetch('/api/message', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ message, type }),
-    }).then(() => location.reload());
+    }).then(() => refreshData());
   };
 
   removeMessage = () => {
-    fetch('/api/remove-message', { method: 'POST' }).then(() => location.reload());
+    const { refreshData } = this.props;
+    fetch('/api/remove-message', { method: 'POST' }).then(() => refreshData());
   };
 
   render() {
@@ -100,9 +103,7 @@ export class Messenger extends React.Component<MessengerProps, MessengerState> {
                 fontWeight: msgType === 'default' ? 'bold' : 'normal',
               }}
             >
-              {`${this.messageEmoji[msgType]} ${bannerMessageState.message} ${
-                this.messageEmoji[msgType]
-              }`}
+              {`${this.messageEmoji[msgType]} ${bannerMessageState.message} ${this.messageEmoji[msgType]}`}
             </div>
             <button
               className="ak-button ak-button__appearance-default"

@@ -8,6 +8,7 @@ import { AccountService } from '../../lib/AccountService';
 import { permissionService } from '../../lib/PermissionService';
 import { Config, LandRequestOptions } from '../../types';
 import { eventEmitter } from '../../lib/Events';
+import { LandRequest } from '../../db';
 
 const landKidTag = process.env.LANDKID_TAG || 'Unknown';
 
@@ -256,7 +257,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         return res.status(400).json({ err: 'Could not find PR with that ID' });
       }
 
-      const landRequest: LandRequestOptions = {
+      const landRequestOptions: LandRequestOptions = {
         prId,
         // Must always have a valid aaid, so lets set it to Luke's aaid
         triggererAaid: req.user ? req.user.aaid : '557057:9512f4e4-3319-4d30-a78d-7d5f8ed243ae',
@@ -267,12 +268,21 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         prTargetBranch: prInfo.targetBranch,
       };
 
+      let request: LandRequest | undefined;
       if (req.body.entryPoint === 'land-when-able') {
-        await runner.addToWaitingToLand(landRequest);
+        request = await runner.addToWaitingToLand(landRequestOptions);
       } else {
-        await runner.enqueue(landRequest);
+        request = await runner.enqueue(landRequestOptions);
       }
-      Logger.info('Landrequest created', { landRequest });
+      if (req.body.priority === 'low' && request) {
+        await request.decrementPriority();
+      } else if (req.body.priority === 'high' && request) {
+        await request.incrementPriority();
+      }
+      Logger.info('Land request created', {
+        namespace: 'routes:api:create-landrequest',
+        landRequestOptions,
+      });
 
       res.sendStatus(200);
     }),
@@ -303,19 +313,27 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   );
 
   router.post(
-    '/to-the-top/:id',
+    '/priority/:id',
     requireAuth('admin'),
     wrap(async (req, res) => {
       const requestId = req.params.id;
-      Logger.verbose('Moving landrequest to the top of the queue', {
-        namespace: 'routes:api:to-the-top',
+      if (!req.body) {
+        return res.status(400).json({ err: 'body expected' });
+      }
+      const priority = parseInt(req.body.priority, 10);
+      if (isNaN(priority)) {
+        return res.status(400).json({ err: 'body.priority is required and needs to be a number ' });
+      }
+      Logger.verbose('Updating priority of land request', {
+        namespace: 'routes:api:priority',
         requestId,
+        priority,
       });
-      const success = await runner.moveRequestToTopOfQueue(requestId, req.user!);
+      const success = await runner.updateLandRequestPriority(requestId, priority);
       if (success) {
-        res.json({ message: 'Request moved to top of queue' });
+        res.json({ message: 'Updated priority of request' });
       } else {
-        res.status(400).json({ error: 'Request either does not exist or is not queued' });
+        res.status(404).json({ error: 'Land request does not exist' });
       }
     }),
   );

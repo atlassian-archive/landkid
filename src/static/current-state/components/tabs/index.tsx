@@ -50,7 +50,7 @@ export type TabsControlsProps = {
   selectTab: (tab: number) => void;
 };
 
-const TabsControls: React.FunctionComponent<TabsControlsProps> = props => {
+const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
   const { selected, selectTab } = props;
   return (
     <div className={controlsStyles}>
@@ -85,6 +85,7 @@ export type TabsProps = {
   paused: boolean;
   bannerMessageState: IMessageState | null;
   permissionsMessage: string;
+  refreshData: () => void;
 };
 
 type TabsState = {
@@ -121,6 +122,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       paused,
       bannerMessageState,
       permissionsMessage,
+      refreshData,
     } = this.props;
 
     return (
@@ -132,6 +134,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             loggedInUser={loggedInUser}
             defaultPaused={paused}
             bannerMessageState={bannerMessageState}
+            refreshData={refreshData}
           />
         ) : null}
         {selected === 1 ? (
@@ -140,6 +143,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             loggedInUser={loggedInUser}
             queue={queue}
             permissionsMessage={permissionsMessage}
+            refreshData={refreshData}
           />
         ) : null}
         {selected === 2 ? (
