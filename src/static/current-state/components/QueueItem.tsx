@@ -333,16 +333,6 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
               >
                 Remove
               </button>
-              <button
-                className="queue-item__button"
-                onClick={() =>
-                  this.handleAdminControlClick(ADMIN_CONTROLS.PRIORITY, {
-                    priority: (status.request.priority ?? 0) + 1,
-                  })
-                }
-              >
-                Increment priority
-              </button>
             </StatusItem>
           </div>
         ) : null}
