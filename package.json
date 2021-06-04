@@ -106,7 +106,8 @@
   "resolutions": {
     "lodash": "^4.17.21",
     "color-string": "^1.5.5",
-    "@types/sequelize": "^4.28.9"
+    "@types/sequelize": "^4.28.9",
+    "path-parse": "^1.0.7"
   },
   "lint-staged": {
     "*.js": [
