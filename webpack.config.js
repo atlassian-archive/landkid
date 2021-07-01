@@ -4,6 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // This only really matters when building files, not in production
 const outputPath = process.env.OUTPUT_PATH || '.';
+const SERVER_PORT = process.env.SERVER_PORT || '8080';
+const DEV_SERVER_PORT = process.env.DEV_SERVER_PORT || '3000';
 
 module.exports = {
   entry: {
@@ -20,14 +22,14 @@ module.exports = {
     compress: true,
     historyApiFallback: true,
     // hot: true,
-    port: 3000,
+    port: Number(DEV_SERVER_PORT),
     publicPath: '/',
     stats: 'errors-only',
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/auth': 'http://localhost:8080',
-      '/bitbucket': 'http://localhost:8080',
-      '/ac': 'http://localhost:8080',
+      '/api': `http://localhost:${SERVER_PORT}`,
+      '/auth': `http://localhost:${SERVER_PORT}`,
+      '/bitbucket': `http://localhost:${SERVER_PORT}`,
+      '/ac': `http://localhost:${SERVER_PORT}`,
     },
     public: fs.existsSync('./config.js')
       ? require('./config').baseUrl.replace('https://', '')
@@ -41,12 +43,7 @@ module.exports = {
           {
             loader: require.resolve('cache-loader'),
             options: {
-              cacheDirectory: path.resolve(
-                __dirname,
-                'node_modules',
-                '.build-cache',
-                'ts',
-              ),
+              cacheDirectory: path.resolve(__dirname, 'node_modules', '.build-cache', 'ts'),
             },
           },
           {
@@ -73,10 +70,7 @@ module.exports = {
       filename: 'current-state/index.html',
       // only inject the code from the 'current-state' entry/chunk
       chunks: ['current-state'],
-      template: path.resolve(
-        __dirname,
-        './src/static/current-state/index.html',
-      ),
+      template: path.resolve(__dirname, './src/static/current-state/index.html'),
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
