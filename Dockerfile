@@ -2,6 +2,9 @@ FROM node:12-buster-slim
 
 WORKDIR /opt/service
 
+# update all OS dependencies to prevent vuln's
+RUN apt-get update && apt-get -y upgrade
+
 # Copy PJ, changes should invalidate entire image
 COPY package.json yarn.lock /opt/service/
 
