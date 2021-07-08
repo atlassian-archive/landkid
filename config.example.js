@@ -6,7 +6,7 @@ module.exports = {
   name: 'MyName Landkid',
   key: 'myname-landkid',
   baseUrl: 'https://myname-landkid.ngrok.io',
-  port: 8080,
+  port: process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : 8080,
   landkidAdmins: ['your bb uuid'],
   repoConfig: {
     repoOwner: 'bitbucket workspace (e.g. bb username)',
