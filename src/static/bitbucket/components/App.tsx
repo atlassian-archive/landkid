@@ -7,6 +7,14 @@ type BannerMessage = {
   messageType: 'default' | 'warning' | 'error';
 };
 
+type CanLandResponse = {
+  canLand: boolean;
+  canLandWhenAble: boolean;
+  errors: string[];
+  warnings: string[];
+  bannerMessage: BannerMessage | null;
+};
+
 type AppState = {
   curState:
     | 'checking-can-land'
@@ -14,6 +22,7 @@ type AppState = {
     | 'queued'
     | 'can-land'
     | 'pr-closed'
+    | 'user-denied-access'
     | 'unknown-error';
   canLand: boolean;
   canLandWhenAble: boolean;
@@ -22,18 +31,22 @@ type AppState = {
   bannerMessage: BannerMessage | null;
 };
 
-export class App extends React.Component {
+const qs = new URLSearchParams(window.location.search);
+
+export class App extends React.Component<{}, AppState> {
+  appName = qs.get('appName') || 'Landkid';
+
   messageColours = {
     default: 'transparent',
     warning: 'orange',
     error: 'red',
-  };
+  } as const;
 
   messageEmoji = {
     default: '📢',
     warning: '⚠️',
     error: '❌',
-  };
+  } as const;
 
   state: AppState = {
     curState: 'checking-can-land',
@@ -45,7 +58,6 @@ export class App extends React.Component {
   };
 
   async componentDidMount() {
-    const qs = new URLSearchParams(window.location.search);
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       return this.setState({ curState: 'pr-closed' });
@@ -54,14 +66,7 @@ export class App extends React.Component {
   }
 
   checkifAble = () => {
-    type Resp = {
-      canLand: string;
-      canLandWhenAble: string;
-      errors: string[];
-      warnings: string[];
-      bannerMessage: BannerMessage | null;
-    };
-    proxyRequest<Resp>('/can-land', 'POST')
+    proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage }) => {
         if (canLand) {
           return this.setState({
@@ -78,9 +83,13 @@ export class App extends React.Component {
           bannerMessage,
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        this.setState({ curState: 'unknown-error' });
+        if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
+          this.setState({ curState: 'user-denied-access' });
+        } else {
+          this.setState({ curState: 'unknown-error' });
+        }
       });
   };
 
@@ -91,7 +100,7 @@ export class App extends React.Component {
           curState: 'queued',
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         this.setState({ curState: 'unknown-error' });
       });
@@ -104,7 +113,7 @@ export class App extends React.Component {
           curState: 'queued',
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         this.setState({ curState: 'unknown-error' });
       });
@@ -126,7 +135,7 @@ export class App extends React.Component {
       <div style={{ marginTop: '15px' }}>
         <p>Your PR currently has these warnings (these will not prevent landing):</p>
         <ul>
-          {warnings.map(warning => (
+          {warnings.map((warning) => (
             <li key={warning} dangerouslySetInnerHTML={{ __html: warning }} />
           ))}
         </ul>
@@ -134,7 +143,9 @@ export class App extends React.Component {
     );
   };
 
-  renderLandState = (curState: AppState['curState']) => {
+  renderLandState = () => {
+    const { curState, canLandWhenAble, errors } = this.state;
+
     switch (curState) {
       case 'checking-can-land': {
         return <p>🤔 Checking Landkid permissions...</p>;
@@ -157,13 +168,11 @@ export class App extends React.Component {
         );
       }
       case 'cannot-land': {
-        const { canLandWhenAble, errors } = this.state;
-
         return (
           <div>
             <p> 😭 You cannot currently land this PR for the following reasons: </p>
             <ul>
-              {errors.map(error => (
+              {errors.map((error) => (
                 <li key={error} dangerouslySetInnerHTML={{ __html: error }} />
               ))}
             </ul>
@@ -208,6 +217,18 @@ export class App extends React.Component {
           </div>
         );
       }
+      case 'user-denied-access': {
+        return (
+          <div>
+            🙅 You have denied access to <b>{this.appName}</b>. Navigate to{' '}
+            <a href="https://bitbucket.org/account/settings/app-authorizations/">
+              https://bitbucket.org/account/settings/app-authorizations/
+            </a>{' '}
+            and remove it from the list of denied applications at the bottom of the page. Then
+            refresh this page and allow the app to access the required permissions.
+          </div>
+        );
+      }
       case 'unknown-error': {
         return <div>💩 An unknown error occured, see console for information</div>;
       }
@@ -236,7 +257,7 @@ export class App extends React.Component {
             {`${this.messageEmoji[msgType]} ${bannerMessage.message} ${this.messageEmoji[msgType]}`}
           </div>
         ) : null}
-        {this.renderLandState(curState)}
+        {this.renderLandState()}
       </React.Fragment>
     );
   }
