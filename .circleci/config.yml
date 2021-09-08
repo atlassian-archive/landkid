@@ -77,8 +77,11 @@ jobs:
           command: |
             node ./.circleci/create-cypress-env.js
             yarn test:integration:staging
+          no_output_timeout: 30m
       - store_test_results:
-          path: ./cypress/junit-reports
+          path: ./tests/integration/junit-reports
+      - store_artifacts:
+          path: ./tests/integration/screenshots
 
 workflows:
   version: 2

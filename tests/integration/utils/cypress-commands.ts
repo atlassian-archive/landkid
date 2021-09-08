@@ -18,7 +18,6 @@ Cypress.Commands.add('visitLandkid', () => {
 
 Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean) => {
   const hackerPhrase = faker.hacker.phrase();
-
   cy.log(title);
 
   let body: Record<string, string> = {
@@ -30,52 +29,60 @@ Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean)
     body = { ...body, ['fail.txt']: '' };
   }
 
-  cy.request({
-    method: 'POST',
-    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`,
-    body,
-    auth: {
-      username,
-      password,
-    },
-    form: true,
-  });
-
-  cy.request({
-    method: 'POST',
-    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/pullrequests`,
-    body: {
-      title: title,
-      source: {
-        branch: {
-          name: title,
-        },
-      },
-      destination: {
-        branch: {
-          name: 'master',
-        },
-      },
-      description: hackerPhrase,
-      close_source_branch: true,
-    },
-    auth: {
-      username,
-      password,
-    },
-  }).then((res) =>
+  try {
+    cy.log('Navigating to `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`');
     cy.request({
-      url: '/api/create-landrequest',
       method: 'POST',
+      url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`,
+      body,
+      auth: {
+        username,
+        password,
+      },
+      form: true,
+    });
+
+    cy.request({
+      method: 'POST',
+      url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/pullrequests`,
       body: {
-        prId: res.body.id,
-        entryPoint: 'queue',
+        title: title,
+        source: {
+          branch: {
+            name: title,
+          },
+        },
+        destination: {
+          branch: {
+            name: 'master',
+          },
+        },
+        description: hackerPhrase,
+        close_source_branch: true,
       },
-      headers: {
-        Authorization: `Token ${Cypress.env('CUSTOM_TOKEN')}`,
+      auth: {
+        username,
+        password,
       },
-    }),
-  );
+    }).then((res) =>
+      cy.request({
+        url: '/api/create-landrequest',
+        method: 'POST',
+        body: {
+          prId: res.body.id,
+          entryPoint: 'queue',
+        },
+        headers: {
+          Authorization: `Token ${Cypress.env('CUSTOM_TOKEN')}`,
+        },
+      }),
+    );
+  } catch (err) {
+    cy.log(err);
+    console.log('Hello!');
+    console.log(err);
+    console.error(err);
+  }
 });
 
 Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000) => {

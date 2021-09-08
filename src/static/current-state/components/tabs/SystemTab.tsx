@@ -29,7 +29,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     if (checked) {
       const reason = window.prompt(
         'What would you like the pause message to be?',
-        'Builds have been paused by an admin, see the Fabric Build room for details',
+        'Builds have been paused by an admin, see #atlassian-frontend for details',
       );
       if (reason === null) return;
       fetch('/api/pause', {
