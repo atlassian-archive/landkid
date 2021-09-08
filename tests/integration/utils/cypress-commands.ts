@@ -79,9 +79,6 @@ Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean)
     );
   } catch (err) {
     cy.log(err);
-    console.log('Hello!');
-    console.log(err);
-    console.error(err);
   }
 });
 
