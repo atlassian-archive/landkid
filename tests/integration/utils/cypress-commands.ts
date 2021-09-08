@@ -2,7 +2,7 @@ import * as faker from 'faker';
 
 type Map = Record<string, string>;
 
-const username = 'jackrgardner';
+const username = 'raja07';
 const password = Cypress.env('BITBUCKET_APP_PASSWORD');
 const repo = 'atlassian-frontend-landkid-test-repo';
 
@@ -63,7 +63,7 @@ Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean)
       username,
       password,
     },
-  }).then(res =>
+  }).then((res) =>
     cy.request({
       url: '/api/create-landrequest',
       method: 'POST',
@@ -85,9 +85,9 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
         method: 'GET',
         url: `/api/landrequests?ids=${ids.join(',')}`,
       })
-      .then(res => {
+      .then((res) => {
         const transformed: Record<string, any> = {};
-        Object.keys(res.body.statuses).forEach(id => {
+        Object.keys(res.body.statuses).forEach((id) => {
           transformed[idToTitle[id]] = {
             prId: idToPrId[id],
             statuses: res.body.statuses[id].map((item: any) => item.state),
@@ -101,7 +101,7 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
         method: 'GET',
         url: '/api/history?page=1',
       })
-      .then(res => {
+      .then((res) => {
         const history = res.body.history.filter((item: any) =>
           prTitles.includes(item.request.pullRequest.title),
         );
@@ -112,7 +112,11 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
             idToTitle[item.requestId] = item.request.pullRequest.title;
             idToPrId[item.requestId] = item.request.pullRequestId;
           }
-          return getStatuses(history.map((item: any) => item.requestId), idToTitle, idToPrId);
+          return getStatuses(
+            history.map((item: any) => item.requestId),
+            idToTitle,
+            idToPrId,
+          );
         }
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);
