@@ -2,7 +2,7 @@ import * as faker from 'faker';
 
 type Map = Record<string, string>;
 
-const username = 'jackrgardner';
+const username = 'raja07';
 const password = Cypress.env('BITBUCKET_APP_PASSWORD');
 const repo = 'atlassian-frontend-landkid-test-repo';
 
@@ -18,7 +18,6 @@ Cypress.Commands.add('visitLandkid', () => {
 
 Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean) => {
   const hackerPhrase = faker.hacker.phrase();
-
   cy.log(title);
 
   let body: Record<string, string> = {
@@ -30,52 +29,57 @@ Cypress.Commands.add('createLandRequest', (title: string, isSuccessful: boolean)
     body = { ...body, ['fail.txt']: '' };
   }
 
-  cy.request({
-    method: 'POST',
-    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`,
-    body,
-    auth: {
-      username,
-      password,
-    },
-    form: true,
-  });
-
-  cy.request({
-    method: 'POST',
-    url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/pullrequests`,
-    body: {
-      title: title,
-      source: {
-        branch: {
-          name: title,
-        },
-      },
-      destination: {
-        branch: {
-          name: 'master',
-        },
-      },
-      description: hackerPhrase,
-      close_source_branch: true,
-    },
-    auth: {
-      username,
-      password,
-    },
-  }).then(res =>
+  try {
+    cy.log('Navigating to `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`');
     cy.request({
-      url: '/api/create-landrequest',
       method: 'POST',
+      url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/src`,
+      body,
+      auth: {
+        username,
+        password,
+      },
+      form: true,
+    });
+
+    cy.request({
+      method: 'POST',
+      url: `https://api.bitbucket.org/2.0/repositories/${username}/${repo}/pullrequests`,
       body: {
-        prId: res.body.id,
-        entryPoint: 'queue',
+        title: title,
+        source: {
+          branch: {
+            name: title,
+          },
+        },
+        destination: {
+          branch: {
+            name: 'master',
+          },
+        },
+        description: hackerPhrase,
+        close_source_branch: true,
       },
-      headers: {
-        Authorization: `Token ${Cypress.env('CUSTOM_TOKEN')}`,
+      auth: {
+        username,
+        password,
       },
-    }),
-  );
+    }).then((res) =>
+      cy.request({
+        url: '/api/create-landrequest',
+        method: 'POST',
+        body: {
+          prId: res.body.id,
+          entryPoint: 'queue',
+        },
+        headers: {
+          Authorization: `Token ${Cypress.env('CUSTOM_TOKEN')}`,
+        },
+      }),
+    );
+  } catch (err) {
+    cy.log(err);
+  }
 });
 
 Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000) => {
@@ -85,9 +89,9 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
         method: 'GET',
         url: `/api/landrequests?ids=${ids.join(',')}`,
       })
-      .then(res => {
+      .then((res) => {
         const transformed: Record<string, any> = {};
-        Object.keys(res.body.statuses).forEach(id => {
+        Object.keys(res.body.statuses).forEach((id) => {
           transformed[idToTitle[id]] = {
             prId: idToPrId[id],
             statuses: res.body.statuses[id].map((item: any) => item.state),
@@ -101,7 +105,7 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
         method: 'GET',
         url: '/api/history?page=1',
       })
-      .then(res => {
+      .then((res) => {
         const history = res.body.history.filter((item: any) =>
           prTitles.includes(item.request.pullRequest.title),
         );
@@ -112,7 +116,11 @@ Cypress.Commands.add('waitForAllFinished', (prTitles: string[], waitTime = 10000
             idToTitle[item.requestId] = item.request.pullRequest.title;
             idToPrId[item.requestId] = item.request.pullRequestId;
           }
-          return getStatuses(history.map((item: any) => item.requestId), idToTitle, idToPrId);
+          return getStatuses(
+            history.map((item: any) => item.requestId),
+            idToTitle,
+            idToPrId,
+          );
         }
         cy.log('PRs not finished, polling /history again');
         cy.wait(waitTime);
