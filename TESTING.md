@@ -1,6 +1,6 @@
 # Integration Testing for Landkid
 
-This document describes how to run the integration tests for Landkid on dev instance.
+This document describes how to run the integration tests for Landkid on the dev instance.
 
 The integration tests for Landkid are setup to target a Bitbucket repository, only available to Atlassian employees.
 
@@ -10,7 +10,7 @@ Developers would need to run the tests locally to validate their changes.
 
 ## Deploy to dev instance
 
-For testing purposes, we recommend to use the [dev](https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/) instance.
+For testing purposes, we recommend using the [dev](https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/) instance.
 
 (For strict local dev loop, see this [document](https://bitbucket.org/atlassian/atlassian-frontend-landkid-deployment/src/master/development.md) )
 
@@ -27,15 +27,17 @@ For testing purposes, we recommend to use the [dev](https://atlassian-frontend-l
 
 In this repository:
 
-1. Create your own copy of `cypress.env.json` - the file is `.gitignore` but maake sure it is not committed by mistake.
+1. Create your own copy of `cypress.env.json` - the file is `.gitignore` but make sure it is not committed by mistake.
 2. Ask access to the folder `Landkid credentials for testing` in LastPass
-3. Fill the environment variables required
+3. Fill out the environment variables required
 
 ```
 {
     "BITBUCKET_APP_PASSWORD": "bitbucket app password",
-    "LANDKID_SESSION_ID": "landkid.sid cookie from https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/",
-    "CUSTOM_TOKEN": "token for specific endpoints"
+    "LANDKID_SESSION_ID": "landkid.sid cookie from https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/, this is used by circleCI",
+    "LANDKID_DEV_SESSION_ID"; "this is used in the local dev loop, use the LANDKID_SESSION_ID value to test a dev deployment locally otherwise use the landkid.sid cookie in your local instance of landkid",
+    "LANDKID_DEV_URL": "https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/ to test a dev deployment or https://[basurl]/current-state for local testing",
+    "CUSTOM_TOKEN": "token for specific endpoints - use the HASHED_CUSTOM_TOKEN"
 }
 ```
 
