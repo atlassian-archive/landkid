@@ -10,7 +10,8 @@ Developers would need to run the tests locally to validate their changes.
 
 ## Deploy to dev instance
 
-For testing purposes, we recommend using the [dev](https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/) instance.
+For testing purposes, we recommend to use the [dev](https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/) instance.
+
 
 (For strict local dev loop, see this [document](https://bitbucket.org/atlassian/atlassian-frontend-landkid-deployment/src/master/development.md) )
 
