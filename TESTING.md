@@ -2,7 +2,9 @@
 
 This document describes how to run the integration tests for Landkid on the dev instance.
 
-Currently, those integration tests cannot run in CircleCI because they access a Bitbucket repository that is now only accessible through VPN.
+The integration tests for Landkid are setup to target a Bitbucket repository, only available to Atlassian employees.
+
+Currently, those integration tests cannot run in CircleCI because the Bitbucket repository they access is only accessible through VPN.
 
 Developers would need to run the tests locally to validate their changes.
 
