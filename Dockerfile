@@ -1,4 +1,4 @@
-FROM node:12.22.6-buster-slim
+FROM node:12.22.3-buster-slim
 
 WORKDIR /opt/service
 

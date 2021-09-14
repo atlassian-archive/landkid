@@ -1,22 +1,19 @@
 # Integration Testing for Landkid
 
-This document describes how to run the integration tests for Landkid on the dev instance.
+This document describes how to run the integration tests for Landkid on dev instance.
 
-The integration tests for Landkid are setup to target a Bitbucket repository, only available to Atlassian employees.
-
-Currently, those integration tests cannot run in CircleCI because the Bitbucket repository they access is only accessible through VPN.
+Currently, those integration tests cannot run in CircleCI because they try to use a Bitbucket repository that is now only accessible through VPN.
 
 Developers would need to run the tests locally to validate their changes.
+
 
 ## Deploy to dev instance
 
 For testing purposes, we recommend to use the [dev](https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/) instance.
 
-
 (For strict local dev loop, see this [document](https://bitbucket.org/atlassian/atlassian-frontend-landkid-deployment/src/master/development.md) )
 
 ### Workflow
-
 1. Push your changes to CircleCI
 2. Grab the image number from the `publish` step in CircleCI build from your PR in GitHub - for example: https://app.circleci.com/pipelines/github/atlassian/landkid/396/workflows/4445d64a-b96d-4f2c-bec4-f0d8d4a6b251/jobs/1499 -> `circle-1499`
 3. Access the [atlassian-frontend-landkid-deployment repository](https://bitbucket.org/atlassian/atlassian-frontend-landkid-deployment/src/master/)
@@ -27,18 +24,14 @@ For testing purposes, we recommend to use the [dev](https://atlassian-frontend-l
 ## Setup environment variables
 
 In this repository:
-
-1. Create your own copy of `cypress.env.json` - the file is `.gitignore` but make sure it is not committed by mistake.
+1. Create your own copy of `cypress.env.json` - the file is `.gitignore` but maake sure it is not committed by mistake.
 2. Ask access to the folder `Landkid credentials for testing` in LastPass
-3. Fill out the environment variables required
-
+3. Fill the environment variables required
 ```
 {
     "BITBUCKET_APP_PASSWORD": "bitbucket app password",
-    "LANDKID_SESSION_ID": "landkid.sid cookie from https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/, this is used by circleCI",
-    "LANDKID_DEV_SESSION_ID"; "this is used in the local dev loop, use the LANDKID_SESSION_ID value to test a dev deployment locally otherwise use the landkid.sid cookie in your local instance of landkid",
-    "LANDKID_DEV_URL": "https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/ to test a dev deployment or https://[basurl]/current-state for local testing",
-    "CUSTOM_TOKEN": "token for specific endpoints - use the HASHED_CUSTOM_TOKEN"
+    "LANDKID_SESSION_ID": "landkid.sid cookie from https://atlassian-frontend-landkid.dev.services.atlassian.com/current-state/",
+    "CUSTOM_TOKEN": "token for specific endpoints"
 }
 ```
 
