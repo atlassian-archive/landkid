@@ -40,6 +40,17 @@ declare namespace BB {
     task_count: number;
   };
 
+  type PullRequestTaskResponse = {
+    pagelen: number;
+    values: [
+      {
+        state: string;
+      },
+    ];
+    page: number;
+    size: number;
+  };
+
   type BuildStatusResponse = {
     name: string;
     state: BuildState;
