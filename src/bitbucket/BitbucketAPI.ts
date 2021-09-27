@@ -134,16 +134,6 @@ export class BitbucketAPI {
     return this.bitbucketMerger.cancelMergePolling(prId);
   };
 
-  getTaskCount = async (pullRequestId: number) => {
-    const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}/tasks`;
-    const resp = await axios.get<BB.PullRequestTaskResponse>(
-      endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
-    );
-    const data = resp.data;
-    return data.values.filter((task) => task.state === 'UNRESOLVED').length;
-  };
-
   getPullRequest = async (pullRequestId: number): Promise<BB.PullRequest> => {
     const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}`;
     const resp = await axios.get<BB.PullRequestResponse>(
@@ -152,8 +142,8 @@ export class BitbucketAPI {
     );
     const data = resp.data;
     const approvals = data.participants
-      .filter((participant) => participant.approved)
-      .map((participant) => participant.user.account_id);
+      .filter(participant => participant.approved)
+      .map(participant => participant.user.account_id);
 
     return {
       pullRequestId,
@@ -167,7 +157,7 @@ export class BitbucketAPI {
       state: data.state,
       sourceBranch: data.source.branch.name,
       approvals: approvals,
-      openTasks: await this.getTaskCount(pullRequestId),
+      openTasks: data.task_count,
     };
   };
 
@@ -181,8 +171,8 @@ export class BitbucketAPI {
     const allBuildStatuses = resp.data.values;
     // need to remove build statuses that we created or rerunning would be impossible
     return allBuildStatuses
-      .filter((buildStatus) => !buildStatus.name.match(/Pipeline #.+? for landkid/))
-      .map((status) => ({
+      .filter(buildStatus => !buildStatus.name.match(/Pipeline #.+? for landkid/))
+      .map(status => ({
         name: status.name,
         state: status.state,
         createdOn: new Date(status.created_on),
