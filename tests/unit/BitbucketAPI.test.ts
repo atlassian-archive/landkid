@@ -4,7 +4,7 @@ import { BitbucketAPI } from '../../src/bitbucket/BitbucketAPI';
 import { MergeOptions } from '../../src/types';
 
 jest.mock('axios');
-const mockedAxios = (axios as unknown) as jest.Mocked<typeof axios>;
+const mockedAxios = axios as unknown as jest.Mocked<typeof axios>;
 
 jest.mock('delay');
 
@@ -86,5 +86,24 @@ describe('mergePullRequest', () => {
         commitMessage: expect.stringContaining('[skip ci]'),
       }),
     );
+  });
+
+  test('Get task count, should call API and return the correct number of tasks UNRESOLVED', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        values: [
+          {
+            state: 'RESOLVED',
+          },
+          {
+            state: 'UNRESOLVED',
+          },
+        ],
+        page: 1,
+        size: 2,
+      },
+    });
+    const taskCount = await bitbucketAPI.getTaskCount(1);
+    expect(taskCount).toEqual(1);
   });
 });
