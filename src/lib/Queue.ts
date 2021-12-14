@@ -1,4 +1,5 @@
 import { LandRequestStatus, LandRequest, PullRequest } from '../db';
+import { Op } from 'sequelize';
 
 export class LandRequestQueue {
   public getStatusesForWaitingRequests = async () => {
@@ -6,6 +7,8 @@ export class LandRequestQueue {
       where: {
         isLatest: true,
         state: 'will-queue-when-ready',
+        // only retrieve requests from last 7 days
+        date: { [Op.gt]: new Date(new Date().getTime() - 7 * 1000 * 60 * 60 * 24) },
       },
       order: [['date', 'ASC']],
       include: [
