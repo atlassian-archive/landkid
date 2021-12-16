@@ -39,7 +39,6 @@ describe('Runner', () => {
 
   test('checkWaitingLandRequests should not run when next is running', async () => {
     const nextPromise = mockedRunner.next();
-    await wait(500);
     const checkPromise = mockedRunner.checkWaitingLandRequests();
     await Promise.all([nextPromise, checkPromise]);
     expect(loggerInfoSpy).toHaveBeenCalledWith('Next() called', expect.anything());
@@ -63,7 +62,6 @@ describe('Runner', () => {
 
   test('checkWaitingLandRequests should not run when it is already running', async () => {
     const checkPromise1 = mockedRunner.checkWaitingLandRequests();
-    await wait(500);
     const checkPromise2 = mockedRunner.checkWaitingLandRequests();
     await Promise.all([checkPromise1, checkPromise2]);
     expect(

@@ -20,6 +20,11 @@ import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
+// `check-waiting-requests` lock will be auto released after the time below
+// logs showed that it takes 2 hours and 20 mins to check about 140 waiting requests
+// 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
+const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -604,9 +609,7 @@ export class Runner {
         );
       },
       undefined,
-      // logs show that it takes 2 hours and 20 mins to check about 140 waiting requests
-      // 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
-      1000 * 60 * 60 * 3,
+      MAX_CHECK_WAITING_REQUESTS_TIME,
     );
   };
 
