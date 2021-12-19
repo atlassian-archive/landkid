@@ -8,11 +8,12 @@ export const withLock = async <T>(
   resource: string,
   fn: (lockId: Date) => Promise<T>,
   fallback: T,
+  ttl: number = 60000,
 ) => {
   let lock: RedLock.Lock;
   let lockId: Date;
   try {
-    lock = await redlock.lock(resource, 60000);
+    lock = await redlock.lock(resource, ttl);
     lockId = new Date();
     Logger.info(`Locked "${resource}"`, {
       namespace: 'lib:utils:locker:withLock',

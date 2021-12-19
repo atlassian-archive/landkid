@@ -20,6 +20,11 @@ import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
+// `check-waiting-requests` lock will be auto released after the time below
+// logs showed that it takes 2 hours and 20 mins to check about 140 waiting requests
+// 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
+const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -27,6 +32,11 @@ export class Runner {
     private client: BitbucketClient,
     private config: Config,
   ) {
+    this.init();
+  }
+
+  // put timers into a seperate class method, which makes it much easier for unit testing
+  init() {
     // call our checkWaitingLandRequests() function on an interval so that we are always clearing out waiting builds
     const timeBetweenChecksMins = 2;
     setInterval(() => {
@@ -551,44 +561,55 @@ export class Runner {
 
   checkWaitingLandRequests = async () => {
     await withLock(
-      'status-transition',
+      // this lock ensures we don't run multiple checks at the same time that might cause a race condition
+      'check-waiting-requests',
       async () => {
-        const waitingRequestStatuses = await this.queue.getStatusesForWaitingRequests();
+        await withLock(
+          // this lock ensures we don't run the check when we're running this.next()
+          'status-transition',
+          async () => {
+            const waitingRequestStatuses = await this.queue.getStatusesForWaitingRequests();
 
-        Logger.info('Checking for waiting landrequests ready to queue', {
-          namespace: 'lib:runner:checkWaitingLandRequests',
-          waitingRequestStatuses,
-        });
+            Logger.info('Checking for waiting landrequests ready to queue', {
+              namespace: 'lib:runner:checkWaitingLandRequests',
+              waitingRequestStatuses,
+            });
 
-        for (const landRequestStatus of waitingRequestStatuses) {
-          const landRequest = landRequestStatus.request;
-          const pullRequestId = landRequest.pullRequestId;
-          const triggererUserMode = await permissionService.getPermissionForUser(
-            landRequest.triggererAaid,
-          );
-          const isAllowedToLand = await this.isAllowedToLand(
-            pullRequestId,
-            triggererUserMode,
-            this.getQueue,
-          );
-
-          if (isAllowedToLand.errors.length === 0) {
-            if (isAllowedToLand.existingRequest) {
-              Logger.warn('Already has existing Land build', {
+            for (const landRequestStatus of waitingRequestStatuses) {
+              const landRequest = landRequestStatus.request;
+              const pullRequestId = landRequest.pullRequestId;
+              const triggererUserMode = await permissionService.getPermissionForUser(
+                landRequest.triggererAaid,
+              );
+              const isAllowedToLand = await this.isAllowedToLand(
                 pullRequestId,
-                landRequestId: landRequest.id,
-                landRequestStatus,
-                namespace: 'lib:runner:checkWaitingLandRequests',
-              });
-              await landRequest.setStatus('aborted', 'Already has existing Land build');
-              continue;
+                triggererUserMode,
+                this.getQueue,
+              );
+
+              if (isAllowedToLand.errors.length === 0) {
+                if (isAllowedToLand.existingRequest) {
+                  Logger.warn('Already has existing Land build', {
+                    pullRequestId,
+                    landRequestId: landRequest.id,
+                    landRequestStatus,
+                    namespace: 'lib:runner:checkWaitingLandRequests',
+                  });
+                  await landRequest.setStatus('aborted', 'Already has existing Land build');
+                  continue;
+                }
+                const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
+                if (movedState) return this.next();
+              }
             }
-            const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
-            if (movedState) return this.next();
-          }
-        }
+          },
+          undefined,
+          // release the lock immediately so that this.next() can keep running, set to 100 because ttl needs to be > 0
+          100,
+        );
       },
       undefined,
+      MAX_CHECK_WAITING_REQUESTS_TIME,
     );
   };
 
