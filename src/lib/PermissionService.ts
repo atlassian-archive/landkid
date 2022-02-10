@@ -12,7 +12,7 @@ class PermissionService {
     });
 
     if (!permission) {
-      const defaultMode: IPermissionMode = config.landkidAdmins.includes(aaid) ? 'admin' : 'read';
+      const defaultMode: IPermissionMode = config.landkidAdmins.includes(aaid) ? 'admin' : 'land';
       Logger.info('User does not exist, creating one', {
         namespace: 'lib:permissions:getPermissionForUser',
         defaultMode,
