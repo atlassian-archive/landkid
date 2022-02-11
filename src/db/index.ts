@@ -241,7 +241,7 @@ export class Permission extends Model<Permission> implements IPermission {
   readonly aaid: string;
 
   @AllowNull(false)
-  @Default('read')
+  @Default('land')
   @Column(Sequelize.ENUM({ values: ['read', 'land', 'admin'] }))
   readonly mode: IPermissionMode;
 
