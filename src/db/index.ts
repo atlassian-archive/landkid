@@ -12,6 +12,7 @@ import {
 } from 'sequelize-typescript';
 import * as path from 'path';
 import { config } from '../lib/Config';
+import { eventEmitter } from '../lib/Events';
 
 @Table
 export class Installation extends Model<Installation> {
@@ -107,6 +108,19 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
         },
         { transaction: t },
       );
+    });
+    eventEmitter.emit('LAND_REQUEST.STATUS.CHANGED', {
+      landRequestId: this.id,
+      pullRequestId: this.pullRequestId,
+      buildId: this.buildId,
+      author: this.pullRequest.authorAaid,
+      triggerer: this.triggererAaid,
+      commit: this.forCommit,
+      sourceBranch: this.pullRequest.sourceBranch,
+      targetBranch: this.pullRequest.targetBranch,
+      title: this.pullRequest.title,
+      state,
+      reason,
     });
     return true;
   };
