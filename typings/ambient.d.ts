@@ -70,6 +70,7 @@ declare interface IStatusUpdate {
 declare interface ISessionUser {
   aaid: string;
   username: string;
+  accountId: string;
   displayName: string;
   permission?: IPermissionMode;
 }

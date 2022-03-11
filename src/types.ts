@@ -4,10 +4,12 @@ import { Logger } from 'winston';
 export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
+  prAuthorAccountId: string;
   prTitle: string;
   prSourceBranch: string;
   prTargetBranch: string;
   triggererAaid: string;
+  triggererAccountId: string;
   commit: string;
 };
 

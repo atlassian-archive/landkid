@@ -45,6 +45,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.STRING)
   readonly triggererAaid: string;
 
+  // The actual atlassian account ID - triggererAaid is actually the bitbucket UUID
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly triggererAccountId: string;
+
   @AllowNull(true)
   @Column(Sequelize.INTEGER)
   buildId: number;
@@ -113,8 +118,8 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       landRequestId: this.id,
       pullRequestId: this.pullRequestId,
       buildId: this.buildId,
-      author: this.pullRequest.authorAaid,
-      triggerer: this.triggererAaid,
+      author: this.pullRequest.authorAccountId,
+      triggerer: this.triggererAccountId,
       commit: this.forCommit,
       sourceBranch: this.pullRequest.sourceBranch,
       targetBranch: this.pullRequest.targetBranch,
@@ -235,6 +240,11 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly authorAaid: string;
+
+  // The actual atlassian account ID - authorAaid is actually the bitbucket UUID
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly authorAccountId: string;
 
   @AllowNull(false)
   @Column(Sequelize.STRING)

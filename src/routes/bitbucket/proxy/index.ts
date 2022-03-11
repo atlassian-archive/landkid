@@ -21,6 +21,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const { aaid, pullRequestId } = req.query as {
         aaid: string;
         pullRequestId: string;
+        accountId: string;
       };
       const prId = parseInt(pullRequestId, 10);
 
@@ -76,7 +77,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/land',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId, commit } = req.query as Record<string, string>;
+      const { aaid, pullRequestId, commit, accountId } = req.query as Record<string, string>;
       const prId = parseInt(pullRequestId, 10);
       Logger.verbose('Request to land', {
         namespace: 'routes:bitbucket:proxy:land',
@@ -100,9 +101,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const landRequest: LandRequestOptions = {
         prId,
         triggererAaid: aaid,
+        triggererAccountId: accountId,
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prAuthorAccountId: prInfo.author,
         prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };
@@ -129,7 +132,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/land-when-able',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId, commit } = req.query as Record<string, string>;
+      const { aaid, pullRequestId, commit, accountId } = req.query as Record<string, string>;
       const prId = parseInt(pullRequestId, 10);
       Logger.verbose('Request to land when able', {
         namespace: 'routes:bitbucket:proxy:land-when-able',
@@ -148,9 +151,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const landRequest: LandRequestOptions = {
         prId,
         triggererAaid: aaid,
+        triggererAccountId: accountId,
         commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prAuthorAccountId: prInfo.author,
         prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };

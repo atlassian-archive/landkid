@@ -481,6 +481,7 @@ export class Runner {
       pr = await PullRequest.create<PullRequest>({
         prId: landRequestOptions.prId,
         authorAaid: landRequestOptions.prAuthorAaid,
+        authorAccountId: landRequestOptions.prAuthorAccountId,
         title: landRequestOptions.prTitle,
       });
     }
@@ -492,6 +493,7 @@ export class Runner {
 
     return LandRequest.create<LandRequest>({
       triggererAaid: landRequestOptions.triggererAaid,
+      triggererAccountId: landRequestOptions.triggererAccountId,
       pullRequestId: pr.prId,
       forCommit: landRequestOptions.commit,
     });
