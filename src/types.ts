@@ -77,7 +77,7 @@ export type EventData = {
 
 type EventListener = {
   event: string;
-  listener: (data: EventData) => void;
+  listener: (data: EventData, { Logger }: { Logger: Logger }) => void;
 };
 
 export type Config = {
