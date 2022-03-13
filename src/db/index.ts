@@ -46,7 +46,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   readonly triggererAaid: string;
 
   // The actual atlassian account ID - triggererAaid is actually the bitbucket UUID
-  @AllowNull(false)
+  @AllowNull(true)
   @Column(Sequelize.STRING)
   readonly triggererAccountId: string;
 
@@ -242,7 +242,7 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   readonly authorAaid: string;
 
   // The actual atlassian account ID - authorAaid is actually the bitbucket UUID
-  @AllowNull(false)
+  @AllowNull(true)
   @Column(Sequelize.STRING)
   readonly authorAccountId: string;
 
