@@ -98,6 +98,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   };
 
   setStatus = async (state: LandRequestStatus['state'], reason?: string, date?: Date) => {
+    const prevStatus = await this.getStatus();
     await this.sequelize.transaction(async (t) => {
       // First we'll check if there is an old status for this LandRequest
       await LandRequestStatus.update(
@@ -135,6 +136,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       title: this.pullRequest?.title,
       state,
       reason,
+      prevState: prevStatus?.state,
     });
     return true;
   };
