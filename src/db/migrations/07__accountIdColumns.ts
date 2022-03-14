@@ -10,7 +10,7 @@ export default {
       });
     });
     return query.describeTable('PullRequest').then((table: any) => {
-      if (table.triggererAccountId) return;
+      if (table.authorAccountId) return;
       return query.addColumn('PullRequest', 'authorAccountId', {
         type: Sequelize.STRING,
         allowNull: true,
