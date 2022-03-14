@@ -187,11 +187,11 @@ export class Runner {
         dependencies.map((queueItem) => queueItem.request.pullRequestId).join(', ');
     }
 
-    await landRequest.setStatus('running', depPrsStr);
-
     // Todo: these should really be functions on landRequest
     landRequest.buildId = buildId;
     landRequest.dependsOn = dependsOnStr;
+    await landRequest.setStatus('running', depPrsStr);
+
     const newLandRequest = await landRequest.save();
 
     Logger.info('LandRequest now running', {
