@@ -9,6 +9,7 @@ import {
   HasMany,
   ForeignKey,
   BelongsTo,
+  AfterCreate,
 } from 'sequelize-typescript';
 import * as path from 'path';
 import { config } from '../lib/Config';
@@ -77,6 +78,14 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Default(0)
   @Column(Sequelize.INTEGER)
   priority: number;
+
+  /* Reload the instance after creation so that we eagerly load associations
+   * see https://github.com/sequelize/sequelize/issues/3807#issuecomment-438237173
+   */
+  @AfterCreate
+  static reload(instance: LandRequest) {
+    instance.reload();
+  }
 
   getStatus = async () => {
     return LandRequestStatus.findOne<LandRequestStatus>({

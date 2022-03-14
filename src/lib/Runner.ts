@@ -491,12 +491,17 @@ export class Runner {
     pr.sourceBranch = landRequestOptions.prSourceBranch;
     await pr.save();
 
-    return LandRequest.create<LandRequest>({
-      triggererAaid: landRequestOptions.triggererAaid,
-      triggererAccountId: landRequestOptions.triggererAccountId,
-      pullRequestId: pr.prId,
-      forCommit: landRequestOptions.commit,
-    });
+    return LandRequest.create<LandRequest>(
+      {
+        triggererAaid: landRequestOptions.triggererAaid,
+        triggererAccountId: landRequestOptions.triggererAccountId,
+        pullRequestId: pr.prId,
+        forCommit: landRequestOptions.commit,
+      },
+      {
+        include: [PullRequest],
+      },
+    );
   };
 
   enqueue = async (landRequestOptions: LandRequestOptions) => {
