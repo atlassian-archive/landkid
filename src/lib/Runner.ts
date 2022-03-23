@@ -68,6 +68,7 @@ export class Runner {
   };
 
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
+    if (await this.getPauseState()) return;
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
     const runningTargetingSameBranch = running.filter(
