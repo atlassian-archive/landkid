@@ -20,17 +20,24 @@ const returnAfter3Seconds = async () => {
   return [];
 };
 
-describe('Runner', () => {
-  let mockedQueue: any;
-  let mockedRunner: any;
+const pauseRunner = (runner: Runner) => {
+  jest.spyOn(runner, 'getPauseState').mockImplementationOnce(() => Promise.resolve({} as any));
+};
+
+const mockRunner = () => {
+  const mockedQueue: any = {
+    getStatusesForWaitingRequests: jest.fn().mockImplementation(returnAfter3Seconds),
+    getQueue: jest.fn().mockImplementation(returnAfter3Seconds),
+  };
+  jest.spyOn(Runner.prototype, 'init').mockImplementation();
+  return new Runner(mockedQueue, {} as any, {} as any, {} as any);
+};
+
+describe('Check waiting land requests', () => {
+  let mockedRunner: Runner;
 
   beforeAll(() => {
-    jest.spyOn(Runner.prototype, 'init').mockImplementation();
-    mockedQueue = {
-      getStatusesForWaitingRequests: jest.fn().mockImplementation(returnAfter3Seconds),
-      getQueue: jest.fn().mockImplementation(returnAfter3Seconds),
-    };
-    mockedRunner = new Runner(mockedQueue, {} as any, {} as any, {} as any);
+    mockedRunner = mockRunner();
   });
 
   beforeEach(() => {
@@ -69,5 +76,25 @@ describe('Runner', () => {
         (call) => call[0] === 'Checking for waiting landrequests ready to queue',
       ),
     ).toHaveLength(1);
+  });
+});
+
+describe('Pause builds', () => {
+  let mockedRunner: Runner;
+  let getRunningSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    mockedRunner = mockRunner();
+    getRunningSpy = jest.spyOn(mockedRunner, 'getRunning');
+  });
+
+  beforeEach(() => {
+    getRunningSpy.mockClear();
+  });
+
+  test('moveFromQueueToRunning will not run when paused', async () => {
+    pauseRunner(mockedRunner);
+    await mockedRunner.moveFromQueueToRunning({} as any, {} as any);
+    expect(getRunningSpy).not.toHaveBeenCalled();
   });
 });
