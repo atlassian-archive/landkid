@@ -1,9 +1,9 @@
-FROM node:12.22.7-buster-slim
+FROM node:16-alpine
 
 WORKDIR /opt/service
 
 # update all OS dependencies to prevent vuln's
-RUN apt-get update && apt-get -y upgrade
+RUN apk update && apk upgrade apk-tools
 
 # Copy PJ, changes should invalidate entire image
 COPY package.json yarn.lock /opt/service/
