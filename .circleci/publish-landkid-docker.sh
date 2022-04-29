@@ -16,6 +16,11 @@ export REPO=atlassianlabs/landkid
 # Target tag, latest on master, branch otherwise
 export TAG=`if [ "$CIRCLE_BRANCH" == "master" ]; then echo "latest"; else echo $CIRCLE_BRANCH ; fi`
 
+echo "CIRCLE_BRANCH"
+echo $CIRCLE_BRANCH
+echo "TAG"
+echo $TAG
+
 docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 docker build -f Dockerfile -t $REPO:$COMMIT .
 docker tag $REPO:$COMMIT $REPO:$TAG
