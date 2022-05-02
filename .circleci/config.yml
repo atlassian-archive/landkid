@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:12.20 
+      - image: cimg/node:16.14
     working_directory: ~/repo
     steps:
       - checkout
@@ -20,7 +20,7 @@ jobs:
 
   publish:
     docker:
-      - image: cimg/node:12.20 
+      - image: cimg/node:16.14
     working_directory: ~/repo
     steps:
       - checkout
@@ -41,7 +41,7 @@ jobs:
 
   unit_test:
     docker:
-      - image: cimg/node:12.20 
+      - image: cimg/node:16.14
     working_directory: ~/repo
     steps:
       - checkout
@@ -55,7 +55,7 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run: yarn test:unit
-  
+
   # TODO: Integration tests do not work anymore as Bitbucket is only accessible behind VPN.
   # Refer to TESTING.md at the root of the repository.
   # integration_test:

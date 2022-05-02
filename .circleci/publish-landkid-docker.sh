@@ -20,4 +20,5 @@ docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 docker build -f Dockerfile -t $REPO:$COMMIT .
 docker tag $REPO:$COMMIT $REPO:$TAG
 docker tag $REPO:$COMMIT $REPO:circle-$CIRCLE_BUILD_NUM
-docker push $REPO
+docker push $REPO:$TAG
+docker push $REPO:circle-$CIRCLE_BUILD_NUM
