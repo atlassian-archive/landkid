@@ -4,10 +4,12 @@ import { Logger } from 'winston';
 export type LandRequestOptions = {
   prId: number;
   prAuthorAaid: string;
+  prAuthorAccountId: string;
   prTitle: string;
   prSourceBranch: string;
   prTargetBranch: string;
   triggererAaid: string;
+  triggererAccountId: string;
   commit: string;
 };
 
@@ -77,7 +79,7 @@ export type EventData = {
 
 type EventListener = {
   event: string;
-  listener: (data: EventData) => void;
+  listener: (data: EventData, { Logger }: { Logger: Logger }) => void;
 };
 
 export type Config = {

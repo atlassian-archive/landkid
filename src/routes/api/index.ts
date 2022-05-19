@@ -261,9 +261,13 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         prId,
         // Must always have a valid aaid, so lets set it to Luke's aaid
         triggererAaid: req.user ? req.user.aaid : '557057:9512f4e4-3319-4d30-a78d-7d5f8ed243ae',
+        triggererAccountId: req.user
+          ? req.user.accountId
+          : '557057:9512f4e4-3319-4d30-a78d-7d5f8ed243ae',
         commit: prInfo.commit,
         prTitle: prInfo.title,
         prAuthorAaid: prInfo.authorAaid,
+        prAuthorAccountId: prInfo.author,
         prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
       };

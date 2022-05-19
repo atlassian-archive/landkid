@@ -37,6 +37,7 @@ export function initializePassport(oAuthConfig: OAuthConfig) {
             aaid: userResponse.data.uuid,
             username: userResponse.data.username,
             displayName: userResponse.data.display_name,
+            accountId: userResponse.data.account_id,
           };
 
           Logger.info('User logged in', {

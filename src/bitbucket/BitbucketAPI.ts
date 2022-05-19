@@ -201,6 +201,7 @@ export class BitbucketAPI {
       username: resp.data.username,
       aaid: resp.data.uuid,
       displayName: resp.data.display_name,
+      accountId: resp.data.account_id,
     };
   };
 

@@ -11,7 +11,7 @@ export const initializeEventListeners = () => {
     config.eventListeners.forEach(({ event, listener }) => {
       eventEmitter.addListener(event, (data?: EventData) => {
         Logger.info(`Emitting event ${event}`, { data });
-        listener(data || {});
+        listener(data || {}, { Logger });
       });
     });
   }

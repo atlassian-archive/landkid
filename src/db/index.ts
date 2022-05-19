@@ -9,9 +9,11 @@ import {
   HasMany,
   ForeignKey,
   BelongsTo,
+  AfterCreate,
 } from 'sequelize-typescript';
 import * as path from 'path';
 import { config } from '../lib/Config';
+import { eventEmitter } from '../lib/Events';
 
 @Table
 export class Installation extends Model<Installation> {
@@ -44,6 +46,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.STRING)
   readonly triggererAaid: string;
 
+  // The actual atlassian account ID - triggererAaid is actually the bitbucket UUID
+  @AllowNull(true)
+  @Column(Sequelize.STRING)
+  readonly triggererAccountId: string;
+
   @AllowNull(true)
   @Column(Sequelize.INTEGER)
   buildId: number;
@@ -72,6 +79,14 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   priority: number;
 
+  /* Reload the instance after creation so that we eagerly load associations
+   * see https://github.com/sequelize/sequelize/issues/3807#issuecomment-438237173
+   */
+  @AfterCreate
+  static reload(instance: LandRequest) {
+    instance.reload();
+  }
+
   getStatus = async () => {
     return LandRequestStatus.findOne<LandRequestStatus>({
       where: {
@@ -83,6 +98,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   };
 
   setStatus = async (state: LandRequestStatus['state'], reason?: string, date?: Date) => {
+    const prevStatus = await this.getStatus();
     await this.sequelize.transaction(async (t) => {
       // First we'll check if there is an old status for this LandRequest
       await LandRequestStatus.update(
@@ -107,6 +123,20 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
         },
         { transaction: t },
       );
+    });
+    eventEmitter.emit('LAND_REQUEST.STATUS.CHANGED', {
+      landRequestId: this.id,
+      pullRequestId: this.pullRequestId,
+      buildId: this.buildId,
+      author: this.pullRequest?.authorAccountId,
+      triggerer: this.triggererAccountId,
+      commit: this.forCommit,
+      sourceBranch: this.pullRequest?.sourceBranch,
+      targetBranch: this.pullRequest?.targetBranch,
+      title: this.pullRequest?.title,
+      state,
+      reason,
+      prevState: prevStatus?.state,
     });
     return true;
   };
@@ -221,6 +251,11 @@ export class PullRequest extends Model<PullRequest> implements IPullRequest {
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly authorAaid: string;
+
+  // The actual atlassian account ID - authorAaid is actually the bitbucket UUID
+  @AllowNull(true)
+  @Column(Sequelize.STRING)
+  readonly authorAccountId: string;
 
   @AllowNull(false)
   @Column(Sequelize.STRING)

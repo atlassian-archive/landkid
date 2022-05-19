@@ -188,11 +188,11 @@ export class Runner {
         dependencies.map((queueItem) => queueItem.request.pullRequestId).join(', ');
     }
 
-    await landRequest.setStatus('running', depPrsStr);
-
     // Todo: these should really be functions on landRequest
     landRequest.buildId = buildId;
     landRequest.dependsOn = dependsOnStr;
+    await landRequest.setStatus('running', depPrsStr);
+
     const newLandRequest = await landRequest.save();
 
     Logger.info('LandRequest now running', {
@@ -482,6 +482,7 @@ export class Runner {
       pr = await PullRequest.create<PullRequest>({
         prId: landRequestOptions.prId,
         authorAaid: landRequestOptions.prAuthorAaid,
+        authorAccountId: landRequestOptions.prAuthorAccountId,
         title: landRequestOptions.prTitle,
       });
     }
@@ -491,11 +492,17 @@ export class Runner {
     pr.sourceBranch = landRequestOptions.prSourceBranch;
     await pr.save();
 
-    return LandRequest.create<LandRequest>({
-      triggererAaid: landRequestOptions.triggererAaid,
-      pullRequestId: pr.prId,
-      forCommit: landRequestOptions.commit,
-    });
+    return LandRequest.create<LandRequest>(
+      {
+        triggererAaid: landRequestOptions.triggererAaid,
+        triggererAccountId: landRequestOptions.triggererAccountId,
+        pullRequestId: pr.prId,
+        forCommit: landRequestOptions.commit,
+      },
+      {
+        include: [PullRequest],
+      },
+    );
   };
 
   enqueue = async (landRequestOptions: LandRequestOptions) => {
