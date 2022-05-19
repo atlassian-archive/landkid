@@ -8,7 +8,7 @@ import { LandRequestStatus } from '../db';
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
   if (creatorCanApprove) return approvals;
-  return approvals.filter(approval => approval !== creator);
+  return approvals.filter((approval) => approval !== creator);
 }
 
 export class BitbucketClient {
@@ -30,7 +30,7 @@ export class BitbucketClient {
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
       isGreen:
-        buildStatuses.every(status => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
+        buildStatuses.every((status) => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
@@ -47,21 +47,19 @@ export class BitbucketClient {
     });
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
-      errors.push(
-        'Pull Request needs all tasks completed (you might need to open and reclose them!)',
-      );
+      errors.push('All tasks must be resolved');
     }
 
     if (prSettings.requiredApprovals && !approvalChecks.isApproved) {
-      errors.push('Pull request needs to be approved');
+      errors.push('Must be approved');
     }
 
     if (prSettings.requireGreenBuild && !approvalChecks.isGreen) {
-      errors.push('Pull Request needs a green build');
+      errors.push('Must have a successful build');
     }
 
     if (!approvalChecks.isOpen) {
-      errors.push('PR is already closed!');
+      errors.push('Pull request is already closed');
     } else {
       const pullRequestInfo = {
         pullRequest,

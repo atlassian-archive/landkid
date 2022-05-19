@@ -50,7 +50,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errors.push(...landChecks.errors);
           if (landChecks.existingRequest) {
             existingRequest = true;
-            errors.push('This PR has already been queued, patience young padawan');
+            errors.push('Pull request has already been queued');
           }
         }
       } else {
