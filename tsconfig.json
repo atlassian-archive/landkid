@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "jsx": "react-jsx"
   },
-  "exclude": ["node_modules", "tests"]
+  "exclude": ["node_modules", "tests"],
+  "allowSyntheticDefaultImports": true,
+  "esModuleInterop": true
 }
