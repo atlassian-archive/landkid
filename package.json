@@ -30,9 +30,18 @@
     "dev": "yarn build:server && concurrently \"webpack-dev-server\" \"tsc -w\" \"nodemon ./dist --watch dist --watch config.js --watch rules --delay 1\"",
     "precommit": "node tools/test-local.js --revert && lint-staged",
     "migrate": "ts-node src/db/MigrationService.ts",
-    "tunnel": "./tools/tunnel.sh"
+    "tunnel": "./tools/tunnel.sh",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "devDependencies": {
+    "@babel/core": "^7.17.12",
+    "@storybook/addon-actions": "^6.4.22",
+    "@storybook/addon-essentials": "^6.4.22",
+    "@storybook/addon-interactions": "^6.4.22",
+    "@storybook/addon-links": "^6.4.22",
+    "@storybook/react": "^6.4.22",
+    "@storybook/testing-library": "^0.0.11",
     "@types/body-parser": "^1.17.0",
     "@types/connect-redis": "0.0.16",
     "@types/express": "^4.16.0",
@@ -51,6 +60,7 @@
     "@types/redis": "^2.8.28",
     "@types/redlock": "^3.0.2",
     "@types/umzug": "^2.2.2",
+    "babel-loader": "^8.2.5",
     "cache-loader": "^1.2.5",
     "concurrently": "^4.1.0",
     "cypress": "^8.3.1",
@@ -76,7 +86,11 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@atlaskit/button": "^16.3.1",
+    "@atlaskit/css-reset": "^6.3.13",
     "@atlaskit/pagination": "^8.0.5",
+    "@atlaskit/section-message": "^6.1.12",
+    "@atlaskit/spinner": "^15.1.11",
     "@types/micromatch": "^4.0.1",
     "atlassian-jwt": "^1.0.1",
     "axios": "^0.21.4",
