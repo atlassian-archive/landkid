@@ -1,0 +1,25 @@
+name: Docker deployment
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  build:
+    permissions:
+      contents: read
+      id-token: write
+  steps:
+    - uses: CultureHQ/actions-yarn@v1.0.1
+    - run: yarn
+    - run: yarn build
+    - name: Get Artifact Publish Token
+      id: publish-token
+      uses: atlassian-labs/artifact-publish-token@v1.0.3
+      with:
+        output-modes: maven
+    - name: Publish artifact
+      run: mvn release:perform
