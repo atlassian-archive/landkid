@@ -69,12 +69,6 @@ workflows:
   build:
     jobs:
       - build
-      - publish:
-          requires:
-            - build
-          filters:
-            branches:
-              only: /^(?!pull\/).*$/
   unit_test:
     jobs:
       - unit_test
