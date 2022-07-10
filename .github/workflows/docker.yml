@@ -10,10 +10,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
     permissions:
       contents: read
       id-token: write
     steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
       - uses: CultureHQ/actions-yarn@v1.0.1
       - run: yarn
       - run: yarn build
