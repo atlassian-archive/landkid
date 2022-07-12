@@ -31,11 +31,12 @@ jobs:
         uses: atlassian-labs/artifact-publish-token@v1.0.4
         with:
           output-modes: environment
+      - run: export HOST=docker-public.packages.atlassian.com/
       - run: export REPO=atlassianlabs/landkid
       - run: export TAG=`if [ "${GITHUB_REF##*/}" == "master" ]; then echo "latest"; else echo $GITHUB_REF ; fi`
-      - run: docker login docker-public.packages.atlassian.com --username $ARTIFACTORY_USERNAME --password $ARTIFACTORY_API_KEY
+      - run: docker login $HOST --username $ARTIFACTORY_USERNAME --password $ARTIFACTORY_API_KEY
       - run: docker build -f Dockerfile -t $REPO:$GITHUB_SHA .
-      - run: docker tag $REPO:$GITHUB_SHA $REPO:$TAG
-      - run: docker tag $REPO:$GITHUB_SHA $REPO:action-${{github.run_number}}
-      - run: docker push $REPO:$TAG
-      - run: docker push $REPO:action-${{github.run_number}}
+      - run: docker tag $REPO:$GITHUB_SHA $HOST$REPO:$TAG
+      - run: docker tag $REPO:$GITHUB_SHA $HOST$REPO:action-${{github.run_number}}
+      - run: docker push $HOST$REPO:$TAG
+      - run: docker push $HOST$REPO:action-${{github.run_number}}
