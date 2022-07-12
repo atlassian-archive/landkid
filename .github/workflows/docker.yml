@@ -37,7 +37,7 @@ jobs:
           export TAG=`if [ "${GITHUB_REF##*/}" == "master" ]; then echo "latest"; else echo $GITHUB_REF ; fi`
           echo "${ARTIFACTORY_API_KEY}" | docker login docker-public.packages.atlassian.com -u "${ARTIFACTORY_USERNAME}" --password-stdin
           docker build -f Dockerfile -t $REPO:$GITHUB_SHA .
-          docker tag $REPO:$GITHUB_SHA $REPO:$TAG
-          docker tag $REPO:$GITHUB_SHA $REPO:action-${{github.run_number}}
-          docker push $REPO:$TAG
-          docker push $REPO:action-${{github.run_number}}
+          docker tag $REPO:$GITHUB_SHA docker-public.packages.atlassian.com/$REPO:$TAG
+          docker tag $REPO:$GITHUB_SHA docker-public.packages.atlassian.com/$REPO:action-${{github.run_number}}
+          docker push docker-public.packages.atlassian.com/$REPO:$TAG
+          docker push docker-public.packages.atlassian.com/$REPO:action-${{github.run_number}}
