@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  publish:
+    name: Publish Image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: CultureHQ/actions-yarn@v1.0.1
+      - run: yarn
+      - run: yarn build
+      - name: Get Artifact Publish Token
+        id: publish-token
+        uses: atlassian-labs/artifact-publish-token@v1.0.3
+      - name: Publish artifact
+        run: |
+          export REPO=atlassianlabs/landkid
+          export TAG=`if [ "${GITHUB_REF##*/}" == "master" ]; then echo "latest"; else echo $GITHUB_REF ; fi`
+          docker login docker-public.packages.atlassian.com --username $ARTIFACTORY_USERNAME --password $ARTIFACTORY_API_KEY
+          docker build -f Dockerfile -t $REPO:$GITHUB_SHA .
+          docker tag $REPO:$GITHUB_SHA $REPO:$TAG
+          docker tag $REPO:$GITHUB_SHA $REPO:action-${{github.run_number}}
+          docker push $REPO:$TAG
+          docker push $REPO:action-${{github.run_number}}
