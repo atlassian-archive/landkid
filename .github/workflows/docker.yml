@@ -1,11 +1,12 @@
-name: Docker deployment
+name: CI
 on:
   push:
     branches:
       - master
   workflow_dispatch:
 jobs:
-  build:
+  publish:
+    name: Publish Image
     runs-on: ubuntu-latest
     strategy:
       matrix:
