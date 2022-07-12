@@ -28,7 +28,9 @@ jobs:
       - run: yarn build
       - name: Get Artifact Publish Token
         id: publish-token
-        uses: atlassian-labs/artifact-publish-token@v1.0.3
+        uses: atlassian-labs/artifact-publish-token@v1.0.4
+        with:
+          output-modes: environment
       - name: Publish artifact
         run: |
           export REPO=atlassianlabs/landkid
