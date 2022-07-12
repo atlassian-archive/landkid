@@ -34,7 +34,7 @@ jobs:
       - run: export HOST=docker-public.packages.atlassian.com/
       - run: export REPO=atlassianlabs/landkid
       - run: export TAG=`if [ "${GITHUB_REF##*/}" == "master" ]; then echo "latest"; else echo $GITHUB_REF ; fi`
-      - run: docker login docker-public.packages.atlassian.com -u "${ARTIFACTORY_USERNAME}" --password-stdin
+      - run: echo "${ARTIFACTORY_API_KEY}" | docker login docker-public.packages.atlassian.com -u "${ARTIFACTORY_USERNAME}" --password-stdin
       - run: docker build -f Dockerfile -t $REPO:$GITHUB_SHA .
       - run: docker tag $REPO:$GITHUB_SHA $HOST$REPO:$TAG
       - run: docker tag $REPO:$GITHUB_SHA $HOST$REPO:action-${{github.run_number}}
