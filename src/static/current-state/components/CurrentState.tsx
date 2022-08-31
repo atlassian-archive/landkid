@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 import { Section } from './Section';
 import { Badge } from './Badge';
@@ -32,7 +32,7 @@ let styles = css({
 
 export type Props = RunnerState;
 
-export const CurrentState: React.FunctionComponent<Props> = props => {
+export const CurrentState: React.FunctionComponent<Props> = (props) => {
   const { daysSinceLastFailure, queue, pauseState } = props;
   const fancyDaysSinceLastFailure = daysSinceLastFailure === -1 ? '∞' : daysSinceLastFailure;
 

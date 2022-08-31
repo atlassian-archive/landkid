@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 
 import { LozengeAppearance } from './types';
@@ -51,7 +51,7 @@ export type Props = {
   title?: string;
 };
 
-export const Lozenge: React.FunctionComponent<Props> = props => {
+export const Lozenge: React.FunctionComponent<Props> = (props) => {
   let selectedApperance = props.appearance ? appearance[props.appearance] : appearance.default;
 
   return (

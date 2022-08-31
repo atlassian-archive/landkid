@@ -1,4 +1,4 @@
-import * as Redis from 'ioredis-mock';
+import Redis from 'ioredis-mock';
 import { Logger } from '../../src/lib/Logger';
 import { Runner } from '../../src/lib/Runner';
 

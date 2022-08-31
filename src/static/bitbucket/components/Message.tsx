@@ -5,6 +5,7 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
@@ -103,14 +104,18 @@ const Message = ({
   return (
     <div
       style={{
-        // Prevents cumulative layout shift caused by slow loads
-        height: 200,
+        // Fixed height prevents cumulative layout shift caused by slow loads
+        height: 270,
         overflowY: 'auto',
       }}
     >
       {bannerMessage && (
         <div style={{ marginBottom: 15 }}>
-          <SectionMessage appearance={bannerMessage.messageType}>
+          <SectionMessage
+            appearance={
+              bannerMessage.messageType === 'default' ? 'information' : bannerMessage.messageType
+            }
+          >
             {bannerMessage.message}
           </SectionMessage>
         </div>
@@ -119,17 +124,23 @@ const Message = ({
         title={messageTitle[status]}
         appearance={messageAppearance[status]}
         actions={[
-          status === 'queued' && (
-            <SectionMessageAction href="/current-state">View queue</SectionMessageAction>
-          ),
-          status === 'cannot-land' && (
-            <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>
-          ),
-          canLandWhenAble && status === 'cannot-land' && (
-            <SectionMessageAction onClick={onLandWhenAbleClicked}>
-              Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
-            </SectionMessageAction>
-          ),
+          ...(status === 'queued'
+            ? [<SectionMessageAction href="/current-state">View queue</SectionMessageAction>]
+            : []),
+          ...(status === 'cannot-land'
+            ? [
+                <SectionMessageAction onClick={onCheckAgainClicked}>
+                  Check again
+                </SectionMessageAction>,
+              ]
+            : []),
+          ...(canLandWhenAble && status === 'cannot-land'
+            ? [
+                <SectionMessageAction onClick={onLandWhenAbleClicked}>
+                  Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
+                </SectionMessageAction>,
+              ]
+            : []),
           <SectionMessageAction href="/">Learn about Landkid</SectionMessageAction>,
         ]}
       >
@@ -137,6 +148,23 @@ const Message = ({
       </SectionMessage>
       {status === 'can-land' && (
         <div style={{ marginTop: 15 }}>
+          <Confetti
+            active={loading === 'land'}
+            config={{
+              angle: 20,
+              spread: 58,
+              startVelocity: 50,
+              elementCount: 70,
+              dragFriction: 0.12,
+              duration: 3000,
+              stagger: 3,
+              width: '10px',
+              height: '10px',
+              // Missing type
+              // @ts-ignore
+              perspective: '500px',
+            }}
+          />
           <Button appearance="primary" onClick={onLandClicked} isLoading={loading === 'land'}>
             Land
           </Button>

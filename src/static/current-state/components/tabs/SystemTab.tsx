@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { TabContent } from './TabContent';
 import { Messenger } from './Messenger';
 import { UsersList } from './UsersList';

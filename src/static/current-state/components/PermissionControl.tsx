@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 export type Props = {
   user: ISessionUser;
@@ -20,7 +20,7 @@ export class PermissionControl extends React.Component<Props, State> {
     };
   }
 
-  onPermissionChange: React.ChangeEventHandler<HTMLSelectElement> = e => {
+  onPermissionChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
     const mode = e.target.value as IPermissionMode;
     this.setState({ loading: true }, () => {
       fetch(`/api/permission/${this.props.user.aaid}`, {

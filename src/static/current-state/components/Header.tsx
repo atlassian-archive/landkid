@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Logo } from './Logo';
 import { css } from 'emotion';
 

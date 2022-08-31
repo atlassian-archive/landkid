@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 
 import { BadgeAppearance } from './types';
@@ -37,7 +37,7 @@ export type Props = {
   appearance?: BadgeAppearance;
 };
 
-export const Badge: React.FunctionComponent<Props> = props => {
+export const Badge: React.FunctionComponent<Props> = (props) => {
   let selectedAppearance = props.appearance ? appearance[props.appearance] : appearance.default;
   return (
     <span className={styles} style={selectedAppearance}>

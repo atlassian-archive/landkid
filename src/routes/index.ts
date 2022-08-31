@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as path from 'path';
+import express from 'express';
+import path from 'path';
 
 import { config } from '../lib/Config';
 import { Runner } from '../lib/Runner';

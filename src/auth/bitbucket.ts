@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as passport from 'passport';
+import passport from 'passport';
 import { Strategy, VerifyCallback } from 'passport-oauth2';
 import { Logger } from '../lib/Logger';
 import { config } from '../lib/Config';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 import { Section } from '../Section';
 import { SystemTab } from './SystemTab';

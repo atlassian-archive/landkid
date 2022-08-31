@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 import { Sequelize } from 'sequelize';
-import * as Umzug from 'umzug';
+import Umzug from 'umzug';
 import { Config } from '../types';
 
 export class MigrationService {
@@ -29,12 +29,26 @@ export class MigrationService {
   async logStatus() {
     this.migrator
       .pending()
-      .then(pending => {
-        console.log('PENDING:', JSON.stringify(pending.map(p => p.file), null, 2));
+      .then((pending) => {
+        console.log(
+          'PENDING:',
+          JSON.stringify(
+            pending.map((p) => p.file),
+            null,
+            2,
+          ),
+        );
         return this.migrator.executed();
       })
-      .then(executed => {
-        console.log('EXECUTED:', JSON.stringify(executed.map(e => e.file), null, 2));
+      .then((executed) => {
+        console.log(
+          'EXECUTED:',
+          JSON.stringify(
+            executed.map((e) => e.file),
+            null,
+            2,
+          ),
+        );
       });
   }
 

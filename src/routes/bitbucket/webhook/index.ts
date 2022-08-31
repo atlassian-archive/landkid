@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 
 import { Runner } from '../../../lib/Runner';
 import { BitbucketClient } from '../../../bitbucket/BitbucketClient';
