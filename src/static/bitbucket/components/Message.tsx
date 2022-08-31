@@ -9,6 +9,7 @@ import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
+import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
 
 type Status =
@@ -95,6 +96,9 @@ const Message = ({
             <div className={loadingRectangleStyles} style={{ width: '60%' }} />
           </>
         );
+      }
+      case 'queued': {
+        return <Queue />;
       }
       case 'cannot-land': {
         return <>This pull request cannot land until the criteria below has been met.</>;
