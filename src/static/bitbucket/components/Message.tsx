@@ -10,7 +10,6 @@ import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
-import type { ReactElement } from 'react';
 
 type Status =
   | 'checking-can-land'
