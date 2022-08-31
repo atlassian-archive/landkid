@@ -104,7 +104,7 @@ const Message = ({
     <div
       style={{
         // Prevents cumulative layout shift caused by slow loads
-        height: 200,
+        height: 270,
         overflowY: 'auto',
       }}
     >
