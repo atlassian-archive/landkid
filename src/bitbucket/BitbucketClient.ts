@@ -4,6 +4,7 @@ import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
 import { LandRequestStatus } from '../db';
+import MeasureTime from '../measureTime';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
@@ -18,8 +19,11 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
+    const check = new MeasureTime()
     const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
+    check.measure('getPullRequest', 'isAllowedToMerge')
     const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
+    check.measure('getPullRequestBuildStatuses', 'isAllowedToMerge')
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -68,14 +72,16 @@ export class BitbucketClient {
         permissionLevel,
       };
       if (prSettings.customChecks) {
-        for (const { rule } of prSettings.customChecks) {
+        for (const { rule,  } of prSettings.customChecks) {
           const passesRule = await rule(pullRequestInfo, { axios, Logger });
+          check.measure(`customChecks - ${rule.name}`, 'isAllowedToMerge')
           if (typeof passesRule === 'string') errors.push(passesRule);
         }
       }
       if (prSettings.customWarnings) {
         for (const { rule } of prSettings.customWarnings) {
           const passesWarning = await rule(pullRequestInfo, { axios, Logger });
+          check.measure(`customWarnings - ${rule.name}`, 'isAllowedToMerge')
           if (typeof passesWarning === 'string') warnings.push(passesWarning);
         }
       }
