@@ -96,7 +96,6 @@ const Message = ({
             <SkeletonItem isShimmering />
           </>
         );
-        return <Spinner />;
       }
       case 'cannot-land': {
         return <>This pull request cannot land until the criteria below has been met.</>;
