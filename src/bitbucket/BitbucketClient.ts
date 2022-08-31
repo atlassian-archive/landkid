@@ -73,11 +73,11 @@ export class BitbucketClient {
         approvals,
         permissionLevel,
       };
-      const checksAndWarningsPromises: Promise<void>[] = [];
+      const errorsAndWarningsPromises: Promise<void>[] = [];
 
       if (prSettings.customChecks) {
         prSettings.customChecks.forEach(({ rule }) => {
-          checksAndWarningsPromises.push(
+          errorsAndWarningsPromises.push(
             limit(async () => {
               const passesRule = await rule(pullRequestInfo, { axios, Logger });
               if (typeof passesRule === 'string') errors.push(passesRule);
@@ -87,7 +87,7 @@ export class BitbucketClient {
       }
       if (prSettings.customWarnings) {
         prSettings.customWarnings.forEach(({ rule }) => {
-          checksAndWarningsPromises.push(
+          errorsAndWarningsPromises.push(
             limit(async () => {
               const passesWarning = await rule(pullRequestInfo, { axios, Logger });
               if (typeof passesWarning === 'string') warnings.push(passesWarning);
@@ -96,7 +96,7 @@ export class BitbucketClient {
         });
       }
 
-      await Promise.all(checksAndWarningsPromises);
+      await Promise.all(errorsAndWarningsPromises);
     }
 
     return {
