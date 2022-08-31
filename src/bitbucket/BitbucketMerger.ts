@@ -1,5 +1,5 @@
 import axios from 'axios';
-import jwtTools from 'atlassian-jwt';
+import * as jwtTools from 'atlassian-jwt';
 import delay from 'delay';
 
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
