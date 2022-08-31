@@ -1,3 +1,5 @@
+import listStyles from './styles/listStyles';
+
 type ErrorProps = {
   errors: string[];
 };
@@ -5,7 +7,7 @@ type ErrorProps = {
 const Errors = ({ errors }: ErrorProps) =>
   errors.length > 0 ? (
     <>
-      <ul>
+      <ul className={listStyles}>
         {errors.map((error) => (
           <li key={error} dangerouslySetInnerHTML={{ __html: error }} />
         ))}

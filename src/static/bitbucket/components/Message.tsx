@@ -5,10 +5,12 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import { SkeletonItem } from '@atlaskit/menu';
 import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
+import type { ReactElement } from 'react';
 
 type Status =
   | 'checking-can-land'
@@ -32,7 +34,7 @@ const messageAppearance: { [keyof in Status]: SectionMessageProps['appearance'] 
 } as const;
 
 const messageTitle: { [keyof in Status]: string } = {
-  'checking-can-land': 'Loading Landkid...',
+  'checking-can-land': 'Checking land status...',
   'cannot-land': 'Not ready to land',
   queued: 'Queued to land!',
   'can-land': 'Ready to land!',
@@ -87,6 +89,13 @@ const Message = ({
   const renderLandState = () => {
     switch (status) {
       case 'checking-can-land': {
+        return (
+          <>
+            <SkeletonItem isShimmering />
+            <SkeletonItem isShimmering />
+            <SkeletonItem isShimmering />
+          </>
+        );
         return <Spinner />;
       }
       case 'cannot-land': {
@@ -115,14 +124,33 @@ const Message = ({
   const showWarnings = status === 'can-land' || status === 'cannot-land' || status === 'queued';
   const showErrors = status === 'cannot-land' || status === 'queued';
 
+  const landButton = (
+    <div style={{ marginRight: 15 }}>
+      <Confetti
+        active={loading === 'land'}
+        config={{
+          angle: 20,
+          spread: 58,
+          startVelocity: 50,
+          elementCount: 70,
+          dragFriction: 0.12,
+          duration: 3000,
+          stagger: 3,
+          width: '10px',
+          height: '10px',
+          // Missing type
+          // @ts-ignore
+          perspective: '500px',
+        }}
+      />
+      <Button appearance="primary" onClick={onLandClicked} isLoading={loading === 'land'}>
+        Land changes
+      </Button>
+    </div>
+  );
+
   return (
-    <div
-      style={{
-        // Fixed height prevents cumulative layout shift caused by slow loads
-        height: 270,
-        overflowY: 'auto',
-      }}
-    >
+    <div>
       {bannerMessage && (
         <div style={{ marginBottom: 15 }}>
           <SectionMessage
@@ -138,8 +166,13 @@ const Message = ({
         title={messageTitle[status]}
         appearance={messageAppearance[status]}
         actions={[
+          ...(status === 'can-land' ? [landButton] : []),
           ...(status === 'queued'
-            ? [<SectionMessageAction href="/current-state">View queue</SectionMessageAction>]
+            ? [
+                <SectionMessageAction linkComponent={ExternalLink} href="/current-state">
+                  View queue
+                </SectionMessageAction>,
+              ]
             : []),
           ...(status === 'cannot-land'
             ? [
@@ -150,7 +183,7 @@ const Message = ({
             : []),
           ...(canLandWhenAble && status === 'cannot-land'
             ? [
-                <SectionMessageAction onClick={onLandWhenAbleClicked}>
+                <SectionMessageAction linkComponent={ExternalLink} onClick={onLandWhenAbleClicked}>
                   Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
                 </SectionMessageAction>,
               ]
@@ -161,33 +194,9 @@ const Message = ({
         ]}
       >
         {renderLandState()}
+        {showErrors && <Errors errors={errors} />}
+        {showWarnings && <Warnings warnings={warnings} />}
       </SectionMessage>
-      {status === 'can-land' && (
-        <div style={{ marginTop: 15 }}>
-          <Confetti
-            active={loading === 'land'}
-            config={{
-              angle: 20,
-              spread: 58,
-              startVelocity: 50,
-              elementCount: 70,
-              dragFriction: 0.12,
-              duration: 3000,
-              stagger: 3,
-              width: '10px',
-              height: '10px',
-              // Missing type
-              // @ts-ignore
-              perspective: '500px',
-            }}
-          />
-          <Button appearance="primary" onClick={onLandClicked} isLoading={loading === 'land'}>
-            Land
-          </Button>
-        </div>
-      )}
-      {showErrors && <Errors errors={errors} />}
-      {showWarnings && <Warnings warnings={warnings} />}
     </div>
   );
 };
