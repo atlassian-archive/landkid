@@ -7,5 +7,5 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
-  "exclude": ["node_modules", "tests", "*.stories.*"],
+  "exclude": ["node_modules", "tests", "**/*.stories.tsx"],
 }
