@@ -19,11 +19,12 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const check = new MeasureTime()
-    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
-    check.measure('getPullRequest', 'isAllowedToMerge')
-    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
-    check.measure('getPullRequestBuildStatuses', 'isAllowedToMerge')
+    const check = new MeasureTime();
+    const [pullRequest, buildStatuses] = await Promise.all([
+      this.bitbucket.getPullRequest(pullRequestId),
+      this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
+    ]);
+    check.measure('getPullRequest + getPullRequestBuildStatuses', 'isAllowedToMerge');
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -72,16 +73,16 @@ export class BitbucketClient {
         permissionLevel,
       };
       if (prSettings.customChecks) {
-        for (const { rule,  } of prSettings.customChecks) {
+        for (const { rule } of prSettings.customChecks) {
           const passesRule = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customChecks - ${rule.name}`, 'isAllowedToMerge')
+          check.measure(`customChecks - ${rule.toString()}`, 'isAllowedToMerge');
           if (typeof passesRule === 'string') errors.push(passesRule);
         }
       }
       if (prSettings.customWarnings) {
         for (const { rule } of prSettings.customWarnings) {
           const passesWarning = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customWarnings - ${rule.name}`, 'isAllowedToMerge')
+          check.measure(`customWarnings - ${rule.toString()}`, 'isAllowedToMerge');
           if (typeof passesWarning === 'string') warnings.push(passesWarning);
         }
       }
