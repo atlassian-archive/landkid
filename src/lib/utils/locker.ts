@@ -1,4 +1,4 @@
-import * as RedLock from 'redlock';
+import RedLock from 'redlock';
 import { client } from './redis-client';
 import { Logger } from '../Logger';
 

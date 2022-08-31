@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import * as redis from 'redis';
-import * as connectRedis from 'connect-redis';
-import * as express from 'express';
-import * as expressSession from 'express-session';
-import * as expressWinston from 'express-winston';
-import * as passport from 'passport';
-import * as bodyParser from 'body-parser';
+import redis from 'redis';
+import connectRedis from 'connect-redis';
+import express from 'express';
+import expressSession from 'express-session';
+import expressWinston from 'express-winston';
+import passport from 'passport';
+import bodyParser from 'body-parser';
 
 import { initializeSequelize, MigrationService } from './db';
 import { BitbucketClient } from './bitbucket/BitbucketClient';
@@ -82,7 +82,7 @@ async function main() {
 }
 
 if (process.mainModule === module) {
-  main().catch(err => {
+  main().catch((err) => {
     Logger.error('Fatal error occurred in main()', {
       err: { message: err.message, stack: err.stack },
       maybeResponse: err.response,

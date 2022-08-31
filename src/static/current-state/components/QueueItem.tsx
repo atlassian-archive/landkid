@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
-import * as distanceInWords from 'date-fns/distance_in_words_to_now';
+import distanceInWords from 'date-fns/distance_in_words_to_now';
 import { Lozenge } from './Lozenge';
 import { LozengeAppearance } from './types';
 import { User } from './User';

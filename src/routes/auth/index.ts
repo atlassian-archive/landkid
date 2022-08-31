@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as passport from 'passport';
+import express from 'express';
+import passport from 'passport';
 import { permissionService } from '../../lib/PermissionService';
 import { wrap } from '../middleware';
 import { Logger } from '../../lib/Logger';

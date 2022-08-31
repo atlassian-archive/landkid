@@ -2,9 +2,10 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "tests"],
-  "allowSyntheticDefaultImports": true,
-  "esModuleInterop": true
+  "exclude": ["node_modules", "tests", "*.stories.*"],
 }

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Section } from './Section';
 
 const DEFAULT_POLLING_INTERVAL = 15 * 1000; // 15 sec

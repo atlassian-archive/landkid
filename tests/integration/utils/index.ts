@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 const queued = Joi.string().only('queued');
 const running = Joi.string().only('running');
@@ -22,5 +22,5 @@ export const doubleReentrySuccess = Joi.array().ordered(
 // Including the `awaiting-merge` status check introduced flakiness
 // because of Bitbucket build times, merge times, and other factors
 export const validate = (statuses: string[], schema: Joi.ArraySchema) => {
-  return schema.validate(statuses.filter(status => status !== 'awaiting-merge'));
+  return schema.validate(statuses.filter((status) => status !== 'awaiting-merge'));
 };

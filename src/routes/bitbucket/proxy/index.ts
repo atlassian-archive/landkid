@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import { authenticateIncomingBBCall, wrap, permission } from '../../middleware';
 import { BitbucketClient } from '../../../bitbucket/BitbucketClient';
 import { permissionService } from '../../../lib/PermissionService';

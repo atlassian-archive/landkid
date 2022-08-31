@@ -1,4 +1,4 @@
-import * as jwtTools from 'atlassian-jwt';
+import jwtTools from 'atlassian-jwt';
 import { AxiosRequestConfig } from 'axios';
 
 import { Installation } from '../db';

@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as jwtTools from 'atlassian-jwt';
+import express from 'express';
+import jwtTools from 'atlassian-jwt';
 import { Installation } from '../db';
 import { permissionService } from '../lib/PermissionService';
 import { Logger } from '../lib/Logger';
@@ -108,9 +108,7 @@ export const requireCustomToken: express.RequestHandler = wrap(async (req, res, 
 
   let decoded: any;
   try {
-    decoded = Buffer.from(token, 'base64')
-      .toString()
-      .trim();
+    decoded = Buffer.from(token, 'base64').toString().trim();
   } catch (err) {
     Logger.error('Could not decode custom token', { err });
     return res.status(401).json({ error: 'Could not decode custom token' });

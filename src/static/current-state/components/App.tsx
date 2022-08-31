@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { RunnerState } from '../../../types';
 import { WithAPIData } from './WithAPIData';
 import { CurrentState } from './CurrentState';

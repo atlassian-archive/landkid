@@ -1,4 +1,4 @@
-import * as winston from 'winston';
+import winston from 'winston';
 import { isMatch } from 'micromatch';
 
 process.stdout.isTTY = true;
@@ -12,7 +12,7 @@ const ProdLogger = winston.createLogger({
 const DevLogger = winston.createLogger({
   level: 'verbose',
   format: winston.format.combine(
-    winston.format(log =>
+    winston.format((log) =>
       process.env.LOG_NAMESPACES && !isMatch(log.namespace || '', process.env.LOG_NAMESPACES)
         ? false
         : log,

@@ -110,7 +110,11 @@ const Message = ({
     >
       {bannerMessage && (
         <div style={{ marginBottom: 15 }}>
-          <SectionMessage appearance={bannerMessage.messageType}>
+          <SectionMessage
+            appearance={
+              bannerMessage.messageType === 'default' ? 'information' : bannerMessage.messageType
+            }
+          >
             {bannerMessage.message}
           </SectionMessage>
         </div>
@@ -119,17 +123,23 @@ const Message = ({
         title={messageTitle[status]}
         appearance={messageAppearance[status]}
         actions={[
-          status === 'queued' && (
-            <SectionMessageAction href="/current-state">View queue</SectionMessageAction>
-          ),
-          status === 'cannot-land' && (
-            <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>
-          ),
-          canLandWhenAble && status === 'cannot-land' && (
-            <SectionMessageAction onClick={onLandWhenAbleClicked}>
-              Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
-            </SectionMessageAction>
-          ),
+          ...(status === 'queued'
+            ? [<SectionMessageAction href="/current-state">View queue</SectionMessageAction>]
+            : []),
+          ...(status === 'cannot-land'
+            ? [
+                <SectionMessageAction onClick={onCheckAgainClicked}>
+                  Check again
+                </SectionMessageAction>,
+              ]
+            : []),
+          ...(canLandWhenAble && status === 'cannot-land'
+            ? [
+                <SectionMessageAction onClick={onLandWhenAbleClicked}>
+                  Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
+                </SectionMessageAction>,
+              ]
+            : []),
           <SectionMessageAction href="/">Learn about Landkid</SectionMessageAction>,
         ]}
       >

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 import { User } from '../User';
 import { PermissionControl } from '../PermissionControl';
@@ -52,8 +52,8 @@ class NoteManager extends React.Component<NoteManagerProps, NoteManagerState> {
       headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ note }),
     })
-      .then(res => res.json())
-      .then(json => {
+      .then((res) => res.json())
+      .then((json) => {
         if (json.error) {
           console.error(json.error);
           window.alert(json.error);
@@ -66,8 +66,8 @@ class NoteManager extends React.Component<NoteManagerProps, NoteManagerState> {
 
   removeNote = () => {
     fetch(`/api/note/${this.props.aaid}`, { method: 'DELETE' })
-      .then(res => res.json())
-      .then(json => {
+      .then((res) => res.json())
+      .then((json) => {
         if (json.error) {
           console.error(json.error);
           window.alert(json.error);
@@ -117,7 +117,7 @@ export type Props = {
   loggedInUser: ISessionUser;
 };
 
-export const UsersList: React.FunctionComponent<Props> = props => (
+export const UsersList: React.FunctionComponent<Props> = (props) => (
   <React.Fragment>
     <h3>Users</h3>
     <table>
@@ -129,7 +129,7 @@ export const UsersList: React.FunctionComponent<Props> = props => (
             title={`Assigned by ${assignedByAaid} on ${dateAssigned}`}
           >
             <User aaid={aaid}>
-              {user => (
+              {(user) => (
                 <React.Fragment>
                   <td>
                     <PermissionControl

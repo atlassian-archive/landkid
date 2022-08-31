@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { css } from 'emotion';
 
 let tabStyles = css({
@@ -19,7 +19,7 @@ let tabStyles = css({
   },
 });
 
-export const TabContent: React.FunctionComponent = props => {
+export const TabContent: React.FunctionComponent = (props) => {
   const { children } = props;
   return <div className={tabStyles}>{children}</div>;
 };

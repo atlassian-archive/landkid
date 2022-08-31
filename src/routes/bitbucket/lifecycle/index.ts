@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import { authenticateIncomingBBCall, wrap } from '../../middleware';
 import { Installation } from '../../../db';
 import { Logger } from '../../../lib/Logger';

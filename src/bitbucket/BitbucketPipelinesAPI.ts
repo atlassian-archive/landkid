@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as jwtTools from 'atlassian-jwt';
+import jwtTools from 'atlassian-jwt';
 
 import { Logger } from '../lib/Logger';
 import { RepoConfig } from '../types';

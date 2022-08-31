@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 
 import { wrap, requireAuth, requireCustomToken } from '../middleware';
 import { Runner } from '../../lib/Runner';
