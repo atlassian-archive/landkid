@@ -4,7 +4,6 @@ import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
 import { LandRequestStatus } from '../db';
-import MeasureTime from '../measureTime';
 import pLimit from 'p-limit';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
@@ -20,12 +19,10 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const check = new MeasureTime();
     const [pullRequest, buildStatuses] = await Promise.all([
       this.bitbucket.getPullRequest(pullRequestId),
       this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
     ]);
-    check.measure('getPullRequest + getPullRequestBuildStatuses', 'isAllowedToMerge');
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
