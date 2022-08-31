@@ -7,6 +7,7 @@ import { LandRequestOptions } from '../../../types';
 import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
 import { eventEmitter } from '../../../lib/Events';
+import MeasureTime from '../../../measureTime';
 
 export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
@@ -18,6 +19,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/can-land',
     wrap(async (req, res) => {
+      const check = new MeasureTime()
       const { aaid, pullRequestId } = req.query as {
         aaid: string;
         pullRequestId: string;
@@ -34,10 +36,15 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const warnings: string[] = [];
       let existingRequest = false;
       const bannerMessage = await runner.getBannerMessageState();
+      check.measure('getBannerMessageState', 'can-land')
 
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
+      check.measure('getPermissionForUser', 'can-land')
+
       if (permission(permissionLevel).isAtLeast('land')) {
         const pauseState = await runner.getPauseState();
+        check.measure('getPauseState', 'can-land')
+
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
@@ -46,6 +53,8 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             permissionLevel,
             runner.getWaitingAndQueued,
           );
+          check.measure('isAllowedToLand', 'can-land')
+
           warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
           if (landChecks.existingRequest) {
