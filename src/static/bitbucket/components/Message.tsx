@@ -58,6 +58,20 @@ type MessageProps = {
   } | null;
 };
 
+/**
+ * Have to override SectionMessageAction link component because
+ * it doesn't support `target`. Without using `target="_blank"`
+ * the link to Landkid home page would load within the Bitbucket
+ * addon <iframe>
+ */
+const ExternalLink = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <a href="/" target="_blank">
+      {children}
+    </a>
+  );
+};
+
 const Message = ({
   loading,
   appName,
@@ -141,7 +155,9 @@ const Message = ({
                 </SectionMessageAction>,
               ]
             : []),
-          <SectionMessageAction href="/">Learn about Landkid</SectionMessageAction>,
+          <SectionMessageAction href="/" linkComponent={ExternalLink}>
+            Learn about Landkid
+          </SectionMessageAction>,
         ]}
       >
         {renderLandState()}
