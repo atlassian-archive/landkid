@@ -9,7 +9,7 @@ import MeasureTime from '../measureTime';
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
   if (creatorCanApprove) return approvals;
-  return approvals.filter(approval => approval !== creator);
+  return approvals.filter((approval) => approval !== creator);
 }
 
 export class BitbucketClient {
@@ -19,11 +19,12 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const check = new MeasureTime()
-    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
-    check.measure('getPullRequest', 'isAllowedToMerge')
-    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
-    check.measure('getPullRequestBuildStatuses', 'isAllowedToMerge')
+    const check = new MeasureTime();
+    const [pullRequest, buildStatuses] = await Promise.all([
+      this.bitbucket.getPullRequest(pullRequestId),
+      this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
+    ]);
+    check.measure('getPullRequest + getPullRequestBuildStatuses', 'isAllowedToMerge');
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -34,7 +35,7 @@ export class BitbucketClient {
     const approvalChecks = {
       isOpen: pullRequest.state === 'OPEN',
       isGreen:
-        buildStatuses.every(status => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
+        buildStatuses.every((status) => status.state === 'SUCCESSFUL') && buildStatuses.length > 0,
       allTasksClosed: pullRequest.openTasks === 0,
       isApproved: approvals.length >= this.config.prSettings.requiredApprovals,
     };
@@ -74,16 +75,16 @@ export class BitbucketClient {
         permissionLevel,
       };
       if (prSettings.customChecks) {
-        for (const { rule,  } of prSettings.customChecks) {
+        for (const { rule } of prSettings.customChecks) {
           const passesRule = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customChecks - ${rule.name}`, 'isAllowedToMerge')
+          check.measure(`customChecks - ${rule.toString()}`, 'isAllowedToMerge');
           if (typeof passesRule === 'string') errors.push(passesRule);
         }
       }
       if (prSettings.customWarnings) {
         for (const { rule } of prSettings.customWarnings) {
           const passesWarning = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customWarnings - ${rule.name}`, 'isAllowedToMerge')
+          check.measure(`customWarnings - ${rule.toString()}`, 'isAllowedToMerge');
           if (typeof passesWarning === 'string') warnings.push(passesWarning);
         }
       }
