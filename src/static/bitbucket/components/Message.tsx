@@ -5,6 +5,7 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
@@ -103,7 +104,7 @@ const Message = ({
   return (
     <div
       style={{
-        // Prevents cumulative layout shift caused by slow loads
+        // Fixed height prevents cumulative layout shift caused by slow loads
         height: 270,
         overflowY: 'auto',
       }}
@@ -147,6 +148,23 @@ const Message = ({
       </SectionMessage>
       {status === 'can-land' && (
         <div style={{ marginTop: 15 }}>
+          <Confetti
+            active={loading === 'land'}
+            config={{
+              angle: 20,
+              spread: 58,
+              startVelocity: 50,
+              elementCount: 70,
+              dragFriction: 0.12,
+              duration: 3000,
+              stagger: 3,
+              width: '10px',
+              height: '10px',
+              // Missing type
+              // @ts-ignore
+              perspective: '500px',
+            }}
+          />
           <Button appearance="primary" onClick={onLandClicked} isLoading={loading === 'land'}>
             Land
           </Button>

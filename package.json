@@ -88,7 +88,7 @@
     "webpack-dev-server": "^4.10.1"
   },
   "dependencies": {
-    "@atlaskit/button": "^16.3.1",
+    "@atlaskit/button": "^16.3.6",
     "@atlaskit/css-reset": "^6.3.13",
     "@atlaskit/pagination": "^8.0.5",
     "@atlaskit/section-message": "^6.1.12",
@@ -111,6 +111,7 @@
     "pg": "^8.2.1",
     "react": "^16.8.0",
     "react-dom": "^16.8.0",
+    "react-dom-confetti": "^0.2.0",
     "redis": "^3.1.2",
     "redlock": "^3.1.2",
     "reflect-metadata": "^0.1.12",

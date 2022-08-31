@@ -65,7 +65,7 @@
     babel-runtime "^6.26.0"
     tslib "^1.8.0"
 
-"@atlaskit/button@^16.3.0", "@atlaskit/button@^16.3.1":
+"@atlaskit/button@^16.3.0", "@atlaskit/button@^16.3.6":
   version "16.3.6"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/button/-/button-16.3.6.tgz#6a184c4d24818953d4afb7aaca5e6854064ba8ce"
   integrity sha512-sigJimyIvWjRzBdW46oPoyyxDmIWaPi7YtxmWwshld0lxQ9U/HevAA4Jxo7tOoHkaQot4V+yLkVHTuTgaH4OJQ==
@@ -6290,6 +6290,11 @@ dom-accessibility-api@^0.5.9:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/dom-accessibility-api/-/dom-accessibility-api-0.5.14.tgz#56082f71b1dc7aac69d83c4285eef39c15d93f56"
   integrity sha512-NMt+m9zFMPZe0JcY9gN224Qvk6qLIdqex29clBvc/y75ZBX9YA9wNK3frsYvu2DI1xcCIwxwnX+TlsJ2DSOADg==
 
+dom-confetti@0.2.2:
+  version "0.2.2"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/dom-confetti/-/dom-confetti-0.2.2.tgz#bdf2e7652d37b5cffb532c0a3263d108dd8a2363"
+  integrity sha512-+UVH9Y85qmpTnbmFURwLWjqLIykyIrsNSRkPX/eFlBuOURz9RDX8JoZHnajZHyFuCV0w/K3+tZK0ztfoTw6ejg==
+
 dom-converter@^0.2.0:
   version "0.2.0"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/dom-converter/-/dom-converter-0.2.0.tgz#6721a9daee2e293682955b6afe416771627bb768"
@@ -12152,6 +12157,13 @@ react-docgen@^5.0.0:
     neo-async "^2.6.1"
     node-dir "^0.1.10"
     strip-indent "^3.0.0"
+
+react-dom-confetti@^0.2.0:
+  version "0.2.0"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/react-dom-confetti/-/react-dom-confetti-0.2.0.tgz#76df26762da532057d5b1fbe38a8096f9dc33d40"
+  integrity sha512-+XRTi+WlCrcRN2dTjdEopOaPFtS7hpaHRRQ0sHiVRGqpchKz4QVh3i+6eLEEpNHYpN2VgPmhjvJ/vnjmUYhlIQ==
+  dependencies:
+    dom-confetti "0.2.2"
 
 react-dom@^16.8.0:
   version "16.14.0"
