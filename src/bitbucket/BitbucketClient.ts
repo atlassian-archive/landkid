@@ -5,6 +5,7 @@ import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesA
 import { BitbucketAPI } from './BitbucketAPI';
 import { LandRequestStatus } from '../db';
 import MeasureTime from '../measureTime';
+import pLimit from 'p-limit';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
@@ -41,6 +42,9 @@ export class BitbucketClient {
     };
 
     const { prSettings } = this.config;
+    const MAX_CONCURRENT_CHECKS_LIMIT = 5;
+    const limit = pLimit(MAX_CONCURRENT_CHECKS_LIMIT);
+
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -74,20 +78,30 @@ export class BitbucketClient {
         approvals,
         permissionLevel,
       };
+      const checksAndWarningsPromises: Promise<void>[] = [];
+
       if (prSettings.customChecks) {
-        for (const { rule } of prSettings.customChecks) {
-          const passesRule = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customChecks - ${rule.toString()}`, 'isAllowedToMerge');
-          if (typeof passesRule === 'string') errors.push(passesRule);
-        }
+        prSettings.customChecks.forEach(({ rule }) => {
+          checksAndWarningsPromises.push(
+            limit(async () => {
+              const passesRule = await rule(pullRequestInfo, { axios, Logger });
+              if (typeof passesRule === 'string') errors.push(passesRule);
+            }),
+          );
+        });
       }
       if (prSettings.customWarnings) {
-        for (const { rule } of prSettings.customWarnings) {
-          const passesWarning = await rule(pullRequestInfo, { axios, Logger });
-          check.measure(`customWarnings - ${rule.toString()}`, 'isAllowedToMerge');
-          if (typeof passesWarning === 'string') warnings.push(passesWarning);
-        }
+        prSettings.customWarnings.forEach(({ rule }) => {
+          checksAndWarningsPromises.push(
+            limit(async () => {
+              const passesWarning = await rule(pullRequestInfo, { axios, Logger });
+              if (typeof passesWarning === 'string') warnings.push(passesWarning);
+            }),
+          );
+        });
       }
+
+      await Promise.all(checksAndWarningsPromises);
     }
 
     return {
