@@ -59,7 +59,6 @@ const queueSeparatorStyle = css({
 const queueLabelStyle = css({
   marginTop: 6,
   marginBottom: 6,
-  fontWeight: 'bold',
 });
 
 type LoadingState = 'not-loaded' | 'loading' | 'refreshing' | 'error' | 'loaded';
