@@ -9,15 +9,17 @@ import { apiRoutes } from './api';
 import { bitbucketRoutes } from './bitbucket';
 import { makeDescriptor } from '../bitbucket/descriptor';
 import { authRoutes } from './auth';
+import mime from 'mime';
 
 const mimeCacheMap: Record<string, string> = {
   'text/html': 'public, max-age=60', // 1 minute
   'text/css': 'public, max-age=31536000', // 1 year
-  'text/js': 'public, max-age=31536000', // 1 year
+  'application/javascript': 'public, max-age=31536000', // 1 year
 };
 
 function setStaticCacheControl(res: express.Response, path: string) {
-  const mimeType = express.static.mime.getType(path);
+  const mimeType = mime.getType(path);
+
   if (mimeType && mimeCacheMap[mimeType]) {
     res.setHeader('Cache-Control', mimeCacheMap[mimeType]);
   } else {
