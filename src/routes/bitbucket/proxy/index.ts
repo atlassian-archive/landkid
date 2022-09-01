@@ -34,10 +34,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const warnings: string[] = [];
       let existingRequest = false;
       const bannerMessage = await runner.getBannerMessageState();
-
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
+
       if (permission(permissionLevel).isAtLeast('land')) {
         const pauseState = await runner.getPauseState();
+
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
@@ -46,6 +47,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             permissionLevel,
             runner.getWaitingAndQueued,
           );
+
           warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
           if (landChecks.existingRequest) {

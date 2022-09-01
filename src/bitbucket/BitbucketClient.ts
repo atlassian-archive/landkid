@@ -4,6 +4,7 @@ import { Logger } from '../lib/Logger';
 import { BitbucketPipelinesAPI, PipelinesVariables } from './BitbucketPipelinesAPI';
 import { BitbucketAPI } from './BitbucketAPI';
 import { LandRequestStatus } from '../db';
+import pLimit from 'p-limit';
 
 // Given a list of approvals, will filter out users own approvals if settings don't allow that
 function getRealApprovals(approvals: Array<string>, creator: string, creatorCanApprove: boolean) {
@@ -18,8 +19,10 @@ export class BitbucketClient {
   constructor(private config: Config) {}
 
   async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const pullRequest: BB.PullRequest = await this.bitbucket.getPullRequest(pullRequestId);
-    const buildStatuses = await this.bitbucket.getPullRequestBuildStatuses(pullRequestId);
+    const [pullRequest, buildStatuses] = await Promise.all([
+      this.bitbucket.getPullRequest(pullRequestId),
+      this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
+    ]);
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -36,6 +39,9 @@ export class BitbucketClient {
     };
 
     const { prSettings } = this.config;
+    const MAX_CONCURRENT_CHECKS_LIMIT = 5;
+    const limit = pLimit(MAX_CONCURRENT_CHECKS_LIMIT);
+
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -67,18 +73,30 @@ export class BitbucketClient {
         approvals,
         permissionLevel,
       };
+      const errorsAndWarningsPromises: Promise<void>[] = [];
+
       if (prSettings.customChecks) {
-        for (const { rule } of prSettings.customChecks) {
-          const passesRule = await rule(pullRequestInfo, { axios, Logger });
-          if (typeof passesRule === 'string') errors.push(passesRule);
-        }
+        prSettings.customChecks.forEach(({ rule }) => {
+          errorsAndWarningsPromises.push(
+            limit(async () => {
+              const passesRule = await rule(pullRequestInfo, { axios, Logger });
+              if (typeof passesRule === 'string') errors.push(passesRule);
+            }),
+          );
+        });
       }
       if (prSettings.customWarnings) {
-        for (const { rule } of prSettings.customWarnings) {
-          const passesWarning = await rule(pullRequestInfo, { axios, Logger });
-          if (typeof passesWarning === 'string') warnings.push(passesWarning);
-        }
+        prSettings.customWarnings.forEach(({ rule }) => {
+          errorsAndWarningsPromises.push(
+            limit(async () => {
+              const passesWarning = await rule(pullRequestInfo, { axios, Logger });
+              if (typeof passesWarning === 'string') warnings.push(passesWarning);
+            }),
+          );
+        });
       }
+
+      await Promise.all(errorsAndWarningsPromises);
     }
 
     return {
