@@ -4,19 +4,19 @@ type WarningProps = {
   warnings: string[];
 };
 
-import styled from 'styled-components';
+import { css } from 'emotion';
 import { N300 } from '@atlaskit/theme/colors';
 
-const Subtext = styled.div`
-  font-size: 12px;
-  color: ${N300};
-`;
+const subtextStyles = css({
+  fontSize: '12px',
+  color: N300,
+});
 
 const Warnings = ({ warnings }: WarningProps) =>
   warnings.length > 0 ? (
     <>
       <p>
-        <b>Warnings</b>:<Subtext>(these will not prevent landing)</Subtext>
+        <b>Warnings</b>:<div className={subtextStyles}>(these will not prevent landing)</div>
       </p>
       <ul className={listStyles}>
         {warnings.map((warning) => (
