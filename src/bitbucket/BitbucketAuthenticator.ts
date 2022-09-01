@@ -1,4 +1,5 @@
-import jwtTools from 'atlassian-jwt';
+import { encode, createQueryStringHash } from 'atlassian-jwt';
+import type { Request } from 'atlassian-jwt';
 import { AxiosRequestConfig } from 'axios';
 
 import { Installation } from '../db';
@@ -11,13 +12,13 @@ class BitbucketAuthenticator {
     return {};
   };
 
-  private getJWTAuthHeaders = (request: jwtTools.Request, install: Installation) => {
-    const token = jwtTools.encode(
+  private getJWTAuthHeaders = (request: Request, install: Installation) => {
+    const token = encode(
       {
         iss: getAppKey(),
         iat: Date.now(),
         exp: Date.now() + 60000,
-        qsh: jwtTools.createQueryStringHash(request),
+        qsh: createQueryStringHash(request),
         sub: install.clientKey,
       },
       install.sharedSecret,
@@ -29,7 +30,7 @@ class BitbucketAuthenticator {
   };
 
   getAuthConfig = async (
-    request: jwtTools.Request,
+    request: Request,
     baseConfig?: AxiosRequestConfig,
   ): Promise<AxiosRequestConfig> => {
     const install = await Installation.findOne<Installation>();

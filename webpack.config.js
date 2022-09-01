@@ -18,22 +18,23 @@ module.exports = {
     filename: '[name]/bundle.[chunkhash].js',
   },
   mode: 'development',
+  ignoreWarnings: [(warning) => true],
   devServer: {
     compress: true,
     historyApiFallback: true,
     // hot: true,
     port: Number(DEV_SERVER_PORT),
-    publicPath: '/',
-    stats: 'errors-only',
     proxy: {
       '/api': `http://localhost:${SERVER_PORT}`,
       '/auth': `http://localhost:${SERVER_PORT}`,
       '/bitbucket': `http://localhost:${SERVER_PORT}`,
       '/ac': `http://localhost:${SERVER_PORT}`,
     },
-    public: fs.existsSync('./config.js')
-      ? require('./config').baseUrl.replace('https://', '')
-      : undefined,
+    client: {
+      webSocketURL: fs.existsSync('./config.js')
+        ? require('./config').baseUrl.replace('https://', '')
+        : undefined,
+    },
   },
   module: {
     rules: [

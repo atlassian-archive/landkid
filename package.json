@@ -88,7 +88,7 @@
     "webpack-dev-server": "^4.10.1"
   },
   "dependencies": {
-    "@atlaskit/button": "^16.3.6",
+    "@atlaskit/button": "^15.0.0",
     "@atlaskit/css-reset": "^6.3.13",
     "@atlaskit/pagination": "^8.0.5",
     "@atlaskit/section-message": "^6.1.12",
@@ -118,7 +118,7 @@
     "sequelize": "^4.44.0",
     "sequelize-typescript": "^0.6.6",
     "styled-components": "^3.2.6",
-    "typescript": "^4.2.4",
+    "typescript": "4.3.5",
     "ua-parser-js": "^0.7.24",
     "umzug": "^2.2.0",
     "winston": "^3.1.0"

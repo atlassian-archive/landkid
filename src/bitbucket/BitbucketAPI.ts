@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import * as jwtTools from 'atlassian-jwt';
+import { fromMethodAndUrl } from 'atlassian-jwt';
 
 import { MergeOptions, RepoConfig } from '../types';
 import { Logger } from '../lib/Logger';
@@ -138,7 +138,7 @@ export class BitbucketAPI {
     const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}/tasks`;
     const resp = await axios.get<BB.PullRequestTaskResponse>(
       endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
     );
     const data = resp.data;
     return data.values.filter((task) => task.state === 'UNRESOLVED').length;
@@ -148,7 +148,7 @@ export class BitbucketAPI {
     const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}`;
     const resp = await axios.get<BB.PullRequestResponse>(
       endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
     );
     const data = resp.data;
     const approvals = data.participants
@@ -175,7 +175,7 @@ export class BitbucketAPI {
     const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(
       endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
     );
     // fairly safe to assume we'll never need to paginate these results
     const allBuildStatuses = resp.data.values;
@@ -194,7 +194,7 @@ export class BitbucketAPI {
     const endpoint = `https://api.bitbucket.org/2.0/users/${aaid}`;
     const resp = await axios.get(
       endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
     );
 
     return {
@@ -213,7 +213,7 @@ export class BitbucketAPI {
     });
     const { data } = await axios.get<BB.RepositoryResponse>(
       endpoint,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', endpoint)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
     );
     Logger.info('successfully fetched repo uuid', {
       namespace: 'bitbucket:api:getRepository',

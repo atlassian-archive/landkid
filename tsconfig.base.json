@@ -8,11 +8,14 @@
       "es7"
     ],
     "sourceMap": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "experimentalDecorators": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noImplicitThis": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
 }
