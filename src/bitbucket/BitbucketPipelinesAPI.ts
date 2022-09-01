@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as jwtTools from 'atlassian-jwt';
+import { fromMethodAndPathAndBody, fromMethodAndUrl } from 'atlassian-jwt';
 
 import { Logger } from '../lib/Logger';
 import { RepoConfig } from '../types';
@@ -95,7 +95,7 @@ export class BitbucketPipelinesAPI {
       endpoint,
       JSON.stringify(data),
       await bitbucketAuthenticator.getAuthConfig(
-        jwtTools.fromMethodAndPathAndBody('post', endpoint, data),
+        fromMethodAndPathAndBody('post', endpoint, data),
         axiosPostConfig,
       ),
     );
@@ -131,7 +131,7 @@ export class BitbucketPipelinesAPI {
         endpoint,
         null,
         await bitbucketAuthenticator.getAuthConfig(
-          jwtTools.fromMethodAndUrl('post', endpoint),
+          fromMethodAndUrl('post', endpoint),
           axiosPostConfig,
         ),
       );

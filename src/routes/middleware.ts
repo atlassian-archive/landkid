@@ -1,5 +1,5 @@
 import express from 'express';
-import jwtTools from 'atlassian-jwt';
+import { decode, fromExpressRequest, createQueryStringHash } from 'atlassian-jwt';
 import { Installation } from '../db';
 import { permissionService } from '../lib/PermissionService';
 import { Logger } from '../lib/Logger';
@@ -69,7 +69,7 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
 
   let decoded: any;
   try {
-    decoded = jwtTools.decode(jwt, install.sharedSecret);
+    decoded = decode(jwt, install.sharedSecret);
   } catch (err) {
     Logger.error('Could not validate JWT', {
       namespace: 'routes:middleware:authenticateIncomingBBCall',
@@ -85,7 +85,7 @@ export const authenticateIncomingBBCall: express.RequestHandler = wrap(async (re
     });
   }
 
-  const expectedHash = jwtTools.createQueryStringHash(jwtTools.fromExpressRequest(req));
+  const expectedHash = createQueryStringHash(fromExpressRequest(req));
 
   if (expectedHash !== decoded.qsh) {
     Logger.error('JWT token is valid but not for this request', {

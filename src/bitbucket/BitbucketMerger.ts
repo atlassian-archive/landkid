@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as jwtTools from 'atlassian-jwt';
+import { fromMethodAndUrl, fromMethodAndPathAndBody } from 'atlassian-jwt';
 import delay from 'delay';
 
 import { bitbucketAuthenticator, axiosPostConfig } from './BitbucketAuthenticator';
@@ -22,20 +22,17 @@ export class BitbucketMerger {
     return axios.post(
       endpoint,
       JSON.stringify(body),
-      await bitbucketAuthenticator.getAuthConfig(
-        jwtTools.fromMethodAndPathAndBody('post', endpoint, body),
-        {
-          ...axiosPostConfig,
-          validateStatus: () => true,
-        },
-      ),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndPathAndBody('post', endpoint, body), {
+        ...axiosPostConfig,
+        validateStatus: () => true,
+      }),
     );
   };
 
   private pollMergeStatus = async (pollUrl: string) => {
     const res = await axios.get<BB.MergeStatusResponse>(
       pollUrl,
-      await bitbucketAuthenticator.getAuthConfig(jwtTools.fromMethodAndUrl('get', pollUrl)),
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', pollUrl)),
     );
     return res.data;
   };
