@@ -5,11 +5,11 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
-import { SkeletonItem } from '@atlaskit/menu';
 import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
+import loadingRectangleStyles from './styles/loadingRectangleStyles';
 
 type Status =
   | 'checking-can-land'
@@ -90,9 +90,9 @@ const Message = ({
       case 'checking-can-land': {
         return (
           <>
-            <SkeletonItem isShimmering />
-            <SkeletonItem isShimmering />
-            <SkeletonItem isShimmering />
+            <div className={loadingRectangleStyles} />
+            <div className={loadingRectangleStyles} />
+            <div className={loadingRectangleStyles} />
           </>
         );
       }
