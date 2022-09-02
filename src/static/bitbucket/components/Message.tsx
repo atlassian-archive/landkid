@@ -103,7 +103,7 @@ const Message = ({
         return (
           <>
             Remove {appName} from the list of denied applications at the bottom of{' '}
-            <a href="https://bitbucket.org/account/settings/app-authorizations/">
+            <a href="https://bitbucket.org/account/settings/app-authorizations/" target="_blank">
               the App authorizations page
             </a>
             , then refresh this page and allow the app to access the required permissions.
