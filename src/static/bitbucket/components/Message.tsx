@@ -92,7 +92,7 @@ const Message = ({
           <>
             <div className={loadingRectangleStyles} />
             <div className={loadingRectangleStyles} />
-            <div className={loadingRectangleStyles} />
+            <div className={loadingRectangleStyles} style={{ width: '60%' }} />
           </>
         );
       }
