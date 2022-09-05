@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import '@atlaskit/css-reset';
 
-import { proxyRequest } from '../utils/RequestProxy';
+import { proxyRequestWithContext } from '../utils/RequestProxy';
 
 import Message from './Message';
 
@@ -56,7 +56,7 @@ const App = () => {
   }, []);
 
   const checkIfAbleToLand = () => {
-    proxyRequest<CanLandResponse>('/can-land', 'POST')
+    proxyRequestWithContext<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage }) => {
         setStatus(canLand ? 'can-land' : 'cannot-land');
 
@@ -81,7 +81,7 @@ const App = () => {
 
   const onLandClicked = () => {
     setLoading('land');
-    proxyRequest('/land', 'POST')
+    proxyRequestWithContext('/land', 'POST')
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
@@ -95,7 +95,7 @@ const App = () => {
 
   const onLandWhenAbleClicked = () => {
     setLoading('land-when-able');
-    proxyRequest('/land-when-able', 'POST')
+    proxyRequestWithContext('/land-when-able', 'POST')
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
