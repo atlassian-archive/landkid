@@ -119,8 +119,6 @@ export const QueueBase = ({
     (pr) => pr.request.pullRequestId === currentPullRequestId,
   );
 
-  console.log({ loadingState, currentState, currentPullRequestId });
-  console.log({ prPositionWaitQueue, prPositionRunningQueue });
   const isPRInWaitQueue = prPositionWaitQueue > -1;
   const isPRInRunningQueue = prPositionRunningQueue > -1;
   const isPRInQueue = isPRInWaitQueue || isPRInRunningQueue;
