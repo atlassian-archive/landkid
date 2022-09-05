@@ -656,15 +656,13 @@ export class Runner {
 
   getLandRequestStateByPRId = async (pullRequestId: number): Promise<LandRequestStatus | null> => {
     const landRequestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
-      where: {
-        request: {
-          pullRequestId,
-        },
-      },
       include: [
         {
           model: LandRequest,
           include: [PullRequest],
+          where: {
+            pullRequestId,
+          },
         },
       ],
     });
