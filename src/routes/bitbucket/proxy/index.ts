@@ -78,7 +78,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           bannerMessage,
         });
       } catch (err) {
-        console.error(err);
+        console.error('error yo', err);
         Logger.error('Error while checking land', {
           namespace: 'routes:bitbucket:proxy:can-land',
           err,
