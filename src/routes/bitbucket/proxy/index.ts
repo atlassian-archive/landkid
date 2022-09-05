@@ -18,64 +18,74 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/can-land',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId } = req.query as {
-        aaid: string;
-        pullRequestId: string;
-        accountId: string;
-      };
-      const prId = parseInt(pullRequestId, 10);
+      try {
+        const { aaid, pullRequestId } = req.query as {
+          aaid: string;
+          pullRequestId: string;
+          accountId: string;
+        };
+        const prId = parseInt(pullRequestId, 10);
 
-      Logger.info('Requesting land checks', {
-        namespace: 'routes:bitbucket:proxy:can-land',
-        pullRequestId,
-      });
+        Logger.info('Requesting land checks', {
+          namespace: 'routes:bitbucket:proxy:can-land',
+          pullRequestId,
+        });
 
-      const errors: string[] = [];
-      const warnings: string[] = [];
-      let existingRequest = false;
-      const bannerMessage = await runner.getBannerMessageState();
-      const permissionLevel = await permissionService.getPermissionForUser(aaid);
-      const requestStatus = await runner.getLandRequestStateByPRId(pullRequestId);
+        const errors: string[] = [];
+        const warnings: string[] = [];
+        let existingRequest = false;
+        const bannerMessage = await runner.getBannerMessageState();
+        const permissionLevel = await permissionService.getPermissionForUser(aaid);
+        const requestStatus = await runner.getLandRequestStateByPRId(pullRequestId);
 
-      if (permission(permissionLevel).isAtLeast('land')) {
-        const pauseState = await runner.getPauseState();
+        if (permission(permissionLevel).isAtLeast('land')) {
+          const pauseState = await runner.getPauseState();
 
-        if (pauseState) {
-          errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
-        } else {
-          const landChecks = await runner.isAllowedToLand(
-            prId,
-            permissionLevel,
-            runner.getWaitingAndQueued,
-          );
+          if (pauseState) {
+            errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
+          } else {
+            const landChecks = await runner.isAllowedToLand(
+              prId,
+              permissionLevel,
+              runner.getWaitingAndQueued,
+            );
 
-          warnings.push(...landChecks.warnings);
-          errors.push(...landChecks.errors);
-          if (landChecks.existingRequest) {
-            existingRequest = true;
+            warnings.push(...landChecks.warnings);
+            errors.push(...landChecks.errors);
+            if (landChecks.existingRequest) {
+              existingRequest = true;
 
-            errors.push('Pull request has already been queued');
+              errors.push('Pull request has already been queued');
+            }
           }
+        } else {
+          errors.push("You don't have land permissions");
         }
-      } else {
-        errors.push("You don't have land permissions");
+
+        Logger.info('Land checks determined', {
+          namespace: 'routes:bitbucket:proxy:can-land',
+          pullRequestId,
+          errors,
+          warnings,
+        });
+
+        res.json({
+          canLand: errors.length === 0,
+          canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
+          state: requestStatus?.state,
+          errors,
+          warnings,
+          bannerMessage,
+        });
+      } catch (err) {
+        console.error(err);
+        Logger.error('Error while checking land', {
+          namespace: 'routes:bitbucket:proxy:can-land',
+          err,
+          errMessage: err.message,
+          errStr: err.toString(),
+        });
       }
-
-      Logger.info('Land checks determined', {
-        namespace: 'routes:bitbucket:proxy:can-land',
-        pullRequestId,
-        errors,
-        warnings,
-      });
-
-      res.json({
-        canLand: errors.length === 0,
-        canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
-        state: requestStatus?.state,
-        errors,
-        warnings,
-        bannerMessage,
-      });
     }),
   );
 
