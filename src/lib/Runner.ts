@@ -654,7 +654,7 @@ export class Runner {
     return status ? status.date : null;
   };
 
-  getLandRequestStateByPRId = async (pullRequestId: string): Promise<LandRequestStatus | null> => {
+  getLandRequestStateByPRId = async (pullRequestId: number): Promise<LandRequestStatus | null> => {
     const landRequestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
       where: {
         request: {

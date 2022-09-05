@@ -36,7 +36,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         let existingRequest = false;
         const bannerMessage = await runner.getBannerMessageState();
         const permissionLevel = await permissionService.getPermissionForUser(aaid);
-        const requestStatus = await runner.getLandRequestStateByPRId(pullRequestId);
+        const requestStatus = await runner.getLandRequestStateByPRId(prId);
 
         if (permission(permissionLevel).isAtLeast('land')) {
           const pauseState = await runner.getPauseState();
