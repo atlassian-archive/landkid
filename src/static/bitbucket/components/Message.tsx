@@ -11,19 +11,15 @@ import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
-
-type Status =
-  | 'checking-can-land'
-  | 'cannot-land'
-  | 'queued'
-  | 'can-land'
-  | 'pr-closed'
-  | 'user-denied-access'
-  | 'unknown-error';
+import { Status } from './types';
 
 type Loading = 'land' | 'land-when-able';
 
 const messageAppearance: { [keyof in Status]: SectionMessageProps['appearance'] } = {
+  running: 'information',
+  'awaiting-merge': 'information',
+  'will-queue-when-ready': 'information',
+  merging: 'information',
   'checking-can-land': 'information',
   'cannot-land': 'warning',
   queued: 'success',
@@ -34,6 +30,10 @@ const messageAppearance: { [keyof in Status]: SectionMessageProps['appearance'] 
 } as const;
 
 const messageTitle: { [keyof in Status]: string } = {
+  running: 'Building...',
+  'awaiting-merge': 'Awaiting to merge pull request...',
+  'will-queue-when-ready': 'Queued to land when ready!',
+  merging: 'Pull request is being merged...',
   'checking-can-land': 'Checking land status...',
   'cannot-land': 'Not ready to land',
   queued: 'Queued to land!',
@@ -97,6 +97,23 @@ const Message = ({
           </>
         );
       }
+      case 'running':
+        return (
+          <>
+            Build checks are being run for this pull request. If they succeed, the pull request will
+            be merged.{' '}
+          </>
+        );
+      case 'awaiting-merge':
+        return <>This pull request is waiting to be merged. </>;
+      case 'will-queue-when-ready':
+        return (
+          <>
+            This pull request will be added to the land queue when the criteria below have been met.
+          </>
+        );
+      case 'merging':
+        return <>This pull request has passed all checks and is being merged.</>;
       case 'queued': {
         return <Queue />;
       }
@@ -123,8 +140,15 @@ const Message = ({
     }
   };
 
-  const showWarnings = status === 'can-land' || status === 'cannot-land' || status === 'queued';
-  const showErrors = status === 'cannot-land' || status === 'queued';
+  const showWarnings =
+    status === 'can-land' ||
+    status === 'cannot-land' ||
+    status === 'queued' ||
+    status == 'will-queue-when-ready' ||
+    status === 'running';
+
+  const showErrors =
+    status === 'cannot-land' || status === 'queued' || status == 'will-queue-when-ready';
 
   const landButton = (
     <div style={{ marginRight: 15 }}>
@@ -151,6 +175,42 @@ const Message = ({
     </div>
   );
 
+  const getActions = () => {
+    const actions = [];
+    switch (status) {
+      case 'can-land':
+        actions.push(landButton);
+      case 'running':
+      case 'queued':
+        actions.push(
+          <SectionMessageAction linkComponent={ExternalLink} href="/current-state">
+            View queue
+          </SectionMessageAction>,
+        );
+      case 'will-queue-when-ready':
+      case 'cannot-land': {
+        actions.push(
+          <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>,
+        );
+        if (canLandWhenAble) {
+          actions.push(
+            <SectionMessageAction linkComponent={ExternalLink} onClick={onLandWhenAbleClicked}>
+              Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
+            </SectionMessageAction>,
+          );
+        }
+      }
+    }
+
+    actions.push(
+      <SectionMessageAction href="/" linkComponent={ExternalLink}>
+        Learn about Landkid
+      </SectionMessageAction>,
+    );
+
+    return actions;
+  };
+
   return (
     <div>
       {bannerMessage && (
@@ -167,33 +227,7 @@ const Message = ({
       <SectionMessage
         title={messageTitle[status]}
         appearance={messageAppearance[status]}
-        actions={[
-          ...(status === 'can-land' ? [landButton] : []),
-          ...(status === 'queued'
-            ? [
-                <SectionMessageAction linkComponent={ExternalLink} href="/current-state">
-                  View queue
-                </SectionMessageAction>,
-              ]
-            : []),
-          ...(status === 'cannot-land'
-            ? [
-                <SectionMessageAction onClick={onCheckAgainClicked}>
-                  Check again
-                </SectionMessageAction>,
-              ]
-            : []),
-          ...(canLandWhenAble && status === 'cannot-land'
-            ? [
-                <SectionMessageAction linkComponent={ExternalLink} onClick={onLandWhenAbleClicked}>
-                  Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
-                </SectionMessageAction>,
-              ]
-            : []),
-          <SectionMessageAction href="/" linkComponent={ExternalLink}>
-            Learn about Landkid
-          </SectionMessageAction>,
-        ]}
+        actions={getActions()}
       >
         {renderLandState()}
         {showErrors && <Errors errors={errors} />}

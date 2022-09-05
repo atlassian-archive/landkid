@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
 import '@atlaskit/css-reset';
 
-import { proxyRequestWithContext } from '../utils/RequestProxy';
+import { proxyRequest } from '../utils/RequestProxy';
 
 import Message from './Message';
+import Timeout = NodeJS.Timeout;
+import { Status } from './types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -12,22 +15,24 @@ type BannerMessage = {
   messageType: 'default' | 'warning' | 'error';
 };
 
+type LandState =
+  | 'will-queue-when-ready'
+  | 'queued'
+  | 'running'
+  | 'awaiting-merge'
+  | 'merging'
+  | 'success'
+  | 'fail'
+  | 'aborted';
+
 type CanLandResponse = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
   bannerMessage: BannerMessage | null;
+  state: LandState | null;
 };
-
-type Status =
-  | 'checking-can-land'
-  | 'cannot-land'
-  | 'queued'
-  | 'can-land'
-  | 'pr-closed'
-  | 'user-denied-access'
-  | 'unknown-error';
 
 type Loading = 'land' | 'land-when-able';
 
@@ -37,6 +42,7 @@ const initialState: CanLandResponse = {
   errors: [],
   warnings: [],
   bannerMessage: null,
+  state: null,
 };
 
 const qs = new URLSearchParams(window.location.search);
@@ -47,22 +53,54 @@ const App = () => {
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
 
+  const handleInViewChange = (inView: boolean) => {
+    if (inView) {
+      checkIfAbleToLand();
+    }
+  };
+
+  const { ref, inView } = useInView({ onChange: handleInViewChange });
+
+  let refreshIntervalId: Timeout;
+  let refreshIntervalMs = 5000;
+
   useEffect(() => {
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       return setStatus('pr-closed');
     }
     checkIfAbleToLand();
+
+    refreshIntervalId = setInterval(() => {
+      if (inView) {
+        checkIfAbleToLand();
+      }
+    }, refreshIntervalMs);
+
+    return () => {
+      clearInterval(refreshIntervalId);
+    };
   }, []);
 
   const checkIfAbleToLand = () => {
-    proxyRequestWithContext<CanLandResponse>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage }) => {
-        setStatus(canLand ? 'can-land' : 'cannot-land');
+    proxyRequest<CanLandResponse>('/can-land', 'POST')
+      .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
+        switch (state) {
+          case 'queued':
+          case 'will-queue-when-ready':
+          case 'running':
+          case 'awaiting-merge':
+          case 'merging':
+            setStatus(state);
+            break;
+          default:
+            setStatus(canLand ? 'can-land' : 'cannot-land');
+        }
 
         dispatch({
           canLand,
           canLandWhenAble,
+          state,
           errors,
           warnings,
           bannerMessage,
@@ -81,7 +119,7 @@ const App = () => {
 
   const onLandClicked = () => {
     setLoading('land');
-    proxyRequestWithContext('/land', 'POST')
+    proxyRequest('/land', 'POST')
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
@@ -95,7 +133,7 @@ const App = () => {
 
   const onLandWhenAbleClicked = () => {
     setLoading('land-when-able');
-    proxyRequestWithContext('/land-when-able', 'POST')
+    proxyRequest('/land-when-able', 'POST')
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
@@ -117,6 +155,7 @@ const App = () => {
       style={{
         paddingBottom: 20,
       }}
+      ref={ref}
     >
       <Message
         loading={loading}

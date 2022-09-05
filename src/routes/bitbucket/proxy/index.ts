@@ -35,6 +35,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       let existingRequest = false;
       const bannerMessage = await runner.getBannerMessageState();
       const permissionLevel = await permissionService.getPermissionForUser(aaid);
+      const requestStatus = await runner.getLandRequestStateByPRId(pullRequestId);
 
       if (permission(permissionLevel).isAtLeast('land')) {
         const pauseState = await runner.getPauseState();
@@ -52,6 +53,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errors.push(...landChecks.errors);
           if (landChecks.existingRequest) {
             existingRequest = true;
+
             errors.push('Pull request has already been queued');
           }
         }
@@ -69,6 +71,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       res.json({
         canLand: errors.length === 0,
         canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
+        state: requestStatus?.state,
         errors,
         warnings,
         bannerMessage,
