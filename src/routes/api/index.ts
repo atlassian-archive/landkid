@@ -19,6 +19,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
   router.get(
     '/meta',
     wrap(async (req, res) => {
+      Logger.info('PR ID IS', await runner.getLandRequestStateByPRId(23));
+
       Logger.verbose('Requesting meta information', { namespace: 'routes:api:meta' });
       const install = await runner.getInstallationIfExists();
       const isInstalled = !!install;
