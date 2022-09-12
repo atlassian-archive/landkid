@@ -661,6 +661,25 @@ export class Runner {
     return status ? status.date : null;
   };
 
+  getLandRequestStateByPRId = async (pullRequestId: number): Promise<LandRequestStatus | null> => {
+    const landRequestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        isLatest: true,
+      },
+      order: [['date', 'DESC']],
+      include: [
+        {
+          model: LandRequest,
+          include: [PullRequest],
+          where: {
+            pullRequestId,
+          },
+        },
+      ],
+    });
+    return landRequestStatus;
+  };
+
   private getUsersPermissions = async (
     requestingUserMode: IPermissionMode,
   ): Promise<UserState[]> => {
@@ -789,8 +808,8 @@ export class Runner {
     };
   }
 
-  getState = async (requestingUser: ISessionUser): Promise<RunnerState> => {
-    const requestingUserMode = await permissionService.getPermissionForUser(requestingUser.aaid);
+  getState = async (aaid: string): Promise<RunnerState> => {
+    const requestingUserMode = await permissionService.getPermissionForUser(aaid);
     const [daysSinceLastFailure, pauseState, queue, users, waitingToQueue, bannerMessageState] =
       await Promise.all([
         this.getDatesSinceLastFailures(),
