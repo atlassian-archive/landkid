@@ -100,6 +100,7 @@ const App = () => {
     setLoadStatus(loadStatus === 'loaded' ? 'refreshing' : 'loading');
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
+        console.log('can-land success');
         switch (state) {
           case 'queued':
           case 'will-queue-when-ready':
@@ -124,6 +125,8 @@ const App = () => {
         setLoadStatus('loaded');
       })
       .catch((err) => {
+        console.log('can-land failure');
+
         setLoadingMode(undefined);
         console.error(err);
         if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
