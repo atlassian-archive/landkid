@@ -63,7 +63,7 @@ describe('mergePullRequest', () => {
   });
 
   test('merge failure with message', async () => {
-    mockedAxios.post.mockResolvedValue({ status: 500, data: { message: 'reason' } });
+    mockedAxios.post.mockResolvedValue({ status: 500, data: { error: { message: 'reason' } } });
     expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
       status: BitbucketAPI.FAILED,
       reason: 'reason',
