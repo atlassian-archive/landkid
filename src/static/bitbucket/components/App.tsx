@@ -74,6 +74,8 @@ const App = () => {
 
     if (!isVisible) {
       console.log('Not visible, not polling', document.hidden, inView);
+    } else {
+      console.log('visible, polling', document.hidden, inView);
     }
 
     checkPromise.finally(() => {
