@@ -120,6 +120,7 @@ const App = () => {
           warnings,
           bannerMessage,
         });
+        setLoadStatus('loaded');
       })
       .catch((err) => {
         setLoadingMode(undefined);
@@ -129,8 +130,6 @@ const App = () => {
         } else {
           setStatus('unknown-error');
         }
-      })
-      .finally(() => {
         setLoadStatus('loaded');
       });
   };
