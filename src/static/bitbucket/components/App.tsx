@@ -49,7 +49,7 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
-  let inView = true;
+  let inView = false;
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
@@ -85,6 +85,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    inView = true;
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       console.log('PR is already closed, returning');
