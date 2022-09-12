@@ -117,6 +117,7 @@ const Message = ({
 }: MessageProps) => {
   const renderLandState = () => {
     if (loadStatus === 'loading') {
+      console.log('load status is .....', loadStatus);
       return (
         <>
           <div className={loadingRectangleStyles} />

@@ -104,6 +104,10 @@ const App = () => {
   };
 
   const checkIfAbleToLand = async () => {
+    console.log(
+      'updating load status on checkIfAbleToLand',
+      state.state ? 'refreshing' : 'loading',
+    );
     setLoadStatus(() => (state.state ? 'refreshing' : 'loading'));
 
     const isOpen = qs.get('state') === 'OPEN';
