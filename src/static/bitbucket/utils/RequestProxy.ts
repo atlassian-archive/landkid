@@ -27,3 +27,16 @@ export function proxyRequest<T>(url: string, type: string): Promise<T> {
     });
   });
 }
+
+export function proxyRequestBare<T>(url: string, type: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    AP.require('proxyRequest', (req) => {
+      req({
+        url: url,
+        type,
+        success: (resp) => resolve(resp as any),
+        error: (err) => reject(err),
+      });
+    });
+  });
+}
