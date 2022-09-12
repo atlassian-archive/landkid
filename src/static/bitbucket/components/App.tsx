@@ -54,6 +54,7 @@ const App = () => {
   const [state, dispatch] = useState(initialState);
 
   const handleInViewChange = (inView: boolean) => {
+    console.log('inview changed', inView);
     if (inView) {
       checkIfAbleToLand();
     }
