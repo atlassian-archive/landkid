@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useInView } from 'react-intersection-observer';
 
 import '@atlaskit/css-reset';
 
@@ -49,34 +48,22 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
-  let inView = false;
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
-
-  const handleInViewChange = (inViewUpdated: boolean) => {
-    inView = inViewUpdated;
-    console.log('inViewUpdated', inView, document.hidden);
-    if (!document.hidden && inView) {
-      checkIfAbleToLand();
-    }
-  };
-
-  const { ref } = useInView({ onChange: handleInViewChange, initialInView: true });
 
   let refreshTimeoutId: Timeout;
   let refreshIntervalMs = 5000;
 
   const pollAbleToLand = () => {
-    console.log('reading inView in pollAbleToLand is', inView);
-    const isVisible = !document.hidden && inView;
+    const isVisible = !document.hidden;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
-    console.log('in pollAbleToLand', 'document hidden', document.hidden, 'inView', inView);
+    console.log('in pollAbleToLand', 'document hidden', document.hidden);
 
     if (!isVisible) {
-      console.log('Not visible, not polling', document.hidden, inView);
+      console.log('Not visible, not polling', document.hidden);
     } else {
-      console.log('visible, polling', document.hidden, inView);
+      console.log('visible, polling', document.hidden);
     }
 
     checkPromise.finally(() => {
@@ -89,7 +76,6 @@ const App = () => {
 
   useEffect(() => {
     console.log('setting inView to true');
-    inView = true;
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       console.log('PR is already closed, returning');
@@ -174,7 +160,6 @@ const App = () => {
       style={{
         paddingBottom: 20,
       }}
-      ref={ref}
     >
       <Message
         loading={loading}
