@@ -116,16 +116,6 @@ const Message = ({
   pullRequestId,
 }: MessageProps) => {
   const renderLandState = () => {
-    if (loadStatus === 'loading') {
-      console.log('load status is .....', loadStatus);
-      return (
-        <>
-          <div className={loadingRectangleStyles} />
-          <div className={loadingRectangleStyles} />
-          <div className={loadingRectangleStyles} style={{ width: '60%' }} />
-        </>
-      );
-    }
     switch (status) {
       case 'awaiting-merge':
         return <>This pull request is waiting to be merged. </>;
@@ -160,6 +150,9 @@ const Message = ({
         return <>See console for more information.</>;
       }
       case 'pr-closed': {
+        return null;
+      }
+      default: {
         return null;
       }
     }
@@ -257,16 +250,24 @@ const Message = ({
         appearance={getMessageAppearance(loadStatus, status)}
         actions={getActions()}
       >
-        <div className={messageContentStyles}>
-          {renderLandState()}
-          {showErrors && <Errors errors={errors} />}
-          {showWarnings && <Warnings warnings={warnings} />}
-          {loadStatus === 'refreshing' && (
-            <div className={refreshIndicatorStyles}>
-              <Spinner size="small" />
-            </div>
-          )}
-        </div>
+        {loadStatus === 'loading' ? (
+          <>
+            <div className={loadingRectangleStyles} />
+            <div className={loadingRectangleStyles} />
+            <div className={loadingRectangleStyles} style={{ width: '60%' }} />
+          </>
+        ) : (
+          <div className={messageContentStyles}>
+            {renderLandState()}
+            {showErrors && <Errors errors={errors} />}
+            {showWarnings && <Warnings warnings={warnings} />}
+            {loadStatus === 'refreshing' && (
+              <div className={refreshIndicatorStyles}>
+                <Spinner size="small" />
+              </div>
+            )}
+          </div>
+        )}
       </SectionMessage>
     </div>
   );
