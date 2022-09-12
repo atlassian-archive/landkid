@@ -18,15 +18,22 @@ export class BitbucketClient {
 
   constructor(private config: Config) {}
 
-  async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const [pullRequest, buildStatuses] = await Promise.all([
+  async isAllowedToMerge({
+    pullRequestId,
+    permissionLevel,
+    sourceBranch,
+    destinationBranch,
+  }: {
+    pullRequestId: number;
+    permissionLevel: IPermissionMode;
+    sourceBranch: string;
+    destinationBranch: string;
+  }) {
+    const [pullRequest, buildStatuses, hasConflicts] = await Promise.all([
       this.bitbucket.getPullRequest(pullRequestId),
       this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
+      this.bitbucket.pullRequestHasConflicts(sourceBranch, destinationBranch),
     ]);
-    const hasConflicts = await this.bitbucket.pullRequestHasConflicts(
-      pullRequest.sourceBranch,
-      pullRequest.targetBranch,
-    );
 
     const author = pullRequest.author;
     const approvals = getRealApprovals(
