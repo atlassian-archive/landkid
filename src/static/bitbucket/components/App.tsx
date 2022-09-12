@@ -49,13 +49,14 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
-  let inView = false;
+  let inView = true;
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
 
   const handleInViewChange = (inViewUpdated: boolean) => {
     inView = inViewUpdated;
+    console.log('inViewUpdated to ', inViewUpdated);
     if (inView) {
       checkIfAbleToLand();
     }
