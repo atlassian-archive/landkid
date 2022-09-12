@@ -100,9 +100,10 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         accountId: string;
       };
 
-      const [permissionLevel, queue] = await Promise.all([
+      const [permissionLevel, queue, waitingToQueue] = await Promise.all([
         permissionService.getPermissionForUser(aaid),
         runner.getQueue(),
+        runner.queue.getStatusesForWaitingRequests(),
       ]);
 
       if (!permission(permissionLevel).isAtLeast('land')) {
@@ -110,7 +111,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         return;
       }
 
-      return res.json({ queue });
+      return res.json({ queue, waitingToQueue });
     }),
   );
 
