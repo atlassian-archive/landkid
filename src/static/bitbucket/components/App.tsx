@@ -49,7 +49,7 @@ const appName = qs.get('appName') || 'Landkid';
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
   const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>('not-loaded');
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading');
   const [state, dispatch] = useState(initialState);
 
   const { ref, inView } = useInView({
@@ -86,7 +86,7 @@ const App = () => {
     console.log('Callled useEffect');
     setInterval(() => {
       console.log('loop...', { loadStatus });
-    }, 1000);
+    }, 100);
     console.log('setting inView to true');
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
