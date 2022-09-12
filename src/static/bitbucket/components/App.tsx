@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
+import useState from 'react-usestateref';
 
 import '@atlaskit/css-reset';
 
@@ -46,22 +47,19 @@ const initialState: CanLandResponse = {
 const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 const pullRequestId = parseInt(qs.get('pullRequestId') || '');
-
-const sleep = (ms: number) => new Promise<Timeout>((resolve) => setTimeout(resolve, ms));
+const repoName = qs.get('repoName') || '';
 
 const App = () => {
-  const [status, setStatus] = useState<Status | undefined>();
+  const [status, setStatus, statusRef] = useState<Status | undefined>();
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
-    return 'not-loaded';
-  });
+  const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
-  const loadStatusRef = useRef(loadStatus);
-  loadStatusRef.current = loadStatus;
 
   const { ref, inView } = useInView({
     threshold: 0,
     onChange: (inViewUpdated) => {
+      inViewRef.current = inViewUpdated;
+      console.log('ref changed', inViewUpdated, !document.hidden);
       if (inViewUpdated && !document.hidden) {
         checkIfAbleToLand();
       }
@@ -75,13 +73,15 @@ const App = () => {
 
   const pollAbleToLand = () => {
     const isTabInForeground = !document.hidden;
-    let refreshIntervalMs = inViewRef.current ? 5000 : 15000;
+    let refreshIntervalMs = inViewRef.current ? 10000 : 20000;
+
     const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
-      if (status == 'pr-closed') return;
-      refreshTimeoutId = await sleep(refreshIntervalMs);
-      pollAbleToLand();
+      if (statusRef.current == 'pr-closed') return;
+      refreshTimeoutId = setTimeout(() => {
+        pollAbleToLand();
+      }, refreshIntervalMs);
     });
   };
 
@@ -89,8 +89,13 @@ const App = () => {
     pollAbleToLand();
 
     document.addEventListener('visibilitychange', () => {
-      console.log('document visibility changed!', document.visibilityState, inView);
-      if (document.visibilityState === 'visible' && inView) {
+      console.log(
+        'document visibility changed!',
+        document.visibilityState,
+        inViewRef,
+        inViewRef.current,
+      );
+      if (document.visibilityState === 'visible' && inViewRef.current) {
         checkIfAbleToLand();
       }
     });
@@ -111,13 +116,21 @@ const App = () => {
   };
 
   const checkIfAbleToLand = async () => {
-    setLoadStatus(() => (loadStatusRef.current === 'loaded' ? 'refreshing' : 'loading'));
-
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       setStatus('pr-closed');
       return;
     }
+
+    if (loadStatusRef.current === 'loading' || loadStatusRef.current === 'refreshing') return;
+
+    console.log(
+      'called check if able to land',
+      loadStatusRef.current,
+      loadStatusRef.current ? 'loading' : 'refreshing',
+    );
+
+    setLoadStatus(loadStatusRef.current === 'not-loaded' ? 'loading' : 'refreshing');
 
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
@@ -160,11 +173,12 @@ const App = () => {
     setLoadStatus('queuing');
     proxyRequest('/land', 'POST')
       .then(() => {
-        checkIfAbleToLand();
+        checkQueueStatus();
         setStatus('queued');
+        console.log('status is queued');
       })
       .catch((err) => {
-        checkIfAbleToLand();
+        checkQueueStatus();
         console.error(err);
         setStatus('unknown-error');
       });
@@ -174,10 +188,12 @@ const App = () => {
     setLoadStatus('queuing');
     proxyRequest('/land-when-able', 'POST')
       .then(() => {
+        setStatus('will-queue-when-ready');
         setLoadStatus('loaded');
         checkIfAbleToLand();
       })
       .catch((err) => {
+        setStatus('will-queue-when-ready');
         setLoadStatus('loaded');
         console.error(err);
         setStatus('unknown-error');
@@ -185,6 +201,7 @@ const App = () => {
   };
 
   const onCheckAgainClicked = () => {
+    setLoadStatus('not-loaded');
     checkIfAbleToLand();
   };
 
@@ -196,7 +213,7 @@ const App = () => {
       ref={ref}
     >
       <Message
-        loadStatus={loadStatus}
+        loadStatus={loadStatusRef.current}
         appName={appName}
         queue={queue}
         status={status}
@@ -208,6 +225,7 @@ const App = () => {
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
         pullRequestId={pullRequestId}
+        repoName={repoName}
       />
     </div>
   );

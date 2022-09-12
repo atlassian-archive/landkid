@@ -12269,6 +12269,11 @@ react-transition-group@^2.2.1:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
+react-usestateref@^1.0.8:
+  version "1.0.8"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/react-usestateref/-/react-usestateref-1.0.8.tgz#b40519af0d6f3b3822c70eb5db80f7d47f1b1ff5"
+  integrity sha512-whaE6H0XGarFKwZ3EYbpHBsRRCLZqdochzg/C7e+b6VFMTA3LS3K4ZfpI4NT40iy83jG89rGXrw70P9iDfOdsA==
+
 react@^16.14.0, react@^16.4.0:
   version "16.14.0"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/react/-/react-16.14.0.tgz#94d776ddd0aaa37da3eda8fc5b6b18a4c9a3114d"

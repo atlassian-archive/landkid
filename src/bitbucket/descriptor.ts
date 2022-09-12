@@ -67,7 +67,7 @@ export const makeDescriptor = () => {
           name: {
             value: addonName,
           },
-          url: `/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}&${appNameQueryString}`,
+          url: `/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&repoName={repository.full_name}&pullRequestId={pullrequest.id}&${appNameQueryString}`,
           location: 'org.bitbucket.pullrequest.overview.informationPanel',
           conditions: [
             {

@@ -12,13 +12,13 @@ import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
 import { LoadStatus, QueueResponse, Status } from './types';
-import { css } from 'emotion';
+import { css, keyframes } from 'emotion';
 
 const getMessageAppearance = (
   loadStatus: LoadStatus,
   status: Status | undefined,
 ): SectionMessageProps['appearance'] => {
-  if (loadStatus === 'loading') {
+  if (loadStatus === 'loading' || !status) {
     return 'information';
   }
 
@@ -35,11 +35,11 @@ const getMessageAppearance = (
     'unknown-error': 'error',
   };
 
-  return status ? messageAppearance[status] : 'information';
+  return messageAppearance[status];
 };
 
 const getMessageTitle = (loadStatus: LoadStatus, status: Status | undefined): string => {
-  if (loadStatus === 'loading') {
+  if (loadStatus === 'loading' || !status) {
     return 'Checking land status...';
   }
 
@@ -55,7 +55,7 @@ const getMessageTitle = (loadStatus: LoadStatus, status: Status | undefined): st
     'user-denied-access': 'Access denied',
     'unknown-error': 'An unknown error occurred',
   };
-  return status ? messageTitle[status] : 'Unknown';
+  return messageTitle[status];
 };
 
 type MessageProps = {
@@ -70,6 +70,7 @@ type MessageProps = {
   loadStatus: LoadStatus;
   queue?: QueueResponse['queue'];
   pullRequestId: number;
+  repoName: string;
   bannerMessage: {
     messageExists: boolean;
     message: string;
@@ -101,6 +102,41 @@ const refreshIndicatorStyles = css({
   top: '-35px',
 });
 
+const rotating = keyframes({
+  from: {
+    transform: 'rotate(0deg)',
+  },
+  to: {
+    transform: 'rotate(360deg)',
+  },
+});
+
+const pipelineSpinnerStyles = css({
+  animation: `${rotating} 2s ease-in-out infinite`,
+  transformOrigin: 'center',
+});
+
+const PipelineSpinner = () => {
+  return (
+    <svg
+      className={pipelineSpinnerStyles}
+      role="presentation"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M0 12a12.06 12.06 0 0 1 3.52-8.48A12.07 12.07 0 0 1 16.66.96c1.43.6 2.72 1.46 3.82 2.56a12.07 12.07 0 0 1 2.56 13.14 12.06 12.06 0 0 1-2.56 3.82 12.07 12.07 0 0 1-13.14 2.56 12.06 12.06 0 0 1-3.82-2.56A12.07 12.07 0 0 1 0 12Zm18.59 2.1a7.02 7.02 0 0 0-8.83-8.83l.91 2.86a4.01 4.01 0 0 1 5.06 5.05l2.86.92Zm-5.56 1.77a4.01 4.01 0 0 1-5.05-5.05l-2.86-.91a7.02 7.02 0 0 0 8.83 8.82l-.92-2.86Z"
+        fill="#0065FF"
+      />
+    </svg>
+  );
+};
+
 const Message = ({
   loadStatus,
   appName,
@@ -114,9 +150,35 @@ const Message = ({
   warnings,
   bannerMessage,
   pullRequestId,
+  repoName,
 }: MessageProps) => {
   const renderLandState = () => {
     switch (status) {
+      case 'running': {
+        const queueItem = queue?.find((item) => item.request.pullRequestId === pullRequestId);
+        const buildLink = queueItem ? (
+          <span>
+            (
+            <b>
+              <a
+                target="_blank"
+                href={`https://bitbucket.org/${repoName}/pipelines/results/${queueItem.request.buildId}`}
+              >
+                #{queueItem.request.buildId}
+              </a>
+            </b>
+            )
+          </span>
+        ) : (
+          ''
+        );
+        return (
+          <>
+            Build checks are being run for this pull request {buildLink}. If they succeed, the pull
+            request will be merged.{' '}
+          </>
+        );
+      }
       case 'awaiting-merge':
         return <>This pull request is waiting to be merged. </>;
       case 'will-queue-when-ready':
@@ -128,7 +190,6 @@ const Message = ({
         );
       case 'merging':
         return <>This pull request has passed all checks and is being merged.</>;
-      case 'running':
       case 'queued': {
         return <Queue queue={queue} pullRequestId={pullRequestId} />;
       }
@@ -232,6 +293,8 @@ const Message = ({
     return actions;
   };
 
+  console.log('in message', { loadStatus });
+
   return (
     <div>
       {bannerMessage && (
@@ -246,6 +309,7 @@ const Message = ({
         </div>
       )}
       <SectionMessage
+        icon={status === 'running' ? PipelineSpinner : undefined}
         title={getMessageTitle(loadStatus, status)}
         appearance={getMessageAppearance(loadStatus, status)}
         actions={getActions()}

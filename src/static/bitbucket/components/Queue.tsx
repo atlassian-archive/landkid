@@ -83,9 +83,6 @@ const Queue = ({
   const isPRInRunningQueue = prPositionRunningQueue > -1;
   const isPRInQueue = isPRInWaitQueue || isPRInRunningQueue;
 
-  const totalWaiting = waitingQueue.length;
-  const totalRunning = runningQueue.length;
-
   if (!isPRInQueue) {
     return <div> Pull request is no longer in queue. </div>;
   }
@@ -93,19 +90,19 @@ const Queue = ({
   return (
     <>
       <div className={queueContainerStyle}>
-        {totalRunning > 1 &&
-          [...new Array(totalRunning).keys()].map((_, index) => (
-            <div
-              key={index}
-              className={
-                isPRInRunningQueue && index === prPositionRunningQueue
-                  ? queueElementActiveStyle
-                  : queueElementRunningStyle
-              }
-            ></div>
-          ))}
-        {totalWaiting > 0 && <div className={queueSeparatorStyle} />}
-        {[...new Array(totalWaiting).keys()].map((_, index) => (
+        {runningQueue.map(({ request }, index) => (
+          <div
+            key={index}
+            className={
+              isPRInRunningQueue && index === prPositionRunningQueue
+                ? queueElementActiveStyle
+                : queueElementRunningStyle
+            }
+            title={`#${request.pullRequest.prId}: ${request.pullRequest.title}`}
+          ></div>
+        ))}
+        {waitingQueue.length > 0 && <div className={queueSeparatorStyle} />}
+        {waitingQueue.map(({ request }, index) => (
           <div
             key={index}
             className={
@@ -113,6 +110,7 @@ const Queue = ({
                 ? queueElementActiveStyle
                 : queueElementInactiveStyle
             }
+            title={`#${request.pullRequest.prId}: ${request.pullRequest.title}`}
           >
             {index + 1}
           </div>

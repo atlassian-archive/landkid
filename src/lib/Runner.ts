@@ -658,10 +658,11 @@ export class Runner {
     return status ? status.date : null;
   };
 
-  getLandRequestStateByPRId = async (
-    pullRequestId: number,
-  ): Promise<LandRequestStatus | undefined> => {
-    const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+  getLandRequestStateByPRId = async (pullRequestId: number): Promise<LandRequestStatus | null> => {
+    const landRequestStatus = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        isLatest: true,
+      },
       order: [['date', 'DESC']],
       include: [
         {
@@ -673,7 +674,7 @@ export class Runner {
         },
       ],
     });
-    return landRequestStatuses.find((status) => status.isLatest);
+    return landRequestStatus;
   };
 
   getLandRequestStatesByPRId = async (
