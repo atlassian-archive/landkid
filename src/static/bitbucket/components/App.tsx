@@ -49,23 +49,32 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
-  let inView = true;
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
 
   const handleInViewChange = (inViewUpdated: boolean) => {
-    inView = inViewUpdated;
-    console.log('inViewUpdated to ', inViewUpdated);
-    if (inView) {
+    if (!document.hidden && inView) {
       checkIfAbleToLand();
     }
   };
 
-  const { ref } = useInView({ onChange: handleInViewChange });
+  const { ref, inView } = useInView({ onChange: handleInViewChange });
 
-  let refreshIntervalId: Timeout;
+  let refreshTimeoutId: Timeout;
   let refreshIntervalMs = 5000;
+
+  const pollAbleToLand = () => {
+    checkIfAbleToLand().finally(() => {
+      refreshTimeoutId = setTimeout(() => {
+        if (!document.hidden && inView) {
+          pollAbleToLand();
+        } else {
+          console.log('widget not in view, returning');
+        }
+      }, refreshIntervalMs);
+    });
+  };
 
   useEffect(() => {
     const isOpen = qs.get('state') === 'OPEN';
@@ -73,24 +82,14 @@ const App = () => {
       console.log('PR is already closed, returning');
       return setStatus('pr-closed');
     }
-    checkIfAbleToLand();
-
-    refreshIntervalId = setInterval(() => {
-      if (inView) {
-        checkIfAbleToLand();
-      } else {
-        console.log('widget not in view, returning');
-      }
-    }, refreshIntervalMs);
-
+    pollAbleToLand();
     return () => {
-      clearInterval(refreshIntervalId);
+      clearInterval(refreshTimeoutId);
     };
   }, []);
 
   const checkIfAbleToLand = () => {
-    console.log('checking checkIfAbleToLand');
-    proxyRequest<CanLandResponse>('/can-land', 'POST')
+    return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
           case 'queued':
