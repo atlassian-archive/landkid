@@ -83,6 +83,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    console.log('Callled useEffect');
     console.log('setting inView to true');
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
