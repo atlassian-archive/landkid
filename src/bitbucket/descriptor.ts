@@ -45,6 +45,9 @@ export const makeDescriptor = () => {
           destination:
             '/bitbucket/proxy/can-land?aaid={user.uuid}&pullRequestId={pullrequest.id}&accountId={user.account_id}',
         },
+        '/queue': {
+          destination: '/bitbucket/proxy/queue',
+        },
         '/land/{repository}/{pullrequest}': {
           destination:
             '/bitbucket/proxy/land?aaid={user.uuid}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}&accountId={user.account_id}',
