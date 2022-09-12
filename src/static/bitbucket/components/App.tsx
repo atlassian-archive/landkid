@@ -76,9 +76,10 @@ const App = () => {
     checkIfAbleToLand();
 
     refreshIntervalId = setInterval(() => {
-      console.log('widget not in view, returning');
       if (inView) {
         checkIfAbleToLand();
+      } else {
+        console.log('widget not in view, returning');
       }
     }, refreshIntervalMs);
 
