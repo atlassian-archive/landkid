@@ -127,9 +127,8 @@ export const QueueBase = ({
       ) : null}
       {isPRInRunningQueue && (
         <div className={queueLabelStyle}>
-          Land request is currently being built in-parallel with {runningQueue.length - 1} other
-          requests... Your pull request will be merged after these builds are completed
-          successfully.
+          Build checks are being run for this pull request. If they succeed, the pull request will
+          be merged.{' '}
         </div>
       )}
     </>

@@ -124,13 +124,6 @@ const Message = ({
       );
     }
     switch (status) {
-      case 'running':
-        return (
-          <>
-            Build checks are being run for this pull request. If they succeed, the pull request will
-            be merged.{' '}
-          </>
-        );
       case 'awaiting-merge':
         return <>This pull request is waiting to be merged. </>;
       case 'will-queue-when-ready':
@@ -141,6 +134,7 @@ const Message = ({
         );
       case 'merging':
         return <>This pull request has passed all checks and is being merged.</>;
+      case 'running':
       case 'queued': {
         return <Queue queue={queue} />;
       }
