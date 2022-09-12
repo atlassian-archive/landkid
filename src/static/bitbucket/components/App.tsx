@@ -51,7 +51,7 @@ const App = () => {
   const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
     console.log('resetting state to loading...');
-    return 'loading';
+    return 'not-loaded';
   });
   const [state, dispatch] = useState(initialState);
 
