@@ -97,7 +97,7 @@ const App = () => {
 
   setInterval(() => {
     console.log('loop...', { loadStatus });
-  });
+  }, 1000);
 
   const checkIfAbleToLand = () => {
     console.log({ loadStatus });
