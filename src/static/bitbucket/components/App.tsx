@@ -173,12 +173,14 @@ const App = () => {
     setLoadStatus('queuing');
     proxyRequest('/land', 'POST')
       .then(() => {
-        checkQueueStatus();
         setStatus('queued');
+        checkQueueStatus();
+        checkIfAbleToLand();
         console.log('status is queued');
       })
       .catch((err) => {
         checkQueueStatus();
+        checkIfAbleToLand();
         console.error(err);
         setStatus('unknown-error');
       });

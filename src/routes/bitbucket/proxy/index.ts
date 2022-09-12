@@ -26,30 +26,23 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         destinationBranch: string;
       };
       const prId = parseInt(pullRequestId, 10);
-      try {
-        const { aaid, pullRequestId } = req.query as {
-          aaid: string;
-          pullRequestId: string;
-          accountId: string;
-        };
-        const prId = parseInt(pullRequestId, 10);
 
-        Logger.info('Requesting land checks', {
-          namespace: 'routes:bitbucket:proxy:can-land',
-          pullRequestId,
-        });
+      Logger.info('Requesting land checks', {
+        namespace: 'routes:bitbucket:proxy:can-land',
+        pullRequestId,
+      });
 
-        const errors: string[] = [];
-        const warnings: string[] = [];
-        let existingRequest = false;
-        const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
-          runner.getBannerMessageState(),
-          permissionService.getPermissionForUser(aaid),
-          runner.getLandRequestStateByPRId(prId),
-        ]);
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      let existingRequest = false;
+      const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
+        runner.getBannerMessageState(),
+        permissionService.getPermissionForUser(aaid),
+        runner.getLandRequestStateByPRId(prId),
+      ]);
 
-        if (permission(permissionLevel).isAtLeast('land')) {
-          const pauseState = await runner.getPauseState();
+      if (permission(permissionLevel).isAtLeast('land')) {
+        const pauseState = await runner.getPauseState();
 
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
@@ -61,49 +54,32 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             sourceBranch,
             destinationBranch,
           });
-          if (pauseState) {
-            errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
-          } else {
-            const landChecks = await runner.isAllowedToLand(
-              prId,
-              permissionLevel,
-              runner.getWaitingAndQueued,
-            );
 
-            warnings.push(...landChecks.warnings);
-            errors.push(...landChecks.errors);
-            if (landChecks.existingRequest) {
-              existingRequest = true;
-            }
+          warnings.push(...landChecks.warnings);
+          errors.push(...landChecks.errors);
+          if (landChecks.existingRequest) {
+            existingRequest = true;
           }
-        } else {
-          errors.push("You don't have land permissions");
         }
-
-        Logger.info('Land checks determined', {
-          namespace: 'routes:bitbucket:proxy:can-land',
-          pullRequestId,
-          errors,
-          warnings,
-        });
-
-        res.json({
-          canLand: !existingRequest && errors.length === 0,
-          canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
-          state: requestStatus?.state,
-          errors,
-          warnings,
-          bannerMessage,
-        });
-      } catch (err) {
-        console.error('error yo', err);
-        Logger.error('Error while checking land', {
-          namespace: 'routes:bitbucket:proxy:can-land',
-          err,
-          errMessage: err.message,
-          errStr: err.toString(),
-        });
+      } else {
+        errors.push("You don't have land permissions");
       }
+
+      Logger.info('Land checks determined', {
+        namespace: 'routes:bitbucket:proxy:can-land',
+        pullRequestId,
+        errors,
+        warnings,
+      });
+
+      res.json({
+        canLand: !existingRequest && errors.length === 0,
+        canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
+        state: requestStatus?.state,
+        errors,
+        warnings,
+        bannerMessage,
+      });
     }),
   );
 
