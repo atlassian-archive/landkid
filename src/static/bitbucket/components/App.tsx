@@ -49,6 +49,7 @@ const appName = qs.get('appName') || 'Landkid';
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
   const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
+  console.log('resetting state to loading...');
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading');
   const [state, dispatch] = useState(initialState);
 
@@ -101,7 +102,7 @@ const App = () => {
 
   const checkIfAbleToLand = () => {
     console.log({ loadStatus });
-    setLoadStatus(loadStatus === 'loaded' ? 'refreshing' : 'loading');
+    setLoadStatus(() => (loadStatus === 'loaded' ? 'refreshing' : 'loading'));
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         console.log('can-land success');
