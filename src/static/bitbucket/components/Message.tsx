@@ -68,7 +68,8 @@ type MessageProps = {
   errors: string[];
   warnings: string[];
   loadStatus: LoadStatus;
-  queue?: QueueResponse;
+  queue?: QueueResponse['queue'];
+  pullRequestId: number;
   bannerMessage: {
     messageExists: boolean;
     message: string;
@@ -112,6 +113,7 @@ const Message = ({
   errors,
   warnings,
   bannerMessage,
+  pullRequestId,
 }: MessageProps) => {
   const renderLandState = () => {
     if (loadStatus === 'loading') {
@@ -129,17 +131,18 @@ const Message = ({
       case 'will-queue-when-ready':
         return (
           <>
-            This pull request will be added to the land queue when the criteria below have been met.
+            This pull request will be added to the land queue when the criteria below have been met
+            —
           </>
         );
       case 'merging':
         return <>This pull request has passed all checks and is being merged.</>;
       case 'running':
       case 'queued': {
-        return <Queue queue={queue} />;
+        return <Queue queue={queue} pullRequestId={pullRequestId} />;
       }
       case 'cannot-land': {
-        return <>This pull request cannot land until the criteria below has been met.</>;
+        return <>This pull request cannot land until the criteria below has been met —</>;
       }
       case 'user-denied-access': {
         return (
@@ -254,14 +257,14 @@ const Message = ({
         actions={getActions()}
       >
         <div className={messageContentStyles}>
+          {renderLandState()}
+          {showErrors && <Errors errors={errors} />}
+          {showWarnings && <Warnings warnings={warnings} />}
           {loadStatus === 'refreshing' && (
             <div className={refreshIndicatorStyles}>
               <Spinner size="small" />
             </div>
           )}
-          {renderLandState()}
-          {showErrors && <Errors errors={errors} />}
-          {showWarnings && <Warnings warnings={warnings} />}
         </div>
       </SectionMessage>
     </div>

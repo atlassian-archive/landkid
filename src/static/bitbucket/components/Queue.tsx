@@ -1,6 +1,5 @@
 import { css, keyframes } from 'emotion';
-import { G300, N60, N300, N400 } from '@atlaskit/theme/colors';
-import { RunnerState } from '../../../types';
+import { G300, N60, N200, N400 } from '@atlaskit/theme/colors';
 import { QueueResponse } from './types';
 
 const queueContainerStyle = css({
@@ -35,7 +34,7 @@ const queueElementActiveStyle = css({
 
 const shimmer = keyframes({
   from: {
-    background: N300,
+    background: N200,
   },
   to: {
     background: N400,
@@ -60,21 +59,24 @@ const queueLabelStyle = css({
   marginBottom: 6,
 });
 
-export const QueueBase = ({
-  currentState,
-  currentPullRequestId,
+const Queue = ({
+  queue,
+  pullRequestId,
 }: {
-  currentState: Pick<RunnerState, 'queue'>;
-  currentPullRequestId: number;
+  queue: QueueResponse['queue'] | undefined;
+  pullRequestId: number;
 }) => {
-  const waitingQueue = currentState.queue.filter((request) => request.state === 'queued');
-  const runningQueue = currentState.queue.filter((request) => request.state === 'running');
+  if (!queue) {
+    return null;
+  }
+  const waitingQueue = queue.filter((request) => request.state === 'queued');
+  const runningQueue = queue.filter((request) => request.state === 'running');
 
   const prPositionWaitQueue = waitingQueue.findIndex(
-    (pr) => pr.request.pullRequestId === currentPullRequestId,
+    (pr) => pr.request.pullRequestId === pullRequestId,
   );
   const prPositionRunningQueue = runningQueue.findIndex(
-    (pr) => pr.request.pullRequestId === currentPullRequestId,
+    (pr) => pr.request.pullRequestId === pullRequestId,
   );
 
   const isPRInWaitQueue = prPositionWaitQueue > -1;
@@ -91,16 +93,17 @@ export const QueueBase = ({
   return (
     <>
       <div className={queueContainerStyle}>
-        {[...new Array(totalRunning).keys()].map((_, index) => (
-          <div
-            key={index}
-            className={
-              isPRInRunningQueue && index === prPositionRunningQueue
-                ? queueElementActiveStyle
-                : queueElementRunningStyle
-            }
-          ></div>
-        ))}
+        {totalRunning > 1 &&
+          [...new Array(totalRunning).keys()].map((_, index) => (
+            <div
+              key={index}
+              className={
+                isPRInRunningQueue && index === prPositionRunningQueue
+                  ? queueElementActiveStyle
+                  : queueElementRunningStyle
+              }
+            ></div>
+          ))}
         {totalWaiting > 0 && <div className={queueSeparatorStyle} />}
         {[...new Array(totalWaiting).keys()].map((_, index) => (
           <div
@@ -117,7 +120,7 @@ export const QueueBase = ({
       </div>
       {isPRInWaitQueue ? (
         prPositionWaitQueue === 0 ? (
-          <div className={queueLabelStyle}>Land request is waiting at start of the queue</div>
+          <div className={queueLabelStyle}>Land request is waiting at start of the queue...</div>
         ) : (
           <div className={queueLabelStyle}>
             {' '}
@@ -133,17 +136,6 @@ export const QueueBase = ({
       )}
     </>
   );
-};
-
-const Queue = ({ queue }: { queue: QueueResponse | undefined }) => {
-  const qs = new URLSearchParams(window.location.search);
-  const pullRequestId = parseInt(qs.get('pullRequestId') || '');
-
-  if (!queue) {
-    return null;
-  }
-
-  return <QueueBase currentState={queue} currentPullRequestId={pullRequestId} />;
 };
 
 export default Queue;

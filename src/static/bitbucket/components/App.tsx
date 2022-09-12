@@ -45,10 +45,11 @@ const initialState: CanLandResponse = {
 
 const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
+const pullRequestId = parseInt(qs.get('pullRequestId') || '');
 
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
-  const [queue, setQueue] = useState<QueueResponse | undefined>();
+  const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
     return 'not-loaded';
   });
@@ -78,10 +79,7 @@ const App = () => {
     });
   };
 
-  let isInitialLoaded: boolean;
-
   useEffect(() => {
-    isInitialLoaded = false;
     pollAbleToLand();
 
     document.addEventListener('visibilitychange', () => {
@@ -98,7 +96,7 @@ const App = () => {
   const checkQueueStatus = () => {
     proxyRequestBare<any>('/queue', 'POST')
       .then((res) => {
-        setQueue(res);
+        setQueue(res.queue);
       })
       .catch((err) => {
         console.error(err);
@@ -106,8 +104,7 @@ const App = () => {
   };
 
   const checkIfAbleToLand = async () => {
-    setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
-    isInitialLoaded = true;
+    setLoadStatus(() => (state.state ? 'refreshing' : 'loading'));
 
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
@@ -120,7 +117,6 @@ const App = () => {
         switch (state) {
           case 'running':
           case 'queued':
-            setStatus(state);
             checkQueueStatus();
           case 'will-queue-when-ready':
           case 'awaiting-merge':
@@ -204,6 +200,7 @@ const App = () => {
         onCheckAgainClicked={onCheckAgainClicked}
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
+        pullRequestId={pullRequestId}
       />
     </div>
   );
