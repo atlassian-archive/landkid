@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 import '@atlaskit/css-reset';
@@ -56,7 +56,8 @@ const App = () => {
     return 'not-loaded';
   });
   const [state, dispatch] = useState(initialState);
-  const getState = () => state;
+  const loadStatusRef = useRef(loadStatus);
+  loadStatusRef.current = loadStatus;
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -67,11 +68,14 @@ const App = () => {
     },
   });
 
+  const inViewRef = useRef(inView);
+  inViewRef.current = inView;
+
   let refreshTimeoutId: Timeout;
 
   const pollAbleToLand = () => {
     const isTabInForeground = !document.hidden;
-    let refreshIntervalMs = inView ? 5000 : 15000;
+    let refreshIntervalMs = inViewRef.current ? 5000 : 15000;
     const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
@@ -106,13 +110,7 @@ const App = () => {
   };
 
   const checkIfAbleToLand = async () => {
-    console.log(
-      'updating load status on checkIfAbleToLand',
-      getState().state,
-      getState().state ? 'refreshing' : 'loading',
-      { loadStatus },
-    );
-    setLoadStatus(() => (getState().state ? 'refreshing' : 'loading'));
+    setLoadStatus(() => (loadStatusRef.current === 'loaded' ? 'refreshing' : 'loading'));
 
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
