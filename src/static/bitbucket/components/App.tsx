@@ -84,6 +84,9 @@ const App = () => {
 
   useEffect(() => {
     console.log('Callled useEffect');
+    setInterval(() => {
+      console.log('loop...', { loadStatus });
+    }, 1000);
     console.log('setting inView to true');
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
@@ -95,10 +98,6 @@ const App = () => {
       clearTimeout(refreshTimeoutId);
     };
   }, []);
-
-  setInterval(() => {
-    console.log('loop...', { loadStatus });
-  }, 1000);
 
   const checkIfAbleToLand = () => {
     console.log({ loadStatus });
