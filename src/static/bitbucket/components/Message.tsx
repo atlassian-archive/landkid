@@ -11,48 +11,63 @@ import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
-import { Status } from './types';
+import { LoadingMode, LoadStatus, Status } from './types';
 
-type Loading = 'land' | 'land-when-able';
+const getMessageAppearance = (
+  loadStatus: LoadStatus,
+  status: Status | undefined,
+): SectionMessageProps['appearance'] => {
+  if (loadStatus === 'loading') {
+    return 'information';
+  }
 
-const messageAppearance: { [keyof in Status]: SectionMessageProps['appearance'] } = {
-  running: 'information',
-  'awaiting-merge': 'information',
-  'will-queue-when-ready': 'information',
-  merging: 'information',
-  'checking-can-land': 'information',
-  'cannot-land': 'warning',
-  queued: 'success',
-  'can-land': 'success',
-  'pr-closed': 'success',
-  'user-denied-access': 'error',
-  'unknown-error': 'error',
-} as const;
+  const messageAppearance: { [keyof in Status]: SectionMessageProps['appearance'] } = {
+    running: 'information',
+    'awaiting-merge': 'information',
+    'will-queue-when-ready': 'information',
+    merging: 'information',
+    'cannot-land': 'warning',
+    queued: 'success',
+    'can-land': 'success',
+    'pr-closed': 'success',
+    'user-denied-access': 'error',
+    'unknown-error': 'error',
+  };
 
-const messageTitle: { [keyof in Status]: string } = {
-  running: 'Building...',
-  'awaiting-merge': 'Awaiting to merge pull request...',
-  'will-queue-when-ready': 'Queued to land when ready!',
-  merging: 'Pull request is being merged...',
-  'checking-can-land': 'Checking land status...',
-  'cannot-land': 'Not ready to land',
-  queued: 'Queued to land!',
-  'can-land': 'Ready to land!',
-  'pr-closed': 'Pull request is already closed',
-  'user-denied-access': 'Access denied',
-  'unknown-error': 'An unknown error occurred',
-} as const;
+  return status ? messageAppearance[status] : 'information';
+};
+
+const getMessageTitle = (loadStatus: LoadStatus, status: Status | undefined): string => {
+  if (loadStatus === 'loading') {
+    return 'Checking land status...';
+  }
+
+  const messageTitle: { [keyof in Status]: string } = {
+    running: 'Building...',
+    'awaiting-merge': 'Awaiting to merge pull request...',
+    'will-queue-when-ready': 'Queued to land when ready!',
+    merging: 'Pull request is being merged...',
+    'cannot-land': 'Not ready to land',
+    queued: 'Queued to land!',
+    'can-land': 'Ready to land!',
+    'pr-closed': 'Pull request is already closed',
+    'user-denied-access': 'Access denied',
+    'unknown-error': 'An unknown error occurred',
+  };
+  return status ? messageTitle[status] : 'Unknown';
+};
 
 type MessageProps = {
   appName: string;
-  status: Status;
+  status?: Status;
   onLandClicked: () => void;
   onLandWhenAbleClicked: () => void;
   onCheckAgainClicked: () => void;
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
-  loading?: Loading;
+  loadingMode?: LoadingMode;
+  loadStatus: LoadStatus;
   bannerMessage: {
     messageExists: boolean;
     message: string;
@@ -75,7 +90,8 @@ const ExternalLink = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Message = ({
-  loading,
+  loadingMode,
+  loadStatus,
   appName,
   status,
   onLandClicked,
@@ -87,16 +103,16 @@ const Message = ({
   bannerMessage,
 }: MessageProps) => {
   const renderLandState = () => {
+    if (loadStatus === 'loading') {
+      return (
+        <>
+          <div className={loadingRectangleStyles} />
+          <div className={loadingRectangleStyles} />
+          <div className={loadingRectangleStyles} style={{ width: '60%' }} />
+        </>
+      );
+    }
     switch (status) {
-      case 'checking-can-land': {
-        return (
-          <>
-            <div className={loadingRectangleStyles} />
-            <div className={loadingRectangleStyles} />
-            <div className={loadingRectangleStyles} style={{ width: '60%' }} />
-          </>
-        );
-      }
       case 'running':
         return (
           <>
@@ -153,7 +169,7 @@ const Message = ({
   const landButton = (
     <div style={{ marginRight: 15 }}>
       <Confetti
-        active={loading === 'land'}
+        active={loadingMode === 'land'}
         config={{
           angle: 20,
           spread: 58,
@@ -169,7 +185,7 @@ const Message = ({
           perspective: '500px',
         }}
       />
-      <Button appearance="primary" onClick={onLandClicked} isLoading={loading === 'land'}>
+      <Button appearance="primary" onClick={onLandClicked} isLoading={loadingMode === 'land'}>
         Land changes
       </Button>
     </div>
@@ -195,7 +211,7 @@ const Message = ({
         if (canLandWhenAble) {
           actions.push(
             <SectionMessageAction linkComponent={ExternalLink} onClick={onLandWhenAbleClicked}>
-              Land when ready {loading === 'land-when-able' && <Spinner size="small" />}
+              Land when ready {loadingMode === 'land-when-able' && <Spinner size="small" />}
             </SectionMessageAction>,
           );
         }
@@ -225,8 +241,8 @@ const Message = ({
         </div>
       )}
       <SectionMessage
-        title={messageTitle[status]}
-        appearance={messageAppearance[status]}
+        title={getMessageTitle(loadStatus, status)}
+        appearance={getMessageAppearance(loadStatus, status)}
         actions={getActions()}
       >
         {renderLandState()}

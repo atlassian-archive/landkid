@@ -7,7 +7,7 @@ import { proxyRequest } from '../utils/RequestProxy';
 
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
-import { Status } from './types';
+import { LoadingMode, LoadStatus, Status } from './types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -34,8 +34,6 @@ type CanLandResponse = {
   state: LandState | null;
 };
 
-type Loading = 'land' | 'land-when-able';
-
 const initialState: CanLandResponse = {
   canLand: false,
   canLandWhenAble: false,
@@ -49,8 +47,9 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
-  const [status, setStatus] = useState<Status>('checking-can-land');
-  const [loading, setLoading] = useState<Loading | undefined>();
+  const [status, setStatus] = useState<Status | undefined>();
+  const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
 
   const { ref, inView } = useInView({
@@ -61,10 +60,10 @@ const App = () => {
   console.log({ inView });
 
   let refreshTimeoutId: Timeout;
-  let refreshIntervalMs = 5000;
 
   const pollAbleToLand = () => {
     const isVisible = !document.hidden;
+    let refreshIntervalMs = inView ? 5000 : 15000;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
     console.log({ inView });
     console.log('in pollAbleToLand', 'document hidden', document.hidden);
@@ -97,6 +96,7 @@ const App = () => {
   }, []);
 
   const checkIfAbleToLand = () => {
+    setLoadStatus(loadStatus === 'loaded' ? 'refreshing' : 'loading');
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
@@ -121,47 +121,50 @@ const App = () => {
         });
       })
       .catch((err) => {
-        setLoading(undefined);
+        setLoadingMode(undefined);
         console.error(err);
         if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
           setStatus('user-denied-access');
         } else {
           setStatus('unknown-error');
         }
+      })
+      .finally(() => {
+        setLoadStatus('loaded');
       });
   };
 
   const onLandClicked = () => {
-    setLoading('land');
+    setLoadingMode('land');
     proxyRequest('/land', 'POST')
       .then(() => {
-        setLoading(undefined);
+        setLoadingMode(undefined);
         setStatus('queued');
       })
       .catch((err) => {
-        setLoading(undefined);
+        setLoadingMode(undefined);
         console.error(err);
         setStatus('unknown-error');
       });
   };
 
   const onLandWhenAbleClicked = () => {
-    setLoading('land-when-able');
+    setLoadingMode('land-when-able');
     proxyRequest('/land-when-able', 'POST')
       .then(() => {
-        setLoading(undefined);
+        setLoadingMode(undefined);
         setStatus('queued');
       })
       .catch((err) => {
-        setLoading(undefined);
+        setLoadingMode(undefined);
         console.error(err);
         setStatus('unknown-error');
       });
   };
 
   const onCheckAgainClicked = () => {
-    setStatus('checking-can-land');
     checkIfAbleToLand();
+    setLoadStatus('loading');
   };
 
   return (
@@ -172,7 +175,8 @@ const App = () => {
       ref={ref}
     >
       <Message
-        loading={loading}
+        loadingMode={loadingMode}
+        loadStatus={loadStatus}
         appName={appName}
         status={status}
         canLandWhenAble={state.canLandWhenAble}

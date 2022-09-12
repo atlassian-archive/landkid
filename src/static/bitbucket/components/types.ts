@@ -1,5 +1,4 @@
 export type Status =
-  | 'checking-can-land'
   | 'cannot-land'
   | 'queued'
   | 'running'
@@ -10,3 +9,6 @@ export type Status =
   | 'pr-closed'
   | 'user-denied-access'
   | 'unknown-error';
+
+export type LoadingMode = 'land' | 'land-when-able';
+export type LoadStatus = 'loaded' | 'not-loaded' | 'loading' | 'refreshing';

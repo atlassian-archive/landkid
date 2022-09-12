@@ -40,7 +40,7 @@ export default {
       options: Object.keys(bannerMessageOptions),
       mapping: bannerMessageOptions,
     },
-    loading: {
+    loadingMode: {
       control: { type: 'select' },
       options: [undefined, 'land', 'land-when-able'],
     },
