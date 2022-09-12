@@ -69,9 +69,9 @@ const App = () => {
   let refreshTimeoutId: Timeout;
 
   const pollAbleToLand = () => {
-    const isVisible = !document.hidden;
+    const isTabInForeground = !document.hidden;
     let refreshIntervalMs = inView ? 5000 : 15000;
-    const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
+    const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
       if (status == 'pr-closed') return;
@@ -107,7 +107,7 @@ const App = () => {
   const checkIfAbleToLand = async () => {
     console.log(
       'updating load status on checkIfAbleToLand',
-      state,
+      state.state,
       state.state ? 'refreshing' : 'loading',
       { loadStatus },
     );
