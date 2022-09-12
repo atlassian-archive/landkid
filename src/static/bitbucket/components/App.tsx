@@ -118,10 +118,11 @@ const App = () => {
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
+          case 'running':
           case 'queued':
+            setStatus(state);
             checkQueueStatus();
           case 'will-queue-when-ready':
-          case 'running':
           case 'awaiting-merge':
           case 'merging':
             setStatus(state);
