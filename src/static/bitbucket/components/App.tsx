@@ -49,18 +49,20 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
+  let inView = true;
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
 
   const handleInViewChange = (inViewUpdated: boolean) => {
-    console.log('inViewUpdated', inViewUpdated, document.hidden);
-    if (!document.hidden && inViewUpdated) {
+    inView = inViewUpdated;
+    console.log('inViewUpdated', inView, document.hidden);
+    if (!document.hidden && inView) {
       checkIfAbleToLand();
     }
   };
 
-  const { ref, inView } = useInView({ onChange: handleInViewChange, initialInView: true });
+  const { ref } = useInView({ onChange: handleInViewChange, initialInView: true });
 
   let refreshTimeoutId: Timeout;
   let refreshIntervalMs = 5000;
@@ -68,7 +70,7 @@ const App = () => {
   const pollAbleToLand = () => {
     const isVisible = !document.hidden && inView;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
-    console.log('in pollAbleToLand');
+    console.log('in pollAbleToLand', 'document hidden', document.hidden, 'inView', inView);
 
     if (!isVisible) {
       console.log('Not visible, not polling', document.hidden, inView);
