@@ -671,6 +671,23 @@ export class Runner {
     return landRequestStatuses.find((status) => status.isLatest);
   };
 
+  getLandRequestStatesByPRId = async (
+    pullRequestId: number,
+  ): Promise<LandRequestStatus | undefined> => {
+    const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+      include: [
+        {
+          model: LandRequest,
+          include: [PullRequest],
+          where: {
+            pullRequestId,
+          },
+        },
+      ],
+    });
+    return landRequestStatuses;
+  };
+
   private getUsersPermissions = async (
     requestingUserMode: IPermissionMode,
   ): Promise<UserState[]> => {
