@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
 import '@atlaskit/css-reset';
 
@@ -52,12 +53,20 @@ const App = () => {
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
 
+  const { ref, inView } = useInView({
+    /* Optional options */
+    threshold: 0,
+  });
+
+  console.log({ inView });
+
   let refreshTimeoutId: Timeout;
   let refreshIntervalMs = 5000;
 
   const pollAbleToLand = () => {
     const isVisible = !document.hidden;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
+    console.log({ inView });
     console.log('in pollAbleToLand', 'document hidden', document.hidden);
 
     if (!isVisible) {
@@ -160,6 +169,7 @@ const App = () => {
       style={{
         paddingBottom: 20,
       }}
+      ref={ref}
     >
       <Message
         loading={loading}
