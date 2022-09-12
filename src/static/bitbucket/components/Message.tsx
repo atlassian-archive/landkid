@@ -11,7 +11,7 @@ import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
-import { LoadStatus, Status } from './types';
+import { LoadStatus, QueueResponse, Status } from './types';
 import { css } from 'emotion';
 
 const getMessageAppearance = (
@@ -68,6 +68,7 @@ type MessageProps = {
   errors: string[];
   warnings: string[];
   loadStatus: LoadStatus;
+  queue?: QueueResponse;
   bannerMessage: {
     messageExists: boolean;
     message: string;
@@ -103,6 +104,7 @@ const Message = ({
   loadStatus,
   appName,
   status,
+  queue,
   onLandClicked,
   onLandWhenAbleClicked,
   onCheckAgainClicked,
@@ -140,7 +142,7 @@ const Message = ({
       case 'merging':
         return <>This pull request has passed all checks and is being merged.</>;
       case 'queued': {
-        return <Queue />;
+        return <Queue queue={queue} />;
       }
       case 'cannot-land': {
         return <>This pull request cannot land until the criteria below has been met.</>;

@@ -1,8 +1,7 @@
 import { css, keyframes } from 'emotion';
 import { G300, N60, N300, N400 } from '@atlaskit/theme/colors';
-import { proxyRequest } from '../utils/RequestProxy';
 import { RunnerState } from '../../../types';
-import { useEffect, useState } from 'react';
+import { QueueResponse } from './types';
 
 const queueContainerStyle = css({
   display: 'flex',
@@ -61,54 +60,10 @@ const queueLabelStyle = css({
   marginBottom: 6,
 });
 
-type LoadingState = 'not-loaded' | 'loading' | 'refreshing' | 'error' | 'loaded';
-
-const useQueueResults = () => {
-  const [loadingState, setLoadingState] = useState<LoadingState>('not-loaded');
-  const [currentState, setCurrentState] = useState<Pick<RunnerState, 'queue' | 'waitingToQueue'>>({
-    queue: [],
-    waitingToQueue: [],
-  });
-
-  const fetchCurrentState = () => {
-    setLoadingState(loadingState === 'not-loaded' ? 'loading' : 'refreshing');
-    proxyRequest<RunnerState>('/current-state', 'GET')
-      .then(({ queue, waitingToQueue }) => {
-        setLoadingState('loaded');
-        setCurrentState({ queue, waitingToQueue });
-      })
-      .catch((err) => {
-        console.error('Failed to fetch PR status', err);
-        setLoadingState('error');
-      });
-  };
-
-  let intervalId: any;
-  useEffect(() => {
-    fetchCurrentState();
-    intervalId = setInterval(() => {
-      if (!document.hidden) {
-        fetchCurrentState();
-      }
-    }, 10000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
-
-  return {
-    loadingState,
-    currentState,
-  };
-};
-
 export const QueueBase = ({
-  loadingState,
   currentState,
   currentPullRequestId,
 }: {
-  loadingState: LoadingState;
   currentState: Pick<RunnerState, 'queue' | 'waitingToQueue'>;
   currentPullRequestId: number;
 }) => {
@@ -125,14 +80,6 @@ export const QueueBase = ({
 
   const totalWaiting = currentState.waitingToQueue.length;
   const totalRunning = currentState.queue.length;
-
-  if (loadingState === 'error') {
-    return <div>Failed to fetch queue.</div>;
-  }
-
-  if (loadingState === 'loading' || loadingState === 'not-loaded') {
-    return <div>Loading...</div>;
-  }
 
   if (!isPRInQueue) {
     return <div> Pull request is no longer in queue. </div>;
@@ -182,18 +129,15 @@ export const QueueBase = ({
   );
 };
 
-const Queue = () => {
-  const { loadingState, currentState } = useQueueResults();
+const Queue = ({ queue }: { queue: QueueResponse | undefined }) => {
   const qs = new URLSearchParams(window.location.search);
   const pullRequestId = parseInt(qs.get('pullRequestId') || '');
 
-  return (
-    <QueueBase
-      currentState={currentState}
-      loadingState={loadingState}
-      currentPullRequestId={pullRequestId}
-    />
-  );
+  if (!queue) {
+    return null;
+  }
+
+  return <QueueBase currentState={queue} currentPullRequestId={pullRequestId} />;
 };
 
 export default Queue;

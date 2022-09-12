@@ -1,3 +1,5 @@
+import { RunnerState } from '../../../types';
+
 export type Status =
   | 'cannot-land'
   | 'queued'
@@ -10,5 +12,5 @@ export type Status =
   | 'user-denied-access'
   | 'unknown-error';
 
-export type LoadingMode = 'land' | 'land-when-able';
 export type LoadStatus = 'loaded' | 'not-loaded' | 'loading' | 'refreshing' | 'queuing';
+export type QueueResponse = Pick<RunnerState, 'queue' | 'waitingToQueue'>;

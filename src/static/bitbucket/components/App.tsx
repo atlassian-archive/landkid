@@ -7,7 +7,7 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
-import { LoadStatus, Status } from './types';
+import { LoadStatus, QueueResponse, Status } from './types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -48,6 +48,7 @@ const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
+  const [queue, setQueue] = useState<QueueResponse | undefined>();
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
     return 'not-loaded';
   });
@@ -86,13 +87,23 @@ const App = () => {
     };
   }, []);
 
+  const checkQueueStatus = () => {
+    proxyRequestBare<any>('/queue', 'POST')
+      .then((res) => {
+        setQueue(res);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   const checkIfAbleToLand = () => {
     setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
-    proxyRequestBare<any>('/queue', 'POST');
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
           case 'queued':
+            checkQueueStatus();
           case 'will-queue-when-ready':
           case 'running':
           case 'awaiting-merge':
@@ -170,6 +181,7 @@ const App = () => {
       <Message
         loadStatus={loadStatus}
         appName={appName}
+        queue={queue}
         status={status}
         canLandWhenAble={state.canLandWhenAble}
         errors={state.errors}
