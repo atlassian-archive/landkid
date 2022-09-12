@@ -89,6 +89,7 @@ const App = () => {
     pollAbleToLand();
 
     document.addEventListener('visibilitychange', () => {
+      console.log('document visibility changed!', document.visibilityState, inView);
       if (document.visibilityState === 'visible' && inView) {
         checkIfAbleToLand();
       }
