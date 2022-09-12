@@ -49,7 +49,6 @@ const appName = qs.get('appName') || 'Landkid';
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
-    console.log('resetting state to loading...');
     return 'not-loaded';
   });
   const [state, dispatch] = useState(initialState);
@@ -59,25 +58,14 @@ const App = () => {
     threshold: 0,
   });
 
-  console.log({ inView });
-
   let refreshTimeoutId: Timeout;
 
   const pollAbleToLand = () => {
     const isVisible = !document.hidden;
     let refreshIntervalMs = inView ? 5000 : 15000;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
-    console.log({ inView });
-    console.log('in pollAbleToLand', 'document hidden', document.hidden);
-
-    if (!isVisible) {
-      console.log('Not visible, not polling', document.hidden);
-    } else {
-      console.log('visible, polling', document.hidden);
-    }
 
     checkPromise.finally(() => {
-      console.log('checkPromise resolved');
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
@@ -88,14 +76,8 @@ const App = () => {
 
   useEffect(() => {
     isInitialLoaded = false;
-    console.log('Callled useEffect');
-    setInterval(() => {
-      console.log('loop...', { loadStatus });
-    }, 100);
-    console.log('setting inView to true');
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
-      console.log('PR is already closed, returning');
       return setStatus('pr-closed');
     }
     pollAbleToLand();
@@ -105,11 +87,9 @@ const App = () => {
   }, []);
 
   const checkIfAbleToLand = () => {
-    console.log({ loadStatus });
     setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
-        console.log('can-land success');
         switch (state) {
           case 'queued':
           case 'will-queue-when-ready':
@@ -130,12 +110,9 @@ const App = () => {
           warnings,
           bannerMessage,
         });
-        console.log('setting load status to loaded');
         setLoadStatus('loaded');
       })
       .catch((err) => {
-        console.log('can-land failure');
-
         setLoadStatus('loaded');
         console.error(err);
         if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
@@ -143,7 +120,6 @@ const App = () => {
         } else {
           setStatus('unknown-error');
         }
-        console.log('setting load status to loaded');
         setLoadStatus('loaded');
       })
       .finally(() => {
