@@ -3,7 +3,7 @@ import { useInView } from 'react-intersection-observer';
 
 import '@atlaskit/css-reset';
 
-import { proxyRequest } from '../utils/RequestProxy';
+import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
@@ -88,6 +88,7 @@ const App = () => {
 
   const checkIfAbleToLand = () => {
     setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
+    proxyRequestBare<any>('/queue', 'POST');
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
