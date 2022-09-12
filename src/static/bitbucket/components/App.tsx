@@ -67,12 +67,15 @@ const App = () => {
 
   const pollAbleToLand = () => {
     const isVisible = !document.hidden && inView;
-    const checkPromise = isVisible ? Promise.resolve() : checkIfAbleToLand();
+    const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
+    console.log('in pollAbleToLand');
+
     if (!isVisible) {
       console.log('Not visible, not polling', document.hidden, inView);
     }
 
     checkPromise.finally(() => {
+      console.log('checkPromise resolved');
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
