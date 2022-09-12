@@ -673,7 +673,7 @@ export class Runner {
 
   getLandRequestStatesByPRId = async (
     pullRequestId: number,
-  ): Promise<LandRequestStatus | undefined> => {
+  ): Promise<LandRequestStatus[] | undefined> => {
     const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
       include: [
         {
