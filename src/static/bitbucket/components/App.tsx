@@ -85,7 +85,10 @@ const App = () => {
     });
   };
 
+  let isInitialLoaded: boolean;
+
   useEffect(() => {
+    isInitialLoaded = false;
     console.log('Callled useEffect');
     setInterval(() => {
       console.log('loop...', { loadStatus });
@@ -104,7 +107,7 @@ const App = () => {
 
   const checkIfAbleToLand = () => {
     console.log({ loadStatus });
-    setLoadStatus(() => (loadStatus === 'loaded' ? 'refreshing' : 'loading'));
+    setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         console.log('can-land success');
@@ -143,6 +146,9 @@ const App = () => {
         }
         console.log('setting load status to loaded');
         setLoadStatus('loaded');
+      })
+      .finally(() => {
+        isInitialLoaded = true;
       });
   };
 
