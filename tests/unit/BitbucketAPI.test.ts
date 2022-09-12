@@ -41,17 +41,33 @@ describe('mergePullRequest', () => {
 
   test('Successful merge first try', async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.SUCCESS);
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.SUCCESS,
+    });
   });
 
   test('4xx merge failure', async () => {
     mockedAxios.post.mockResolvedValue({ status: 400 });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.FAILED);
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: undefined,
+    });
   });
 
   test('5xx merge failure', async () => {
     mockedAxios.post.mockResolvedValue({ status: 500 });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.FAILED);
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: undefined,
+    });
+  });
+
+  test('merge failure with message', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 500, data: { message: 'reason' } });
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: 'reason',
+    });
   });
 
   test('Successful timeout merge', async () => {
@@ -59,7 +75,9 @@ describe('mergePullRequest', () => {
     mockedAxios.get
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'SUCCESS' } });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.SUCCESS);
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.SUCCESS,
+    });
   });
 
   test('Failed timeout merge', async () => {
@@ -68,13 +86,13 @@ describe('mergePullRequest', () => {
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockResolvedValueOnce({ data: { task_status: 'PENDING' } })
       .mockRejectedValueOnce({ response: {} });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.FAILED);
+    expect(await mergePullRequest(landRequestStatus)).toEqual({ status: BitbucketAPI.FAILED });
   });
 
   test('Timeout merge polling', async () => {
     mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
     mockedAxios.get.mockResolvedValue({ data: { task_status: 'PENDING' } });
-    expect(await mergePullRequest(landRequestStatus)).toEqual(BitbucketAPI.TIMEOUT);
+    expect(await mergePullRequest(landRequestStatus)).toEqual({ status: BitbucketAPI.TIMEOUT });
   });
 
   test('Skip-ci merge', async () => {
