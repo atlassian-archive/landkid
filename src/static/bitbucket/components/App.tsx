@@ -67,11 +67,13 @@ const App = () => {
   useEffect(() => {
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
+      console.log('PR is already closed, returning');
       return setStatus('pr-closed');
     }
     checkIfAbleToLand();
 
     refreshIntervalId = setInterval(() => {
+      console.log('widget not in view, returning');
       if (inView) {
         checkIfAbleToLand();
       }
@@ -83,6 +85,7 @@ const App = () => {
   }, []);
 
   const checkIfAbleToLand = () => {
+    console.log('checking checkIfAbleToLand');
     proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
