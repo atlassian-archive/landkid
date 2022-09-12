@@ -23,6 +23,11 @@ export class BitbucketClient {
       this.bitbucket.getPullRequest(pullRequestId),
       this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
     ]);
+    const hasConflicts = await this.bitbucket.pullRequestHasConflicts(
+      pullRequest.sourceBranch,
+      pullRequest.targetBranch,
+    );
+
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -51,6 +56,10 @@ export class BitbucketClient {
       approvalChecks,
       requirements: prSettings,
     });
+
+    if (hasConflicts) {
+      errors.push('Pull request must not have any conflicts');
+    }
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
       errors.push('All tasks must be resolved');

@@ -71,7 +71,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         });
 
         res.json({
-          canLand: errors.length === 0,
+          canLand: !existingRequest && errors.length === 0,
           canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
           state: requestStatus?.state,
           states: requestStatuses,

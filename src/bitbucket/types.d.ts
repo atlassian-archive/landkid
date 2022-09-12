@@ -14,6 +14,36 @@ declare namespace BB {
     uuid: string;
   };
 
+  type DiffStatResponse = {
+    pagelen: number;
+    values: Array<{
+      type: string;
+      status: 'added' | 'removed' | 'modified' | 'renamed' | 'merge conflict';
+      lines_added: number;
+      lines_removed: number;
+      old: {
+        type: string;
+        path: string;
+        commit: {
+          type: string;
+        };
+        attributes: string;
+        escaped_path: string;
+      };
+      new: {
+        type: string;
+        path: string;
+        commit: {
+          type: string;
+        };
+        attributes: string;
+        escaped_path: string;
+      };
+    }>;
+    page: number;
+    size: number;
+  };
+
   type PullRequestResponse = {
     participants: {
       approved: boolean;

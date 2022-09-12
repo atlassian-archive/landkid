@@ -658,6 +658,7 @@ export class Runner {
     pullRequestId: number,
   ): Promise<LandRequestStatus | undefined> => {
     const landRequestStatuses = await LandRequestStatus.findAll<LandRequestStatus>({
+      order: [['date', 'DESC']],
       include: [
         {
           model: LandRequest,
