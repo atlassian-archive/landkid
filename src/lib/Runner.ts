@@ -92,11 +92,13 @@ export class Runner {
       landRequest.triggererAaid,
     );
     const commit = landRequest.forCommit;
-    const isAllowedToLand = await this.isAllowedToLand(
-      landRequest.pullRequestId,
-      triggererUserMode,
-      this.getRunning,
-    );
+    const isAllowedToLand = await this.isAllowedToLand({
+      pullRequestId: landRequest.pullRequestId,
+      permissionLevel: triggererUserMode,
+      queueFetcher: this.getRunning,
+      sourceBranch: landRequest.pullRequest.sourceBranch,
+      destinationBranch: landRequest.pullRequest.targetBranch,
+    });
 
     // ToDo: Extra checks, should probably not be here, but this will do for now
     const currentPrInfo = await this.client.bitbucket.getPullRequest(landRequest.pullRequestId);
@@ -589,11 +591,13 @@ export class Runner {
               const triggererUserMode = await permissionService.getPermissionForUser(
                 landRequest.triggererAaid,
               );
-              const isAllowedToLand = await this.isAllowedToLand(
+              const isAllowedToLand = await this.isAllowedToLand({
                 pullRequestId,
-                triggererUserMode,
-                this.getQueue,
-              );
+                permissionLevel: triggererUserMode,
+                queueFetcher: this.getQueue,
+                sourceBranch: landRequest.pullRequest.sourceBranch,
+                destinationBranch: landRequest.pullRequest.targetBranch,
+              });
 
               if (isAllowedToLand.errors.length === 0) {
                 if (isAllowedToLand.existingRequest) {
@@ -748,12 +752,26 @@ export class Runner {
     }
   };
 
-  async isAllowedToLand(
-    pullRequestId: number,
-    permissionLevel: IPermissionMode,
-    queueFetcher: () => Promise<LandRequestStatus[]>,
-  ) {
-    const isAllowedToMerge = await this.client.isAllowedToMerge(pullRequestId, permissionLevel);
+  async isAllowedToLand({
+    pullRequestId,
+    permissionLevel,
+    queueFetcher,
+    sourceBranch,
+    destinationBranch,
+  }: {
+    pullRequestId: number;
+    permissionLevel: IPermissionMode;
+    queueFetcher: () => Promise<LandRequestStatus[]>;
+    sourceBranch: string;
+    destinationBranch: string;
+  }) {
+    const isAllowedToMerge = await this.client.isAllowedToMerge({
+      pullRequestId,
+      permissionLevel,
+      sourceBranch,
+      destinationBranch,
+    });
+
     let existingRequest = false;
     const queue = await queueFetcher();
     for (const queueItem of queue) {

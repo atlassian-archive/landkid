@@ -171,6 +171,16 @@ export class BitbucketAPI {
     };
   };
 
+  pullRequestHasConflicts = async (source: string, destination: string): Promise<boolean> => {
+    const endpoint = `${this.baseUrl}/diffstat/${source}..${destination}?merge=true&fields=values.status`;
+    const resp = await axios.get<BB.DiffStatResponse>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+    );
+    const data = resp.data;
+    return data.values.some((diff) => diff.status === 'merge conflict');
+  };
+
   getPullRequestBuildStatuses = async (pullRequestId: number): Promise<Array<BB.BuildStatus>> => {
     const endpoint = `${this.baseUrl}/pullrequests/${pullRequestId}/statuses`;
     const resp = await axios.get<{ values: BB.BuildStatusResponse[] }>(

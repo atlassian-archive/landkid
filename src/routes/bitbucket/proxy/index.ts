@@ -18,10 +18,12 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   router.post(
     '/can-land',
     wrap(async (req, res) => {
-      const { aaid, pullRequestId } = req.query as {
+      const { aaid, pullRequestId, sourceBranch, destinationBranch } = req.query as {
         aaid: string;
         pullRequestId: string;
         accountId: string;
+        sourceBranch: string;
+        destinationBranch: string;
       };
       const prId = parseInt(pullRequestId, 10);
 
@@ -42,11 +44,13 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);
         } else {
-          const landChecks = await runner.isAllowedToLand(
-            prId,
+          const landChecks = await runner.isAllowedToLand({
+            pullRequestId: prId,
             permissionLevel,
-            runner.getWaitingAndQueued,
-          );
+            queueFetcher: runner.getWaitingAndQueued,
+            sourceBranch,
+            destinationBranch,
+          });
 
           warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
