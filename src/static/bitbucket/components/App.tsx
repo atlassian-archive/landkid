@@ -107,7 +107,9 @@ const App = () => {
   const checkIfAbleToLand = async () => {
     console.log(
       'updating load status on checkIfAbleToLand',
+      state,
       state.state ? 'refreshing' : 'loading',
+      { loadStatus },
     );
     setLoadStatus(() => (state.state ? 'refreshing' : 'loading'));
 
