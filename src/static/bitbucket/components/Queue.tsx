@@ -101,7 +101,7 @@ export const QueueBase = ({
             }
           ></div>
         ))}
-        {totalWaiting > 1 && <div className={queueSeparatorStyle} />}
+        {totalWaiting > 0 && <div className={queueSeparatorStyle} />}
         {[...new Array(totalWaiting).keys()].map((_, index) => (
           <div
             key={index}
@@ -121,13 +121,15 @@ export const QueueBase = ({
         ) : (
           <div className={queueLabelStyle}>
             {' '}
-            Land request is behind {prPositionWaitQueue} other land requests...
+            Land request is behind {prPositionWaitQueue} other requests...
           </div>
         )
       ) : null}
       {isPRInRunningQueue && (
         <div className={queueLabelStyle}>
-          Land request is currently being built along with {runningQueue.length} other requests...
+          Land request is currently being built in-parallel with {runningQueue.length - 1} other
+          requests... Your pull request will be merged after these builds are completed
+          successfully.
         </div>
       )}
     </>

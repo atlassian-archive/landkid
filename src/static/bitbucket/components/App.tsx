@@ -71,6 +71,7 @@ const App = () => {
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(() => {
+      if (status == 'pr-closed') return;
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
@@ -105,13 +106,15 @@ const App = () => {
   };
 
   const checkIfAbleToLand = async () => {
+    setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
+    isInitialLoaded = true;
+
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
       setStatus('pr-closed');
       return;
     }
 
-    setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
         switch (state) {
@@ -146,9 +149,6 @@ const App = () => {
           setStatus('unknown-error');
         }
         setLoadStatus('loaded');
-      })
-      .finally(() => {
-        isInitialLoaded = true;
       });
   };
 
