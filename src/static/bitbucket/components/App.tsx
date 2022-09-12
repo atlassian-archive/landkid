@@ -49,8 +49,10 @@ const appName = qs.get('appName') || 'Landkid';
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
   const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
-  console.log('resetting state to loading...');
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading');
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
+    console.log('resetting state to loading...');
+    return 'loading';
+  });
   const [state, dispatch] = useState(initialState);
 
   const { ref, inView } = useInView({
