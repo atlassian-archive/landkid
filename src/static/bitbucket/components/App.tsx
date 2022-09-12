@@ -77,10 +77,6 @@ const App = () => {
 
   useEffect(() => {
     isInitialLoaded = false;
-    const isOpen = qs.get('state') === 'OPEN';
-    if (!isOpen) {
-      return setStatus('pr-closed');
-    }
     pollAbleToLand();
     return () => {
       clearTimeout(refreshTimeoutId);
@@ -97,7 +93,13 @@ const App = () => {
       });
   };
 
-  const checkIfAbleToLand = () => {
+  const checkIfAbleToLand = async () => {
+    const isOpen = qs.get('state') === 'OPEN';
+    if (!isOpen) {
+      setStatus('pr-closed');
+      return;
+    }
+
     setLoadStatus(() => (isInitialLoaded ? 'refreshing' : 'loading'));
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {

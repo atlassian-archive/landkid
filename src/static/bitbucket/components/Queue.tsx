@@ -99,18 +99,22 @@ export const QueueBase = ({
           ></div>
         ))}
         <div className={queueSeparatorStyle}></div>
-        {[...new Array(totalWaiting).keys()].map((_, index) => (
-          <div
-            key={index}
-            className={
-              isPRInWaitQueue && index === prPositionWaitQueue
-                ? queueElementActiveStyle
-                : queueElementInactiveStyle
-            }
-          >
-            {index + 1}
-          </div>
-        ))}
+        {totalWaiting > 1 ? (
+          [...new Array(totalWaiting).keys()].map((_, index) => (
+            <div
+              key={index}
+              className={
+                isPRInWaitQueue && index === prPositionWaitQueue
+                  ? queueElementActiveStyle
+                  : queueElementInactiveStyle
+              }
+            >
+              {index + 1}
+            </div>
+          ))
+        ) : (
+          <div> No land requests waiting </div>
+        )}
       </div>
       {isPRInWaitQueue ? (
         prPositionWaitQueue === 0 ? (

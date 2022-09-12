@@ -207,6 +207,7 @@ const Message = ({
     switch (status) {
       case 'can-land':
         actions.push(landButton);
+        break;
       case 'running':
       case 'queued':
         actions.push(
@@ -214,6 +215,7 @@ const Message = ({
             View queue
           </SectionMessageAction>,
         );
+        break;
       case 'will-queue-when-ready':
       case 'cannot-land': {
         actions.push(
@@ -226,6 +228,7 @@ const Message = ({
             </SectionMessageAction>,
           );
         }
+        break;
       }
     }
 
