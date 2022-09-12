@@ -7,7 +7,7 @@ import { proxyRequest } from '../utils/RequestProxy';
 
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
-import { LoadingMode, LoadStatus, Status } from './types';
+import { LoadStatus, Status } from './types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -48,7 +48,6 @@ const appName = qs.get('appName') || 'Landkid';
 
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
-  const [loadingMode, setLoadingMode] = useState<LoadingMode | undefined>();
   const [loadStatus, setLoadStatus] = useState<LoadStatus>(() => {
     console.log('resetting state to loading...');
     return 'not-loaded';
@@ -137,7 +136,7 @@ const App = () => {
       .catch((err) => {
         console.log('can-land failure');
 
-        setLoadingMode(undefined);
+        setLoadStatus('loaded');
         console.error(err);
         if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
           setStatus('user-denied-access');
@@ -153,28 +152,28 @@ const App = () => {
   };
 
   const onLandClicked = () => {
-    setLoadingMode('land');
+    setLoadStatus('queuing');
     proxyRequest('/land', 'POST')
       .then(() => {
-        setLoadingMode(undefined);
+        checkIfAbleToLand();
         setStatus('queued');
       })
       .catch((err) => {
-        setLoadingMode(undefined);
+        checkIfAbleToLand();
         console.error(err);
         setStatus('unknown-error');
       });
   };
 
   const onLandWhenAbleClicked = () => {
-    setLoadingMode('land-when-able');
+    setLoadStatus('queuing');
     proxyRequest('/land-when-able', 'POST')
       .then(() => {
-        setLoadingMode(undefined);
-        setStatus('queued');
+        setLoadStatus('loaded');
+        checkIfAbleToLand();
       })
       .catch((err) => {
-        setLoadingMode(undefined);
+        setLoadStatus('loaded');
         console.error(err);
         setStatus('unknown-error');
       });
@@ -182,7 +181,6 @@ const App = () => {
 
   const onCheckAgainClicked = () => {
     checkIfAbleToLand();
-    setLoadStatus('loading');
   };
 
   return (
@@ -193,7 +191,6 @@ const App = () => {
       ref={ref}
     >
       <Message
-        loadingMode={loadingMode}
         loadStatus={loadStatus}
         appName={appName}
         status={status}

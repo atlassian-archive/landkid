@@ -11,7 +11,8 @@ import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
-import { LoadingMode, LoadStatus, Status } from './types';
+import { LoadStatus, Status } from './types';
+import { css } from 'emotion';
 
 const getMessageAppearance = (
   loadStatus: LoadStatus,
@@ -66,7 +67,6 @@ type MessageProps = {
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
-  loadingMode?: LoadingMode;
   loadStatus: LoadStatus;
   bannerMessage: {
     messageExists: boolean;
@@ -89,8 +89,17 @@ const ExternalLink = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const messageContentStyles = css({
+  position: 'relative',
+});
+
+const refreshIndicatorStyles = css({
+  position: 'absolute',
+  right: 0,
+  top: '-35px',
+});
+
 const Message = ({
-  loadingMode,
   loadStatus,
   appName,
   status,
@@ -169,7 +178,7 @@ const Message = ({
   const landButton = (
     <div style={{ marginRight: 15 }}>
       <Confetti
-        active={loadingMode === 'land'}
+        active={loadStatus === 'queuing'}
         config={{
           angle: 20,
           spread: 58,
@@ -185,7 +194,7 @@ const Message = ({
           perspective: '500px',
         }}
       />
-      <Button appearance="primary" onClick={onLandClicked} isLoading={loadingMode === 'land'}>
+      <Button appearance="primary" onClick={onLandClicked} isLoading={loadStatus === 'queuing'}>
         Land changes
       </Button>
     </div>
@@ -211,7 +220,7 @@ const Message = ({
         if (canLandWhenAble) {
           actions.push(
             <SectionMessageAction linkComponent={ExternalLink} onClick={onLandWhenAbleClicked}>
-              Land when ready {loadingMode === 'land-when-able' && <Spinner size="small" />}
+              Land when ready {loadStatus === 'queuing' && <Spinner size="small" />}
             </SectionMessageAction>,
           );
         }
@@ -245,9 +254,16 @@ const Message = ({
         appearance={getMessageAppearance(loadStatus, status)}
         actions={getActions()}
       >
-        {renderLandState()}
-        {showErrors && <Errors errors={errors} />}
-        {showWarnings && <Warnings warnings={warnings} />}
+        <div className={messageContentStyles}>
+          {loadStatus === 'refreshing' && (
+            <div className={refreshIndicatorStyles}>
+              <Spinner size="small" />
+            </div>
+          )}
+          {renderLandState()}
+          {showErrors && <Errors errors={errors} />}
+          {showWarnings && <Warnings warnings={warnings} />}
+        </div>
       </SectionMessage>
     </div>
   );

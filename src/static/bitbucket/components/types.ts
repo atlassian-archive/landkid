@@ -11,4 +11,4 @@ export type Status =
   | 'unknown-error';
 
 export type LoadingMode = 'land' | 'land-when-able';
-export type LoadStatus = 'loaded' | 'not-loaded' | 'loading' | 'refreshing';
+export type LoadStatus = 'loaded' | 'not-loaded' | 'loading' | 'refreshing' | 'queuing';

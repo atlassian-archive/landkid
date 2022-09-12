@@ -34,9 +34,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         const errors: string[] = [];
         const warnings: string[] = [];
         let existingRequest = false;
-        const bannerMessage = await runner.getBannerMessageState();
-        const permissionLevel = await permissionService.getPermissionForUser(aaid);
-        const requestStatus = await runner.getLandRequestStateByPRId(prId);
+        const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
+          runner.getBannerMessageState(),
+          permissionService.getPermissionForUser(aaid),
+          runner.getLandRequestStateByPRId(prId),
+        ]);
 
         if (permission(permissionLevel).isAtLeast('land')) {
           const pauseState = await runner.getPauseState();
@@ -86,6 +88,29 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errStr: err.toString(),
         });
       }
+    }),
+  );
+
+  router.post(
+    '/queue',
+    wrap(async (req, res) => {
+      const { aaid } = req.query as {
+        aaid: string;
+        pullRequestId: string;
+        accountId: string;
+      };
+
+      const [permissionLevel, queue] = await Promise.all([
+        permissionService.getPermissionForUser(aaid),
+        runner.getQueue(),
+      ]);
+
+      if (!permission(permissionLevel).isAtLeast('land')) {
+        res.status(403).send("You don't have land permissions");
+        return;
+      }
+
+      return res.json({ queue });
     }),
   );
 

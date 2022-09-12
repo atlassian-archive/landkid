@@ -54,7 +54,7 @@ Configurable.args = {
   appName: 'Landkid',
   status: 'can-land',
   canLandWhenAble: true,
-  loading: null,
+  loadStatus: 'loaded',
   errors: [
     'All tasks must be resolved',
     'Must be approved',
