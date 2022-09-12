@@ -68,6 +68,7 @@ const App = () => {
   let refreshIntervalMs = 5000;
 
   const pollAbleToLand = () => {
+    console.log('reading inView in pollAbleToLand is', inView);
     const isVisible = !document.hidden && inView;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
     console.log('in pollAbleToLand', 'document hidden', document.hidden, 'inView', inView);
@@ -87,6 +88,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    console.log('setting inView to true');
     inView = true;
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
