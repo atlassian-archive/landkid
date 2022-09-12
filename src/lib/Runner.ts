@@ -243,7 +243,7 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
-    this.client.mergePullRequest(landRequestStatus, { skipCI }).then(async (result) => {
+    this.client.mergePullRequest(landRequestStatus, { skipCI, mergeStrategy: landRequest.mergeStrategy }).then(async (result) => {
       if (result === BitbucketAPI.SUCCESS) {
         const end = Date.now();
         const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
@@ -498,6 +498,7 @@ export class Runner {
         triggererAccountId: landRequestOptions.triggererAccountId,
         pullRequestId: pr.prId,
         forCommit: landRequestOptions.commit,
+        mergeStrategy: landRequestOptions.mergeStrategy
       },
       {
         include: [PullRequest],

@@ -11,12 +11,12 @@ export class BitbucketMerger {
 
   constructor(private baseUrl: string) {}
 
-  attemptMerge = async (prId: number, message: string) => {
+  attemptMerge = async (prId: number, message: string, mergeStrategy?: IMergeStrategy) => {
     const endpoint = `${this.baseUrl}/pullrequests/${prId}/merge`;
     const body = {
       close_source_branch: true,
       message,
-      merge_strategy: 'merge_commit',
+      merge_strategy: mergeStrategy?.split('-').join('_') || 'merge_commit',
     };
 
     return axios.post(

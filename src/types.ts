@@ -11,6 +11,7 @@ export type LandRequestOptions = {
   triggererAaid: string;
   triggererAccountId: string;
   commit: string;
+  mergeStrategy?: IMergeStrategy;
 };
 
 export type RepoConfig = {
@@ -121,4 +122,5 @@ export type RunnerState = {
 
 export type MergeOptions = {
   skipCI?: boolean;
+  mergeStrategy?: IMergeStrategy;
 };

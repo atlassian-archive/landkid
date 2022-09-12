@@ -91,6 +91,7 @@ export class BitbucketAPI {
     const { status, statusText, headers, data } = await this.bitbucketMerger.attemptMerge(
       pullRequestId,
       message,
+      options.mergeStrategy
     );
 
     if (status === 200) {
