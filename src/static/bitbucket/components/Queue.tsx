@@ -64,13 +64,16 @@ export const QueueBase = ({
   currentState,
   currentPullRequestId,
 }: {
-  currentState: Pick<RunnerState, 'queue' | 'waitingToQueue'>;
+  currentState: Pick<RunnerState, 'queue'>;
   currentPullRequestId: number;
 }) => {
-  const prPositionWaitQueue = currentState.waitingToQueue.findIndex(
+  const waitingQueue = currentState.queue.filter((request) => request.state === 'queued');
+  const runningQueue = currentState.queue.filter((request) => request.state === 'running');
+
+  const prPositionWaitQueue = waitingQueue.findIndex(
     (pr) => pr.request.pullRequestId === currentPullRequestId,
   );
-  const prPositionRunningQueue = currentState.queue.findIndex(
+  const prPositionRunningQueue = runningQueue.findIndex(
     (pr) => pr.request.pullRequestId === currentPullRequestId,
   );
 
@@ -78,8 +81,8 @@ export const QueueBase = ({
   const isPRInRunningQueue = prPositionRunningQueue > -1;
   const isPRInQueue = isPRInWaitQueue || isPRInRunningQueue;
 
-  const totalWaiting = currentState.waitingToQueue.length;
-  const totalRunning = currentState.queue.length;
+  const totalWaiting = waitingQueue.length;
+  const totalRunning = runningQueue.length;
 
   if (!isPRInQueue) {
     return <div> Pull request is no longer in queue. </div>;
@@ -98,23 +101,19 @@ export const QueueBase = ({
             }
           ></div>
         ))}
-        <div className={queueSeparatorStyle}></div>
-        {totalWaiting > 1 ? (
-          [...new Array(totalWaiting).keys()].map((_, index) => (
-            <div
-              key={index}
-              className={
-                isPRInWaitQueue && index === prPositionWaitQueue
-                  ? queueElementActiveStyle
-                  : queueElementInactiveStyle
-              }
-            >
-              {index + 1}
-            </div>
-          ))
-        ) : (
-          <div> No land requests waiting </div>
-        )}
+        {totalWaiting > 1 && <div className={queueSeparatorStyle} />}
+        {[...new Array(totalWaiting).keys()].map((_, index) => (
+          <div
+            key={index}
+            className={
+              isPRInWaitQueue && index === prPositionWaitQueue
+                ? queueElementActiveStyle
+                : queueElementInactiveStyle
+            }
+          >
+            {index + 1}
+          </div>
+        ))}
       </div>
       {isPRInWaitQueue ? (
         prPositionWaitQueue === 0 ? (
@@ -127,7 +126,9 @@ export const QueueBase = ({
         )
       ) : null}
       {isPRInRunningQueue && (
-        <div className={queueLabelStyle}>Land request is currently being built...</div>
+        <div className={queueLabelStyle}>
+          Land request is currently being built along with {runningQueue.length} other requests...
+        </div>
       )}
     </>
   );

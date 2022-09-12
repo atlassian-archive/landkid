@@ -13,4 +13,4 @@ export type Status =
   | 'unknown-error';
 
 export type LoadStatus = 'loaded' | 'not-loaded' | 'loading' | 'refreshing' | 'queuing';
-export type QueueResponse = Pick<RunnerState, 'queue' | 'waitingToQueue'>;
+export type QueueResponse = Pick<RunnerState, 'queue'>;

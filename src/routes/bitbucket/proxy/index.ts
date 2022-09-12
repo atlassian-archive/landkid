@@ -56,8 +56,6 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             errors.push(...landChecks.errors);
             if (landChecks.existingRequest) {
               existingRequest = true;
-
-              errors.push('Pull request has already been queued');
             }
           }
         } else {
@@ -100,10 +98,9 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         accountId: string;
       };
 
-      const [permissionLevel, queue, waitingToQueue] = await Promise.all([
+      const [permissionLevel, queue] = await Promise.all([
         permissionService.getPermissionForUser(aaid),
         runner.getQueue(),
-        runner.queue.getStatusesForWaitingRequests(),
       ]);
 
       if (!permission(permissionLevel).isAtLeast('land')) {
@@ -111,7 +108,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         return;
       }
 
-      return res.json({ queue, waitingToQueue });
+      return res.json({ queue });
     }),
   );
 

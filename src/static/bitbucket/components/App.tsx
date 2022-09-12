@@ -55,8 +55,12 @@ const App = () => {
   const [state, dispatch] = useState(initialState);
 
   const { ref, inView } = useInView({
-    /* Optional options */
     threshold: 0,
+    onChange: (inViewUpdated) => {
+      if (inViewUpdated && !document.hidden) {
+        checkIfAbleToLand();
+      }
+    },
   });
 
   let refreshTimeoutId: Timeout;
@@ -78,6 +82,13 @@ const App = () => {
   useEffect(() => {
     isInitialLoaded = false;
     pollAbleToLand();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && inView) {
+        checkIfAbleToLand();
+      }
+    });
+
     return () => {
       clearTimeout(refreshTimeoutId);
     };
