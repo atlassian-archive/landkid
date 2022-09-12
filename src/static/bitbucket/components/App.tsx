@@ -91,7 +91,7 @@ const App = () => {
     }
     pollAbleToLand();
     return () => {
-      clearInterval(refreshTimeoutId);
+      clearTimeout(refreshTimeoutId);
     };
   }, []);
 
@@ -120,6 +120,7 @@ const App = () => {
           warnings,
           bannerMessage,
         });
+        console.log('setting load status to loaded');
         setLoadStatus('loaded');
       })
       .catch((err) => {
@@ -130,6 +131,7 @@ const App = () => {
         } else {
           setStatus('unknown-error');
         }
+        console.log('setting load status to loaded');
         setLoadStatus('loaded');
       });
   };
