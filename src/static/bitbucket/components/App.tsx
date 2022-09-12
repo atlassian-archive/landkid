@@ -95,6 +95,10 @@ const App = () => {
     };
   }, []);
 
+  setInterval(() => {
+    console.log('loop...', { loadStatus });
+  });
+
   const checkIfAbleToLand = () => {
     console.log({ loadStatus });
     setLoadStatus(loadStatus === 'loaded' ? 'refreshing' : 'loading');
