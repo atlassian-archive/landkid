@@ -54,24 +54,27 @@ const App = () => {
   const [state, dispatch] = useState(initialState);
 
   const handleInViewChange = (inViewUpdated: boolean) => {
-    if (!document.hidden && inView) {
+    console.log('inViewUpdated', inViewUpdated, document.hidden);
+    if (!document.hidden && inViewUpdated) {
       checkIfAbleToLand();
     }
   };
 
-  const { ref, inView } = useInView({ onChange: handleInViewChange });
+  const { ref, inView } = useInView({ onChange: handleInViewChange, initialInView: true });
 
   let refreshTimeoutId: Timeout;
   let refreshIntervalMs = 5000;
 
   const pollAbleToLand = () => {
-    checkIfAbleToLand().finally(() => {
+    const isVisible = !document.hidden && inView;
+    const checkPromise = isVisible ? Promise.resolve() : checkIfAbleToLand();
+    if (!isVisible) {
+      console.log('Not visible, not polling', document.hidden, inView);
+    }
+
+    checkPromise.finally(() => {
       refreshTimeoutId = setTimeout(() => {
-        if (!document.hidden && inView) {
-          pollAbleToLand();
-        } else {
-          console.log('widget not in view, returning');
-        }
+        pollAbleToLand();
       }, refreshIntervalMs);
     });
   };
