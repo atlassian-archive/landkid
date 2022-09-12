@@ -56,6 +56,7 @@ const App = () => {
     return 'not-loaded';
   });
   const [state, dispatch] = useState(initialState);
+  const getState = () => state;
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -107,11 +108,11 @@ const App = () => {
   const checkIfAbleToLand = async () => {
     console.log(
       'updating load status on checkIfAbleToLand',
-      state.state,
-      state.state ? 'refreshing' : 'loading',
+      getState().state,
+      getState().state ? 'refreshing' : 'loading',
       { loadStatus },
     );
-    setLoadStatus(() => (state.state ? 'refreshing' : 'loading'));
+    setLoadStatus(() => (getState().state ? 'refreshing' : 'loading'));
 
     const isOpen = qs.get('state') === 'OPEN';
     if (!isOpen) {
