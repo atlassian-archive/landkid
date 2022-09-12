@@ -47,6 +47,8 @@ const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
 const pullRequestId = parseInt(qs.get('pullRequestId') || '');
 
+const sleep = (ms: number) => new Promise<Timeout>((resolve) => setTimeout(resolve, ms));
+
 const App = () => {
   const [status, setStatus] = useState<Status | undefined>();
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
@@ -71,11 +73,10 @@ const App = () => {
     let refreshIntervalMs = inView ? 5000 : 15000;
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
-    checkPromise.finally(() => {
+    checkPromise.finally(async () => {
       if (status == 'pr-closed') return;
-      refreshTimeoutId = setTimeout(() => {
-        pollAbleToLand();
-      }, refreshIntervalMs);
+      refreshTimeoutId = await sleep(refreshIntervalMs);
+      pollAbleToLand();
     });
   };
 
