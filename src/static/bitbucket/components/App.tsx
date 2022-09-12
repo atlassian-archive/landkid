@@ -96,6 +96,7 @@ const App = () => {
   }, []);
 
   const checkIfAbleToLand = () => {
+    console.log({ loadStatus });
     setLoadStatus(loadStatus === 'loaded' ? 'refreshing' : 'loading');
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
       .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
