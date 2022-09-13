@@ -199,7 +199,13 @@ const Message = ({
         {renderLandState()}
         {showErrors && <Errors errors={errors} />}
         {showWarnings && <Warnings warnings={warnings} />}
-        <Checkbox isChecked={isChecked} onChange={onChange} label={`Squash commits when merging`} />
+        {status === 'can-land' && (
+          <Checkbox
+            isChecked={isChecked}
+            onChange={onChange}
+            label={`Squash commits when merging`}
+          />
+        )}
       </SectionMessage>
     </div>
   );
