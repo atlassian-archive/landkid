@@ -18,11 +18,23 @@ export class BitbucketClient {
 
   constructor(private config: Config) {}
 
-  async isAllowedToMerge(pullRequestId: number, permissionLevel: IPermissionMode) {
-    const [pullRequest, buildStatuses] = await Promise.all([
+  async isAllowedToMerge({
+    pullRequestId,
+    permissionLevel,
+    sourceBranch,
+    destinationBranch,
+  }: {
+    pullRequestId: number;
+    permissionLevel: IPermissionMode;
+    sourceBranch: string;
+    destinationBranch: string;
+  }) {
+    const [pullRequest, buildStatuses, hasConflicts] = await Promise.all([
       this.bitbucket.getPullRequest(pullRequestId),
       this.bitbucket.getPullRequestBuildStatuses(pullRequestId),
+      this.bitbucket.pullRequestHasConflicts(sourceBranch, destinationBranch),
     ]);
+
     const author = pullRequest.author;
     const approvals = getRealApprovals(
       pullRequest.approvals,
@@ -51,6 +63,10 @@ export class BitbucketClient {
       approvalChecks,
       requirements: prSettings,
     });
+
+    if (hasConflicts) {
+      errors.push('Pull request must not have any conflicts');
+    }
 
     if (prSettings.requireClosedTasks && !approvalChecks.allTasksClosed) {
       errors.push('All tasks must be resolved');
