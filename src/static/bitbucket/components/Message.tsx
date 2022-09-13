@@ -5,6 +5,7 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import { Checkbox } from '@atlaskit/checkbox';
 import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
@@ -57,6 +58,8 @@ type MessageProps = {
     message: string;
     messageType: 'default' | 'warning' | 'error';
   } | null;
+  isChecked: boolean;
+  onChange: () => void;
 };
 
 /**
@@ -84,6 +87,8 @@ const Message = ({
   errors,
   warnings,
   bannerMessage,
+  isChecked,
+  onChange,
 }: MessageProps) => {
   const renderLandState = () => {
     switch (status) {
@@ -194,6 +199,7 @@ const Message = ({
         {renderLandState()}
         {showErrors && <Errors errors={errors} />}
         {showWarnings && <Warnings warnings={warnings} />}
+        <Checkbox isChecked={isChecked} onChange={onChange} label={`Squash commits when merging`} />
       </SectionMessage>
     </div>
   );

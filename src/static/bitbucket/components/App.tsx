@@ -46,6 +46,11 @@ const App = () => {
   const [status, setStatus] = useState<Status>('checking-can-land');
   const [loading, setLoading] = useState<Loading | undefined>();
   const [state, dispatch] = useState(initialState);
+  const [isChecked, setIsChecked] = useState(true);
+
+  const onChange = (): void => {
+    setIsChecked((prev: boolean) => !prev);
+  };
 
   useEffect(() => {
     const isOpen = qs.get('state') === 'OPEN';
@@ -81,7 +86,7 @@ const App = () => {
 
   const onLandClicked = () => {
     setLoading('land');
-    proxyRequest('/land', 'POST')
+    proxyRequest('/land', 'POST', { mergeStrategy: isChecked ? 'squash' : 'merge-commit' })
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
@@ -95,7 +100,9 @@ const App = () => {
 
   const onLandWhenAbleClicked = () => {
     setLoading('land-when-able');
-    proxyRequest('/land-when-able', 'POST')
+    proxyRequest('/land-when-able', 'POST', {
+      mergeStrategy: isChecked ? 'squash' : 'merge-commit',
+    })
       .then(() => {
         setLoading(undefined);
         setStatus('queued');
@@ -129,6 +136,8 @@ const App = () => {
         onCheckAgainClicked={onCheckAgainClicked}
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
+        isChecked={isChecked}
+        onChange={onChange}
       />
     </div>
   );

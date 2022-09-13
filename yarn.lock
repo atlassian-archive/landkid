@@ -90,6 +90,19 @@
     "@babel/runtime" "^7.0.0"
     "@emotion/core" "^10.0.9"
 
+"@atlaskit/checkbox@^12.3.19":
+  version "12.3.19"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/checkbox/-/checkbox-12.3.19.tgz#5b1b3313584690df06e0666462675e340c15f3b9"
+  integrity sha512-RJ+aLBkLFeWp/0vcKfdVflsl+pJRwHxvWOJYKDkXHOpuVles6JUlWJE/9GsKYESgEqJ47v+2Dhq5g/plVdt3mQ==
+  dependencies:
+    "@atlaskit/analytics-next" "^8.2.0"
+    "@atlaskit/ds-lib" "^2.1.0"
+    "@atlaskit/icon" "^21.10.0"
+    "@atlaskit/theme" "^12.1.0"
+    "@atlaskit/tokens" "^0.10.0"
+    "@babel/runtime" "^7.0.0"
+    "@emotion/core" "^10.0.9"
+
 "@atlaskit/codemod-utils@^4.1.0":
   version "4.1.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/codemod-utils/-/codemod-utils-4.1.2.tgz#609a74fedf6574cdb126efcb98b8f23d6bbc5630"
