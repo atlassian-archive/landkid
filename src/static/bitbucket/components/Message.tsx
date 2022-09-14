@@ -199,7 +199,7 @@ const Message = ({
         {renderLandState()}
         {showErrors && <Errors errors={errors} />}
         {showWarnings && <Warnings warnings={warnings} />}
-        {status === 'can-land' && (
+        {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
           <Checkbox
             isChecked={isChecked}
             onChange={onChange}
