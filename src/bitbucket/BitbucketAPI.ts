@@ -9,6 +9,11 @@ import { BitbucketMerger } from './BitbucketMerger';
 
 const BBAPIBaseUrl = 'https://api.bitbucket.org/2.0/repositories';
 
+type MergePullRequestResult = {
+  status: string;
+  reason?: string;
+};
+
 export class BitbucketAPI {
   private baseUrl = `${BBAPIBaseUrl}/${this.config.repoOwner}/${this.config.repoName}`;
   private bitbucketMerger = new BitbucketMerger(this.baseUrl);
@@ -20,7 +25,10 @@ export class BitbucketAPI {
 
   constructor(private config: RepoConfig) {}
 
-  mergePullRequest = async (landRequestStatus: LandRequestStatus, options: MergeOptions = {}) => {
+  mergePullRequest = async (
+    landRequestStatus: LandRequestStatus,
+    options: MergeOptions = {},
+  ): Promise<MergePullRequestResult> => {
     const {
       id: landRequestId,
       request: {
@@ -40,7 +48,7 @@ export class BitbucketAPI {
         landRequestStatus,
         pullRequestId,
       });
-      return BitbucketAPI.SUCCESS;
+      return { status: BitbucketAPI.SUCCESS };
     };
 
     const onMergeFailure = ({ status, statusText, headers, data }: AxiosResponse) => {
@@ -56,7 +64,7 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
-      return BitbucketAPI.FAILED;
+      return { status: BitbucketAPI.FAILED, reason: data?.error?.message || statusText };
     };
 
     const onMergeAbort = () => {
@@ -66,7 +74,7 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
-      return BitbucketAPI.ABORTED;
+      return { status: BitbucketAPI.ABORTED };
     };
 
     const onMergeTimeout = () => {
@@ -76,7 +84,7 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
-      return BitbucketAPI.TIMEOUT;
+      return { status: BitbucketAPI.TIMEOUT };
     };
 
     Logger.info('Attempting to merge pull request', {
@@ -91,7 +99,7 @@ export class BitbucketAPI {
     const { status, statusText, headers, data } = await this.bitbucketMerger.attemptMerge(
       pullRequestId,
       message,
-      options.mergeStrategy
+      options.mergeStrategy,
     );
 
     if (status === 200) {
@@ -170,6 +178,16 @@ export class BitbucketAPI {
       approvals: approvals,
       openTasks: await this.getTaskCount(pullRequestId),
     };
+  };
+
+  pullRequestHasConflicts = async (source: string, destination: string): Promise<boolean> => {
+    const endpoint = `${this.baseUrl}/diffstat/${source}..${destination}?merge=true&fields=values.status`;
+    const resp = await axios.get<BB.DiffStatResponse>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+    );
+    const data = resp.data;
+    return data.values.some((diff) => diff.status === 'merge conflict');
   };
 
   getPullRequestBuildStatuses = async (pullRequestId: number): Promise<Array<BB.BuildStatus>> => {

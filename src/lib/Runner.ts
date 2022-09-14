@@ -92,11 +92,13 @@ export class Runner {
       landRequest.triggererAaid,
     );
     const commit = landRequest.forCommit;
-    const isAllowedToLand = await this.isAllowedToLand(
-      landRequest.pullRequestId,
-      triggererUserMode,
-      this.getRunning,
-    );
+    const isAllowedToLand = await this.isAllowedToLand({
+      pullRequestId: landRequest.pullRequestId,
+      permissionLevel: triggererUserMode,
+      queueFetcher: this.getRunning,
+      sourceBranch: landRequest.pullRequest.sourceBranch,
+      destinationBranch: landRequest.pullRequest.targetBranch,
+    });
 
     // ToDo: Extra checks, should probably not be here, but this will do for now
     const currentPrInfo = await this.client.bitbucket.getPullRequest(landRequest.pullRequestId);
@@ -243,55 +245,60 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
-    this.client.mergePullRequest(landRequestStatus, { skipCI, mergeStrategy: landRequest.mergeStrategy }).then(async (result) => {
-      if (result === BitbucketAPI.SUCCESS) {
-        const end = Date.now();
-        const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-        const start = queuedDate!.getTime();
-        eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-          duration: end - start,
-        });
-        await landRequest.setStatus('success');
-      } else if (result === BitbucketAPI.FAILED) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus('fail', 'Unable to merge pull request');
-      } else if (result === BitbucketAPI.ABORTED) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus(
-          'aborted',
-          'Merging aborted due to manual cancel (PR may still merge anyway)',
-        );
-      } else if (result === BitbucketAPI.TIMEOUT) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus(
-          'aborted',
-          'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
-        );
-      }
-    });
+    this.client
+      .mergePullRequest(landRequestStatus, { skipCI, mergeStrategy: landRequest.mergeStrategy })
+      .then(async (result) => {
+        if (result.status === BitbucketAPI.SUCCESS) {
+          const end = Date.now();
+          const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+          const start = queuedDate!.getTime();
+          eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+            duration: end - start,
+          });
+          await landRequest.setStatus('success');
+        } else if (result.status === BitbucketAPI.FAILED) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'fail',
+            `Unable to merge pull request ${result.reason ? `: ${result.reason}` : ''}`,
+          );
+        } else if (result.status === BitbucketAPI.ABORTED) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'aborted',
+            'Merging aborted due to manual cancel (PR may still merge anyway)',
+          );
+        } else if (result.status === BitbucketAPI.TIMEOUT) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'aborted',
+            'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
+          );
+        }
+      });
   };
 
   failDueToDependency = async (
@@ -498,7 +505,7 @@ export class Runner {
         triggererAccountId: landRequestOptions.triggererAccountId,
         pullRequestId: pr.prId,
         forCommit: landRequestOptions.commit,
-        mergeStrategy: landRequestOptions.mergeStrategy
+        mergeStrategy: landRequestOptions.mergeStrategy,
       },
       {
         include: [PullRequest],
@@ -590,11 +597,13 @@ export class Runner {
               const triggererUserMode = await permissionService.getPermissionForUser(
                 landRequest.triggererAaid,
               );
-              const isAllowedToLand = await this.isAllowedToLand(
+              const isAllowedToLand = await this.isAllowedToLand({
                 pullRequestId,
-                triggererUserMode,
-                this.getQueue,
-              );
+                permissionLevel: triggererUserMode,
+                queueFetcher: this.getQueue,
+                sourceBranch: landRequest.pullRequest.sourceBranch,
+                destinationBranch: landRequest.pullRequest.targetBranch,
+              });
 
               if (isAllowedToLand.errors.length === 0) {
                 if (isAllowedToLand.existingRequest) {
@@ -749,12 +758,26 @@ export class Runner {
     }
   };
 
-  async isAllowedToLand(
-    pullRequestId: number,
-    permissionLevel: IPermissionMode,
-    queueFetcher: () => Promise<LandRequestStatus[]>,
-  ) {
-    const isAllowedToMerge = await this.client.isAllowedToMerge(pullRequestId, permissionLevel);
+  async isAllowedToLand({
+    pullRequestId,
+    permissionLevel,
+    queueFetcher,
+    sourceBranch,
+    destinationBranch,
+  }: {
+    pullRequestId: number;
+    permissionLevel: IPermissionMode;
+    queueFetcher: () => Promise<LandRequestStatus[]>;
+    sourceBranch: string;
+    destinationBranch: string;
+  }) {
+    const isAllowedToMerge = await this.client.isAllowedToMerge({
+      pullRequestId,
+      permissionLevel,
+      sourceBranch,
+      destinationBranch,
+    });
+
     let existingRequest = false;
     const queue = await queueFetcher();
     for (const queueItem of queue) {
