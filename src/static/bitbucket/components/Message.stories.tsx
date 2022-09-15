@@ -22,10 +22,54 @@ const bannerMessageOptions = {
   },
 };
 
+const queueOptions = {
+  Running: [
+    {
+      request: { pullRequestId: 10 },
+      state: 'running',
+    },
+    {
+      request: { pullRequestId: 11 },
+      state: 'running',
+    },
+    {
+      request: { pullRequestId: 12 },
+      state: 'queued',
+    },
+    {
+      request: { pullRequestId: 13 },
+      state: 'queued',
+    },
+  ],
+  Waiting: [
+    {
+      request: { pullRequestId: 10 },
+      state: 'queued',
+    },
+    {
+      request: { pullRequestId: 11 },
+      state: 'queued',
+    },
+    {
+      request: { pullRequestId: 8 },
+      state: 'running',
+    },
+    {
+      request: { pullRequestId: 9 },
+      state: 'running',
+    },
+  ],
+};
+
 export default {
   title: 'Message',
   component: Message,
   argTypes: {
+    queue: {
+      defaultValue: 'Running',
+      options: Object.keys(queueOptions),
+      mapping: queueOptions,
+    },
     onCheckAgainClicked: {
       action: 'onCheckAgainClicked',
     },
@@ -40,10 +84,6 @@ export default {
       options: Object.keys(bannerMessageOptions),
       mapping: bannerMessageOptions,
     },
-    loading: {
-      control: { type: 'select' },
-      options: [undefined, 'land', 'land-when-able'],
-    },
   },
 } as ComponentMeta<typeof Message>;
 
@@ -54,7 +94,8 @@ Configurable.args = {
   appName: 'Landkid',
   status: 'can-land',
   canLandWhenAble: true,
-  loading: null,
+  loadStatus: 'loaded',
+  pullRequestId: 10,
   errors: [
     'All tasks must be resolved',
     'Must be approved',

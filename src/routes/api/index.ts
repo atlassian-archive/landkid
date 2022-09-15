@@ -42,7 +42,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     wrap(async (req, res) => {
       try {
         Logger.info('Requesting current state', { namespace: 'routes:api:current-state' });
-        const state = await runner.getState(req.user!);
+        const state = await runner.getState(req.user!.aaid);
         eventEmitter.emit('GET_STATE.SUCCESS');
         res.header('Access-Control-Allow-Origin', '*').json(state);
       } catch {

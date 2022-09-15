@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { useInView } from 'react-intersection-observer';
+import useState from 'react-usestateref';
 
 import '@atlaskit/css-reset';
 
-import { proxyRequest } from '../utils/RequestProxy';
+import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 
 import Message from './Message';
+import Timeout = NodeJS.Timeout;
+import { LoadStatus, QueueResponse, Status } from './types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -12,24 +16,24 @@ type BannerMessage = {
   messageType: 'default' | 'warning' | 'error';
 };
 
+type LandState =
+  | 'will-queue-when-ready'
+  | 'queued'
+  | 'running'
+  | 'awaiting-merge'
+  | 'merging'
+  | 'success'
+  | 'fail'
+  | 'aborted';
+
 type CanLandResponse = {
   canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
   bannerMessage: BannerMessage | null;
+  state: LandState | null;
 };
-
-type Status =
-  | 'checking-can-land'
-  | 'cannot-land'
-  | 'queued'
-  | 'can-land'
-  | 'pr-closed'
-  | 'user-denied-access'
-  | 'unknown-error';
-
-type Loading = 'land' | 'land-when-able';
 
 const initialState: CanLandResponse = {
   canLand: false,
@@ -37,14 +41,18 @@ const initialState: CanLandResponse = {
   errors: [],
   warnings: [],
   bannerMessage: null,
+  state: null,
 };
 
 const qs = new URLSearchParams(window.location.search);
 const appName = qs.get('appName') || 'Landkid';
+const pullRequestId = parseInt(qs.get('pullRequestId') || '');
+const repoName = qs.get('repoName') || '';
 
 const App = () => {
-  const [status, setStatus] = useState<Status>('checking-can-land');
-  const [loading, setLoading] = useState<Loading | undefined>();
+  const [status, setStatus, statusRef] = useState<Status | undefined>();
+  const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
+  const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
   const [isChecked, setIsChecked] = useState(true);
 
@@ -52,70 +60,142 @@ const App = () => {
     setIsChecked((prev: boolean) => !prev);
   };
 
+  const { ref, inView } = useInView({
+    threshold: 0,
+    onChange: (inViewUpdated) => {
+      inViewRef.current = inViewUpdated;
+      if (inViewUpdated && !document.hidden) {
+        checkIfAbleToLand();
+      }
+    },
+  });
+
+  const inViewRef = useRef(inView);
+  inViewRef.current = inView;
+
+  let refreshTimeoutId: Timeout;
+
+  const pollAbleToLand = () => {
+    const isTabInForeground = !document.hidden;
+    let refreshIntervalMs = inViewRef.current ? 10000 : 20000;
+
+    const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
+
+    checkPromise.finally(async () => {
+      if (statusRef.current == 'pr-closed') return;
+      refreshTimeoutId = setTimeout(() => {
+        pollAbleToLand();
+      }, refreshIntervalMs);
+    });
+  };
+
   useEffect(() => {
-    const isOpen = qs.get('state') === 'OPEN';
-    if (!isOpen) {
-      return setStatus('pr-closed');
-    }
-    checkIfAbleToLand();
+    pollAbleToLand();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && inViewRef.current) {
+        checkIfAbleToLand();
+      }
+    });
+
+    return () => {
+      clearTimeout(refreshTimeoutId);
+    };
   }, []);
 
-  const checkIfAbleToLand = () => {
-    proxyRequest<CanLandResponse>('/can-land', 'POST')
-      .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage }) => {
-        setStatus(canLand ? 'can-land' : 'cannot-land');
+  const checkQueueStatus = () => {
+    proxyRequestBare<any>('/queue', 'POST')
+      .then((res) => {
+        setQueue(res.queue);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  const checkIfAbleToLand = async () => {
+    const isOpen = qs.get('state') === 'OPEN';
+    if (!isOpen) {
+      setStatus('pr-closed');
+      return;
+    }
+
+    if (loadStatusRef.current === 'loading' || loadStatusRef.current === 'refreshing') return;
+    setLoadStatus(loadStatusRef.current === 'not-loaded' ? 'loading' : 'refreshing');
+
+    return proxyRequest<CanLandResponse>('/can-land', 'POST')
+      .then(({ canLand, canLandWhenAble, errors, warnings, bannerMessage, state }) => {
+        switch (state) {
+          case 'running':
+          case 'queued':
+            checkQueueStatus();
+          case 'will-queue-when-ready':
+          case 'awaiting-merge':
+          case 'merging':
+            setStatus(state);
+            break;
+          default:
+            setStatus(canLand ? 'can-land' : 'cannot-land');
+        }
 
         dispatch({
           canLand,
           canLandWhenAble,
+          state,
           errors,
           warnings,
           bannerMessage,
         });
+        setLoadStatus('loaded');
       })
       .catch((err) => {
-        setLoading(undefined);
+        setLoadStatus('loaded');
         console.error(err);
         if (err?.code === 'USER_DENIED_ACCESS' || err?.code === 'USER_ALREADY_DENIED_ACCESS') {
           setStatus('user-denied-access');
         } else {
           setStatus('unknown-error');
         }
+        setLoadStatus('loaded');
       });
   };
 
   const onLandClicked = () => {
-    setLoading('land');
+    setLoadStatus('queuing');
     proxyRequest('/land', 'POST', { mergeStrategy: isChecked ? 'squash' : 'merge-commit' })
       .then(() => {
-        setLoading(undefined);
         setStatus('queued');
+        checkQueueStatus();
+        checkIfAbleToLand();
       })
       .catch((err) => {
-        setLoading(undefined);
+        checkQueueStatus();
+        checkIfAbleToLand();
         console.error(err);
         setStatus('unknown-error');
       });
   };
 
   const onLandWhenAbleClicked = () => {
-    setLoading('land-when-able');
+    setLoadStatus('queuing');
     proxyRequest('/land-when-able', 'POST', {
       mergeStrategy: isChecked ? 'squash' : 'merge-commit',
     })
       .then(() => {
-        setLoading(undefined);
-        setStatus('queued');
+        setStatus('will-queue-when-ready');
+        setLoadStatus('loaded');
+        checkIfAbleToLand();
       })
       .catch((err) => {
-        setLoading(undefined);
+        setStatus('will-queue-when-ready');
+        setLoadStatus('loaded');
         console.error(err);
         setStatus('unknown-error');
       });
   };
 
   const onCheckAgainClicked = () => {
-    setStatus('checking-can-land');
+    setLoadStatus('not-loaded');
     checkIfAbleToLand();
   };
 
@@ -124,10 +204,12 @@ const App = () => {
       style={{
         paddingBottom: 20,
       }}
+      ref={ref}
     >
       <Message
-        loading={loading}
+        loadStatus={loadStatusRef.current}
         appName={appName}
+        queue={queue}
         status={status}
         canLandWhenAble={state.canLandWhenAble}
         errors={state.errors}
@@ -138,6 +220,8 @@ const App = () => {
         onLandClicked={onLandClicked}
         isChecked={isChecked}
         onChange={onChange}
+        pullRequestId={pullRequestId}
+        repoName={repoName}
       />
     </div>
   );

@@ -10,7 +10,9 @@ interface BBRequest<T> {
 }
 
 interface Data {
-  mergeStrategy: string;
+  mergeStrategy?: string;
+  success?: (resp: T) => void;
+  error?: (err: any) => void;
 }
 
 const AP = (window as any).AP as {
@@ -30,6 +32,19 @@ export function proxyRequest<T>(url: string, type: string, data?: Data): Promise
         type,
         data: JSON.stringify(data),
         contentType,
+        success: (resp) => resolve(resp as any),
+        error: (err) => reject(err),
+      });
+    });
+  });
+}
+
+export function proxyRequestBare<T>(url: string, type: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    AP.require('proxyRequest', (req) => {
+      req({
+        url: url,
+        type,
         success: (resp) => resolve(resp as any),
         error: (err) => reject(err),
       });

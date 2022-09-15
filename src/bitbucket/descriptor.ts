@@ -45,6 +45,9 @@ export const makeDescriptor = () => {
           destination:
             '/bitbucket/proxy/can-land?aaid={user.uuid}&pullRequestId={pullrequest.id}&accountId={user.account_id}&sourceBranch={pullrequest.source.branch.name}&destinationBranch={pullrequest.destination.branch.name}',
         },
+        '/queue': {
+          destination: '/bitbucket/proxy/queue',
+        },
         '/land/{repository}/{pullrequest}': {
           destination:
             '/bitbucket/proxy/land?aaid={user.uuid}&pullRequestId={pullrequest.id}&commit={pullrequest.source.commit.hash}&accountId={user.account_id}',
@@ -64,7 +67,7 @@ export const makeDescriptor = () => {
           name: {
             value: addonName,
           },
-          url: `/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&pullRequestId={pullrequest.id}&${appNameQueryString}`,
+          url: `/bitbucket/index.html?state={pullrequest.state}&repoId={repository.uuid}&repoName={repository.full_name}&pullRequestId={pullrequest.id}&${appNameQueryString}`,
           location: 'org.bitbucket.pullrequest.overview.informationPanel',
           conditions: [
             {
