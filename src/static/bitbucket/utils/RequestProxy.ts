@@ -1,12 +1,10 @@
 interface BBRequest<T> {
-  (
-    opts: {
-      url: string;
-      type?: string;
-      success: (resp: T) => void;
-      error: (err: any) => void;
-    },
-  ): void;
+  (opts: {
+    url: string;
+    type?: string;
+    success: (resp: T) => void;
+    error: (err: any) => void;
+  }): void;
 }
 
 const AP = (window as any).AP as {
@@ -19,12 +17,25 @@ export function proxyRequest<T>(url: string, type: string): Promise<T> {
     const repoId = qs.get('repoId');
     const pullRequestId = qs.get('pullRequestId');
 
-    AP.require('proxyRequest', req => {
+    AP.require('proxyRequest', (req) => {
       req({
         url: `${url}/${repoId}/${pullRequestId}`,
         type,
-        success: resp => resolve(resp as any),
-        error: err => reject(err),
+        success: (resp) => resolve(resp as any),
+        error: (err) => reject(err),
+      });
+    });
+  });
+}
+
+export function proxyRequestBare<T>(url: string, type: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    AP.require('proxyRequest', (req) => {
+      req({
+        url: url,
+        type,
+        success: (resp) => resolve(resp as any),
+        error: (err) => reject(err),
       });
     });
   });

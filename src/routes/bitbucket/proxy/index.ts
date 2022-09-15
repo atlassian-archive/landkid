@@ -35,8 +35,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const errors: string[] = [];
       const warnings: string[] = [];
       let existingRequest = false;
-      const bannerMessage = await runner.getBannerMessageState();
-      const permissionLevel = await permissionService.getPermissionForUser(aaid);
+      const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
+        runner.getBannerMessageState(),
+        permissionService.getPermissionForUser(aaid),
+        runner.getLandRequestStateByPRId(prId),
+      ]);
 
       if (permission(permissionLevel).isAtLeast('land')) {
         const pauseState = await runner.getPauseState();
@@ -56,7 +59,6 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           errors.push(...landChecks.errors);
           if (landChecks.existingRequest) {
             existingRequest = true;
-            errors.push('Pull request has already been queued');
           }
         }
       } else {
@@ -71,12 +73,36 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       });
 
       res.json({
-        canLand: errors.length === 0,
+        canLand: !existingRequest && errors.length === 0,
         canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
+        state: requestStatus?.state,
         errors,
         warnings,
         bannerMessage,
       });
+    }),
+  );
+
+  router.post(
+    '/queue',
+    wrap(async (req, res) => {
+      const { aaid } = req.query as {
+        aaid: string;
+        pullRequestId: string;
+        accountId: string;
+      };
+
+      const [permissionLevel, queue] = await Promise.all([
+        permissionService.getPermissionForUser(aaid),
+        runner.getQueue(),
+      ]);
+
+      if (!permission(permissionLevel).isAtLeast('land')) {
+        res.status(403).send("You don't have land permissions");
+        return;
+      }
+
+      return res.json({ queue });
     }),
   );
 
