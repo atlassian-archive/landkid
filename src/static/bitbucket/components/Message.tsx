@@ -45,7 +45,7 @@ const getMessageTitle = (loadStatus: LoadStatus, status: Status | undefined): st
 
   const messageTitle: { [keyof in Status]: string } = {
     running: 'Building...',
-    'awaiting-merge': 'Awaiting to merge pull request...',
+    'awaiting-merge': 'Waiting to merge pull request...',
     'will-queue-when-ready': 'Queued to land when ready!',
     merging: 'Pull request is being merged...',
     'cannot-land': 'Not ready to land',
@@ -180,7 +180,9 @@ const Message = ({
         );
       }
       case 'awaiting-merge':
-        return <>This pull request is waiting to be merged. </>;
+        return (
+          <>This pull request is waiting for other dependents to finish before it is merged. </>
+        );
       case 'will-queue-when-ready':
         return (
           <>
