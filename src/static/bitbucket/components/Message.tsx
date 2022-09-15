@@ -262,6 +262,7 @@ const Message = ({
         break;
       case 'running':
       case 'queued':
+      case 'awaiting-merge':
         actions.push(
           <SectionMessageAction linkComponent={ExternalLink} href="/current-state">
             View queue
@@ -269,6 +270,10 @@ const Message = ({
         );
         break;
       case 'will-queue-when-ready':
+        actions.push(
+          <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>,
+        );
+        break;
       case 'cannot-land': {
         actions.push(
           <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>,
@@ -292,8 +297,6 @@ const Message = ({
 
     return actions;
   };
-
-  console.log('in message', { loadStatus });
 
   return (
     <div>

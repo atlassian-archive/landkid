@@ -59,7 +59,6 @@ const App = () => {
     threshold: 0,
     onChange: (inViewUpdated) => {
       inViewRef.current = inViewUpdated;
-      console.log('ref changed', inViewUpdated, !document.hidden);
       if (inViewUpdated && !document.hidden) {
         checkIfAbleToLand();
       }
@@ -89,12 +88,6 @@ const App = () => {
     pollAbleToLand();
 
     document.addEventListener('visibilitychange', () => {
-      console.log(
-        'document visibility changed!',
-        document.visibilityState,
-        inViewRef,
-        inViewRef.current,
-      );
       if (document.visibilityState === 'visible' && inViewRef.current) {
         checkIfAbleToLand();
       }
@@ -123,13 +116,6 @@ const App = () => {
     }
 
     if (loadStatusRef.current === 'loading' || loadStatusRef.current === 'refreshing') return;
-
-    console.log(
-      'called check if able to land',
-      loadStatusRef.current,
-      loadStatusRef.current ? 'loading' : 'refreshing',
-    );
-
     setLoadStatus(loadStatusRef.current === 'not-loaded' ? 'loading' : 'refreshing');
 
     return proxyRequest<CanLandResponse>('/can-land', 'POST')
@@ -176,7 +162,6 @@ const App = () => {
         setStatus('queued');
         checkQueueStatus();
         checkIfAbleToLand();
-        console.log('status is queued');
       })
       .catch((err) => {
         checkQueueStatus();
