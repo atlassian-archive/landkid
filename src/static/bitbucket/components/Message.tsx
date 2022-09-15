@@ -12,6 +12,7 @@ import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
+import checkboxStyles from './styles/checkboxStyles';
 import { LoadStatus, QueueResponse, Status } from './types';
 import { css, keyframes } from 'emotion';
 
@@ -341,11 +342,13 @@ const Message = ({
               </div>
             )}
             {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
-              <Checkbox
-                isChecked={isChecked}
-                onChange={onChange}
-                label={`Squash commits when merging`}
-              />
+              <div className={checkboxStyles}>
+                <Checkbox
+                  isChecked={isChecked}
+                  onChange={onChange}
+                  label={`Squash commits when merging`}
+                />
+              </div>
             )}
           </div>
         )}
