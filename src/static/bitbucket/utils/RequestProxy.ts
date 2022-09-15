@@ -19,7 +19,7 @@ const AP = (window as any).AP as {
   require: (name: 'proxyRequest', fn: <T>(req: BBRequest<T>) => void) => void;
 };
 
-export function proxyRequest<T>(url: string, type: string, data?: Data): Promise<T> {
+export function proxyRequest<T>(url: string, type: string, data?: Data<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const qs = new URLSearchParams(window.location.search);
     const repoId = qs.get('repoId');
