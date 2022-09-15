@@ -9,7 +9,7 @@ interface BBRequest<T> {
   }): void;
 }
 
-interface Data {
+interface Data<T> {
   mergeStrategy?: string;
   success?: (resp: T) => void;
   error?: (err: any) => void;
