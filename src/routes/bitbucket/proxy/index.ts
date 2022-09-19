@@ -42,7 +42,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       ]);
 
       if (permission(permissionLevel).isAtLeast('land')) {
-        if (['merging', 'success'].includes(requestStatus?.state)) {
+        if (requestStatus?.state === 'merging' || requestStatus?.state === 'success') {
           res.json({
             canLand: false,
             canLandWhenAble: false,
