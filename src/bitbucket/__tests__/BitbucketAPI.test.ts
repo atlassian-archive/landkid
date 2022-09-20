@@ -66,10 +66,34 @@ describe('mergePullRequest', () => {
     mockedAxios.post.mockResolvedValue({ status: 500, data: { error: { message: 'reason' } } });
     expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
       status: BitbucketAPI.FAILED,
-      reason: 'reason',
+      reason: { error: { message: 'reason' } },
     });
   });
 
+  test('merge failure with message containing fields with merge_checks ', async () => {
+    mockedAxios.post.mockResolvedValue({
+      status: 400,
+      data: {
+        error: {
+          fields: {
+            merge_checks: ['At least 1 approval', 'No in progress builds on last commit'],
+          },
+          message: '2 failed merge checks',
+        },
+      },
+    });
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: {
+        error: {
+          fields: {
+            merge_checks: ['At least 1 approval', 'No in progress builds on last commit'],
+          },
+          message: '2 failed merge checks',
+        },
+      },
+    });
+  });
   test('Successful timeout merge', async () => {
     mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
     mockedAxios.get

@@ -269,10 +269,15 @@ export class Runner {
             sourceBranch: pullRequest.sourceBranch,
             targetBranch: pullRequest.targetBranch,
           });
-          await landRequest.setStatus(
-            'fail',
-            `Unable to merge pull request ${result.reason ? `: ${result.reason}` : ''}`,
-          );
+
+          const hasErrors = result.reason && result.reason.error;
+          const mergeCheckErrors =
+            hasErrors && result.reason.error.fields
+              ? ' ' + result.reason.error.fields.merge_checks.join(', ')
+              : '';
+          const error = hasErrors ? result.reason.error.message + '. ' + mergeCheckErrors : '';
+
+          await landRequest.setStatus('fail', 'Unable to merge pull request: ' + error);
         } else if (result.status === BitbucketAPI.ABORTED) {
           eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
             landRequestId: landRequestStatus.requestId,

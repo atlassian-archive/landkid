@@ -11,7 +11,7 @@ const BBAPIBaseUrl = 'https://api.bitbucket.org/2.0/repositories';
 
 type MergePullRequestResult = {
   status: string;
-  reason?: string;
+  reason?: any;
 };
 
 export class BitbucketAPI {
@@ -64,7 +64,7 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
-      return { status: BitbucketAPI.FAILED, reason: data?.error?.message || statusText };
+      return { status: BitbucketAPI.FAILED, reason: data };
     };
 
     const onMergeAbort = () => {
