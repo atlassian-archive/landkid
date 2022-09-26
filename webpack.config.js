@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const config = require('./config');
+
+const config = fs.existsSync('./config.js') ? require('./config') : null;
 
 // This only really matters when building files, not in production
 const outputPath = process.env.OUTPUT_PATH || '.';
@@ -32,9 +33,7 @@ module.exports = {
       '/ac': `http://localhost:${SERVER_PORT}`,
     },
     client: {
-      webSocketURL: fs.existsSync('./config.js')
-        ? config.baseUrl.replace('https://', '')
-        : undefined,
+      webSocketURL: config ? config.baseUrl.replace('https://', '') : undefined,
     },
   },
   module: {
@@ -72,7 +71,7 @@ module.exports = {
       chunks: ['bitbucket'],
       template: path.resolve(__dirname, './src/static/bitbucket/index.ejs'),
       templateParameters: {
-        widgetSettings: JSON.stringify(config.widgetSettings || {}),
+        widgetSettings: JSON.stringify(config?.widgetSettings || {}),
       },
     }),
     new HtmlWebpackPlugin({
