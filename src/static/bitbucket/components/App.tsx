@@ -9,8 +9,8 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
 import { LoadStatus, QueueResponse, Status } from './types';
-import { WidgetSettings } from '../../../types';
 import getWidgetSettings from '../utils/getWidgetSettings';
+import { WidgetSettings } from '../../../types';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -72,18 +72,24 @@ const App = () => {
 
   let refreshTimeoutId: Timeout;
 
+  // If only refreshing when in viewport, uses `refreshInterval`,
+  // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
+  const getRefreshInterval = (widgetSettings: WidgetSettings) => {
+    if (widgetSettings.refreshOnlyWhenInViewport) {
+      return widgetSettings.refreshInterval;
+    } else {
+      return inViewRef.current
+        ? widgetSettings.refreshInterval
+        : widgetSettings.refreshInterval * 2;
+    }
+  };
+
   const pollAbleToLand = () => {
     const widgetSettings = getWidgetSettings();
     const isVisible =
       !document.hidden && (widgetSettings.refreshOnlyWhenInViewport ? inViewRef.current : true);
 
-    // If only refreshing when in viewport, uses `refreshInterval`,
-    // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
-    let refreshIntervalMs = widgetSettings.refreshOnlyWhenInViewport
-      ? widgetSettings.refreshInterval
-      : inViewRef.current
-      ? widgetSettings.refreshInterval
-      : widgetSettings.refreshInterval * 2;
+    let refreshIntervalMs = getRefreshInterval(widgetSettings);
 
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
