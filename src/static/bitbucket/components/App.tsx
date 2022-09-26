@@ -71,16 +71,15 @@ const App = () => {
   let refreshTimeoutId: Timeout;
 
   const pollAbleToLand = () => {
-    const isTabInForeground = !document.hidden;
-    let refreshIntervalMs = inViewRef.current ? 10000 : 20000;
+    const isInForeground = !document.hidden && inViewRef.current;
 
-    const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
+    const checkPromise = isInForeground ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
-      }, refreshIntervalMs);
+      }, 10000);
     });
   };
 
