@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const config = require('./config');
 
 // This only really matters when building files, not in production
 const outputPath = process.env.OUTPUT_PATH || '.';
@@ -32,7 +33,7 @@ module.exports = {
     },
     client: {
       webSocketURL: fs.existsSync('./config.js')
-        ? require('./config').baseUrl.replace('https://', '')
+        ? config.baseUrl.replace('https://', '')
         : undefined,
     },
   },
@@ -69,7 +70,10 @@ module.exports = {
       filename: 'bitbucket/index.html',
       // only inject the code from the 'bitbucket' entry/chunk
       chunks: ['bitbucket'],
-      template: path.resolve(__dirname, './src/static/bitbucket/index.html'),
+      template: path.resolve(__dirname, './src/static/bitbucket/index.ejs'),
+      templateParameters: {
+        widgetSettings: JSON.stringify(config.widgetSettings || {}),
+      },
     }),
     new HtmlWebpackPlugin({
       filename: 'current-state/index.html',

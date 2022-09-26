@@ -9,6 +9,8 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
 import { LoadStatus, QueueResponse, Status } from './types';
+import { WidgetSettings } from '../../../types';
+import getWidgetSettings from '../utils/getWidgetSettings';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -71,15 +73,25 @@ const App = () => {
   let refreshTimeoutId: Timeout;
 
   const pollAbleToLand = () => {
-    const isInForeground = !document.hidden && inViewRef.current;
+    const widgetSettings = getWidgetSettings();
+    const isVisible =
+      !document.hidden && (widgetSettings.refreshOnlyWhenInViewport ? inViewRef.current : true);
 
-    const checkPromise = isInForeground ? checkIfAbleToLand() : Promise.resolve();
+    // If only refreshing when in viewport, uses `refreshInterval`,
+    // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
+    let refreshIntervalMs = widgetSettings.refreshOnlyWhenInViewport
+      ? widgetSettings.refreshInterval
+      : inViewRef.current
+      ? widgetSettings.refreshInterval
+      : widgetSettings.refreshInterval * 2;
+
+    const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
-      }, 10000);
+      }, refreshIntervalMs);
     });
   };
 
