@@ -28,6 +28,10 @@ module.exports = {
     },
   },
   maxConcurrentBuilds: 3,
+  widgetSettings: {
+    refreshInterval: 10000,
+    refreshOnlyWhenInViewport: false,
+  },
   prSettings: {
     requiredApprovals: 0,
     canApproveOwnPullRequest: true,
