@@ -56,6 +56,11 @@ const App = () => {
   const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
   const widgetSettings = useWidgetSettings();
+  const widgetSettingsRef = useRef(widgetSettings);
+
+  if (widgetSettings !== widgetSettingsRef.current) {
+    widgetSettingsRef.current = widgetSettings;
+  }
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -75,18 +80,19 @@ const App = () => {
   // If only refreshing when in viewport, uses `refreshInterval`,
   // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
   const getRefreshInterval = () => {
-    if (widgetSettings.refreshOnlyWhenInViewport) {
-      return widgetSettings.refreshInterval;
+    if (widgetSettingsRef.current.refreshOnlyWhenInViewport) {
+      return widgetSettingsRef.current.refreshInterval;
     } else {
       return inViewRef.current
-        ? widgetSettings.refreshInterval
-        : widgetSettings.refreshInterval * 2;
+        ? widgetSettingsRef.current.refreshInterval
+        : widgetSettingsRef.current.refreshInterval * 2;
     }
   };
 
   const pollAbleToLand = () => {
     const isVisible =
-      !document.hidden && (widgetSettings.refreshOnlyWhenInViewport ? inViewRef.current : true);
+      !document.hidden &&
+      (widgetSettingsRef.current.refreshOnlyWhenInViewport ? inViewRef.current : true);
 
     let refreshIntervalMs = getRefreshInterval();
 
