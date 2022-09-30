@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { Logger } from '../../src/lib/Logger';
-import { BitbucketAPI } from '../../src/bitbucket/BitbucketAPI';
-import { MergeOptions } from '../../src/types';
+import { Logger } from '../../lib/Logger';
+import { BitbucketAPI } from '../BitbucketAPI';
+import { MergeOptions } from '../../types';
 
 jest.mock('axios');
 const mockedAxios = axios as unknown as jest.Mocked<typeof axios>;
 
 jest.mock('delay');
 
-jest.mock('../../src/bitbucket/BitbucketAuthenticator', () => ({
+jest.mock('../BitbucketAuthenticator', () => ({
   bitbucketAuthenticator: {
     getAuthConfig: jest.fn(),
   },

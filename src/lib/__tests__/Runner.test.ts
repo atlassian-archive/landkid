@@ -1,8 +1,8 @@
 import Redis from 'ioredis-mock';
-import { Logger } from '../../src/lib/Logger';
-import { Runner } from '../../src/lib/Runner';
+import { Logger } from '../Logger';
+import { Runner } from '../Runner';
 
-jest.mock('../../src/lib/utils/redis-client', () => ({
+jest.mock('../utils/redis-client', () => ({
   // @ts-ignore incorrect type definition
   client: new Redis(),
 }));
