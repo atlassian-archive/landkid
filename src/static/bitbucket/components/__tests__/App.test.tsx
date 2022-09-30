@@ -25,7 +25,7 @@ describe('App', () => {
     window.location = originalLocation;
   });
 
-  test('renders App component', async () => {
+  test('renders not read to land state', async () => {
     // @ts-ignore
     window.location = { search: '?state=OPEN' };
 
