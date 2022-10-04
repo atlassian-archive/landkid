@@ -118,6 +118,13 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   );
 
   router.post(
+    '/settings',
+    wrap(async (req, res) => {
+      return res.json(config ? config.widgetSettings : {});
+    }),
+  );
+
+  router.post(
     '/land',
     wrap(async (req, res) => {
       const { aaid, pullRequestId, commit, accountId } = req.query as Record<string, string>;

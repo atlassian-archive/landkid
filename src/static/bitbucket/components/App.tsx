@@ -9,8 +9,7 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
 import { LoadStatus, QueueResponse, Status } from './types';
-import getWidgetSettings from '../utils/getWidgetSettings';
-import { WidgetSettings } from '../../../types';
+import useWidgetSettings from '../utils/getWidgetSettings';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -56,6 +55,12 @@ const App = () => {
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
   const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
+  const widgetSettings = useWidgetSettings();
+  const widgetSettingsRef = useRef(widgetSettings);
+
+  if (widgetSettings !== widgetSettingsRef.current) {
+    widgetSettingsRef.current = widgetSettings;
+  }
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -74,22 +79,22 @@ const App = () => {
 
   // If only refreshing when in viewport, uses `refreshInterval`,
   // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
-  const getRefreshInterval = (widgetSettings: WidgetSettings) => {
-    if (widgetSettings.refreshOnlyWhenInViewport) {
-      return widgetSettings.refreshInterval;
+  const getRefreshInterval = () => {
+    if (widgetSettingsRef.current.refreshOnlyWhenInViewport) {
+      return widgetSettingsRef.current.refreshInterval;
     } else {
       return inViewRef.current
-        ? widgetSettings.refreshInterval
-        : widgetSettings.refreshInterval * 2;
+        ? widgetSettingsRef.current.refreshInterval
+        : widgetSettingsRef.current.refreshInterval * 2;
     }
   };
 
   const pollAbleToLand = () => {
-    const widgetSettings = getWidgetSettings();
     const isVisible =
-      !document.hidden && (widgetSettings.refreshOnlyWhenInViewport ? inViewRef.current : true);
+      !document.hidden &&
+      (widgetSettingsRef.current.refreshOnlyWhenInViewport ? inViewRef.current : true);
 
-    let refreshIntervalMs = getRefreshInterval(widgetSettings);
+    let refreshIntervalMs = getRefreshInterval();
 
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 

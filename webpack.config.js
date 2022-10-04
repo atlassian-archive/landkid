@@ -2,8 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const config = fs.existsSync('./config.js') ? require('./config') : null;
-
 // This only really matters when building files, not in production
 const outputPath = process.env.OUTPUT_PATH || '.';
 const SERVER_PORT = process.env.SERVER_PORT || '8080';
@@ -33,7 +31,9 @@ module.exports = {
       '/ac': `http://localhost:${SERVER_PORT}`,
     },
     client: {
-      webSocketURL: config ? config.baseUrl.replace('https://', '') : undefined,
+      webSocketURL: fs.existsSync('./config.js')
+        ? require('./config').baseUrl.replace('https://', '')
+        : undefined,
     },
   },
   module: {
@@ -69,10 +69,7 @@ module.exports = {
       filename: 'bitbucket/index.html',
       // only inject the code from the 'bitbucket' entry/chunk
       chunks: ['bitbucket'],
-      template: path.resolve(__dirname, './src/static/bitbucket/index.ejs'),
-      templateParameters: {
-        widgetSettings: JSON.stringify(config?.widgetSettings || {}),
-      },
+      template: path.resolve(__dirname, './src/static/bitbucket/index.html'),
     }),
     new HtmlWebpackPlugin({
       filename: 'current-state/index.html',
