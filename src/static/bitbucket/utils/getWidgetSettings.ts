@@ -1,7 +1,6 @@
 import { WidgetSettings } from '../../../types';
 import { proxyRequestBare } from './RequestProxy';
-import useState from 'react-usestateref';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const defaultSettings = {
   refreshInterval: 10000,
@@ -12,7 +11,7 @@ export default function useWidgetSettings(): WidgetSettings {
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings>(defaultSettings);
 
   useEffect(() => {
-    proxyRequestBare<any>('/settings', 'POST')
+    proxyRequestBare<WidgetSettings>('/settings', 'POST')
       .then((settings) => {
         setWidgetSettings({ ...defaultSettings, ...settings });
       })
