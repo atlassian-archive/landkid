@@ -100,6 +100,9 @@ const App = () => {
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
+      if(refreshTimeoutId) {
+        clearTimeout(refreshTimeoutId);
+      }  
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
