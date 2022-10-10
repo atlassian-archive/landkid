@@ -78,7 +78,7 @@ type MessageProps = {
     message: string;
     messageType: 'default' | 'warning' | 'error';
   } | null;
-  isChecked: boolean;
+  isSquashMergeChecked: boolean;
   onChange: () => void;
 };
 
@@ -153,7 +153,7 @@ const Message = ({
   errors,
   warnings,
   bannerMessage,
-  isChecked,
+  isSquashMergeChecked,
   onChange,
   pullRequestId,
   repoName,
@@ -344,7 +344,7 @@ const Message = ({
             {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
               <div className={checkboxStyles}>
                 <Checkbox
-                  isChecked={isChecked}
+                  isChecked={isSquashMergeChecked}
                   onChange={onChange}
                   label={`Squash commits when merging`}
                 />
