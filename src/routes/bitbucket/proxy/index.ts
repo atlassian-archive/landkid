@@ -46,6 +46,17 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       ]);
 
       if (permission(permissionLevel).isAtLeast('land')) {
+        if (requestStatus?.state === 'merging' || requestStatus?.state === 'success') {
+          res.json({
+            canLand: false,
+            canLandWhenAble: false,
+            state: requestStatus?.state,
+            errors,
+            warnings,
+            bannerMessage,
+          });
+          return;
+        }
         const pauseState = await runner.getPauseState();
 
         if (pauseState) {
@@ -107,6 +118,13 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       }
 
       return res.json({ queue });
+    }),
+  );
+
+  router.post(
+    '/settings',
+    wrap(async (req, res) => {
+      return res.json(config ? config.widgetSettings : {});
     }),
   );
 

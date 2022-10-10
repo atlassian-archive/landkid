@@ -38,6 +38,11 @@ type CustomRule = {
   };
 };
 
+export type WidgetSettings = {
+  refreshInterval: number;
+  refreshOnlyWhenInViewport: boolean;
+};
+
 export type PullRequestSettings = {
   requiredApprovals: number;
   requireClosedTasks: boolean;
@@ -90,6 +95,7 @@ export type Config = {
   baseUrl: string;
   landkidAdmins: string[];
   repoConfig: RepoConfig;
+  widgetSettings: WidgetSettings;
   prSettings: PullRequestSettings;
   deployment: DeploymentConfig;
   maxConcurrentBuilds?: number;

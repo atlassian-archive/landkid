@@ -9,6 +9,7 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
 import { LoadStatus, QueueResponse, Status } from './types';
+import useWidgetSettings from '../utils/getWidgetSettings';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -59,6 +60,12 @@ const App = () => {
   const onChange = (): void => {
     setIsSquashMergeChecked((prev: boolean) => !prev);
   };
+  const widgetSettings = useWidgetSettings();
+  const widgetSettingsRef = useRef(widgetSettings);
+
+  if (widgetSettings !== widgetSettingsRef.current) {
+    widgetSettingsRef.current = widgetSettings;
+  }
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -75,14 +82,32 @@ const App = () => {
 
   let refreshTimeoutId: Timeout;
 
-  const pollAbleToLand = () => {
-    const isTabInForeground = !document.hidden;
-    let refreshIntervalMs = inViewRef.current ? 10000 : 20000;
+  // If only refreshing when in viewport, uses `refreshInterval`,
+  // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
+  const getRefreshInterval = () => {
+    if (widgetSettingsRef.current.refreshOnlyWhenInViewport) {
+      return widgetSettingsRef.current.refreshInterval;
+    } else {
+      return inViewRef.current
+        ? widgetSettingsRef.current.refreshInterval
+        : widgetSettingsRef.current.refreshInterval * 2;
+    }
+  };
 
-    const checkPromise = isTabInForeground ? checkIfAbleToLand() : Promise.resolve();
+  const pollAbleToLand = () => {
+    const isVisible =
+      !document.hidden &&
+      (widgetSettingsRef.current.refreshOnlyWhenInViewport ? inViewRef.current : true);
+
+    let refreshIntervalMs = getRefreshInterval();
+
+    const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
+      if (refreshTimeoutId) {
+        clearTimeout(refreshTimeoutId);
+      }
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
