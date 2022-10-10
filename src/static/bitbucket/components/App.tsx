@@ -246,7 +246,7 @@ const App = () => {
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
         isSquashMergeChecked={isSquashMergeChecked}
-        onChange={onChange}
+        onMergeStrategyChange={onChange}
         pullRequestId={pullRequestId}
         repoName={repoName}
       />

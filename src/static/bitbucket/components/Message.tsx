@@ -79,7 +79,7 @@ type MessageProps = {
     messageType: 'default' | 'warning' | 'error';
   } | null;
   isSquashMergeChecked: boolean;
-  onChange: () => void;
+  onMergeStrategyChange: () => void;
 };
 
 /**
@@ -154,7 +154,7 @@ const Message = ({
   warnings,
   bannerMessage,
   isSquashMergeChecked,
-  onChange,
+  onMergeStrategyChange: onChange,
   pullRequestId,
   repoName,
 }: MessageProps) => {
