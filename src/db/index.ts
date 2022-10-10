@@ -349,14 +349,14 @@ export class BannerMessageState extends Model<BannerMessageState> implements IMe
 }
 
 export const initializeSequelize = async () => {
-  const sequelize = new Sequelize(
-    config.sequelize ||
-      ({
-        dialect: 'sqlite',
-        storage: path.resolve(__dirname, '../../db.sqlite'),
-        logging: false,
-      } as any),
-  );
+  const sequelize = new Sequelize({
+    database: 'postgres',
+    dialect: 'postgres',
+    username: 'postgres',
+    password: process.env.PG_DB_PASSWORD,
+    host: '0.0.0.0',
+    port: '5434',
+  } as any);
 
   sequelize.addModels([
     Installation,

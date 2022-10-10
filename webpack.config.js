@@ -31,9 +31,7 @@ module.exports = {
       '/ac': `http://localhost:${SERVER_PORT}`,
     },
     client: {
-      webSocketURL: fs.existsSync('./config.js')
-        ? require('./config').baseUrl.replace('https://', '')
-        : undefined,
+      webSocketURL: fs.existsSync('./config.js') ? require('./config').baseUrl : undefined,
     },
   },
   module: {
