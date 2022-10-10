@@ -79,6 +79,17 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   priority: number;
 
+  @AllowNull(true)
+  @Column(
+    Sequelize.ENUM({
+      values: [
+        'squash',
+        'merge-commit',
+      ],
+    }),
+  )
+  mergeStrategy: IMergeStrategy;
+
   /* Reload the instance after creation so that we eagerly load associations
    * see https://github.com/sequelize/sequelize/issues/3807#issuecomment-438237173
    */

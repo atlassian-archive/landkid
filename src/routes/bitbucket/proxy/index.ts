@@ -8,6 +8,10 @@ import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
 import { eventEmitter } from '../../../lib/Events';
 
+interface LandBody {
+  mergeStrategy?: IMergeStrategy;
+}
+
 export function proxyRoutes(runner: Runner, client: BitbucketClient) {
   const router = express();
 
@@ -128,6 +132,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
     '/land',
     wrap(async (req, res) => {
       const { aaid, pullRequestId, commit, accountId } = req.query as Record<string, string>;
+      const { mergeStrategy } = req.body as LandBody;
       const prId = parseInt(pullRequestId, 10);
       Logger.verbose('Request to land', {
         namespace: 'routes:bitbucket:proxy:land',
@@ -158,6 +163,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         prAuthorAccountId: prInfo.author,
         prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
+        mergeStrategy,
       };
 
       await runner.enqueue(landRequest);
@@ -183,6 +189,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
     '/land-when-able',
     wrap(async (req, res) => {
       const { aaid, pullRequestId, commit, accountId } = req.query as Record<string, string>;
+      const { mergeStrategy } = req.body as LandBody;
       const prId = parseInt(pullRequestId, 10);
       Logger.verbose('Request to land when able', {
         namespace: 'routes:bitbucket:proxy:land-when-able',
@@ -208,6 +215,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         prAuthorAccountId: prInfo.author,
         prSourceBranch: prInfo.sourceBranch,
         prTargetBranch: prInfo.targetBranch,
+        mergeStrategy,
       };
       await runner.addToWaitingToLand(landRequest);
       Logger.info('Pull request will land when able', {

@@ -77,6 +77,8 @@ declare interface ISessionUser {
 
 declare type IPermissionMode = 'read' | 'land' | 'admin';
 
+declare type IMergeStrategy = 'merge-commit' | 'squash';
+
 declare interface IPermission {
   aaid: string;
   dateAssigned: Date;

@@ -5,12 +5,14 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import { Checkbox } from '@atlaskit/checkbox';
 import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
+import checkboxStyles from './styles/checkboxStyles';
 import { LoadStatus, QueueResponse, Status } from './types';
 import { css, keyframes } from 'emotion';
 
@@ -76,6 +78,8 @@ type MessageProps = {
     message: string;
     messageType: 'default' | 'warning' | 'error';
   } | null;
+  isSquashMergeChecked: boolean;
+  onMergeStrategyChange: () => void;
 };
 
 /**
@@ -149,6 +153,8 @@ const Message = ({
   errors,
   warnings,
   bannerMessage,
+  isSquashMergeChecked,
+  onMergeStrategyChange: onChange,
   pullRequestId,
   repoName,
 }: MessageProps) => {
@@ -333,6 +339,15 @@ const Message = ({
             {loadStatus === 'refreshing' && (
               <div className={refreshIndicatorStyles}>
                 <Spinner size="small" />
+              </div>
+            )}
+            {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
+              <div className={checkboxStyles}>
+                <Checkbox
+                  isChecked={isSquashMergeChecked}
+                  onChange={onChange}
+                  label={`Squash commits when merging`}
+                />
               </div>
             )}
           </div>

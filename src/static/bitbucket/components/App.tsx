@@ -55,6 +55,11 @@ const App = () => {
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
   const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
+  const [isSquashMergeChecked, setIsSquashMergeChecked] = useState(true);
+
+  const onChange = (): void => {
+    setIsSquashMergeChecked((prev: boolean) => !prev);
+  };
   const widgetSettings = useWidgetSettings();
   const widgetSettingsRef = useRef(widgetSettings);
 
@@ -100,9 +105,9 @@ const App = () => {
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
-      if(refreshTimeoutId) {
+      if (refreshTimeoutId) {
         clearTimeout(refreshTimeoutId);
-      }  
+      }
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
@@ -182,7 +187,9 @@ const App = () => {
 
   const onLandClicked = () => {
     setLoadStatus('queuing');
-    proxyRequest('/land', 'POST')
+    proxyRequest('/land', 'POST', {
+      mergeStrategy: isSquashMergeChecked ? 'squash' : 'merge-commit',
+    })
       .then(() => {
         setStatus('queued');
         checkQueueStatus();
@@ -198,7 +205,9 @@ const App = () => {
 
   const onLandWhenAbleClicked = () => {
     setLoadStatus('queuing');
-    proxyRequest('/land-when-able', 'POST')
+    proxyRequest('/land-when-able', 'POST', {
+      mergeStrategy: isSquashMergeChecked ? 'squash' : 'merge-commit',
+    })
       .then(() => {
         setStatus('will-queue-when-ready');
         setLoadStatus('loaded');
@@ -236,6 +245,8 @@ const App = () => {
         onCheckAgainClicked={onCheckAgainClicked}
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
+        isSquashMergeChecked={isSquashMergeChecked}
+        onMergeStrategyChange={onChange}
         pullRequestId={pullRequestId}
         repoName={repoName}
       />
