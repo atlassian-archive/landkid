@@ -11,8 +11,6 @@ import {
   BelongsTo,
   AfterCreate,
 } from 'sequelize-typescript';
-import path from 'path';
-import { config } from '../lib/Config';
 import { eventEmitter } from '../lib/Events';
 
 @Table
