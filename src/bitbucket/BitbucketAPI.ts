@@ -99,6 +99,7 @@ export class BitbucketAPI {
     const { status, statusText, headers, data } = await this.bitbucketMerger.attemptMerge(
       pullRequestId,
       message,
+      options.mergeStrategy,
     );
 
     if (status === 200) {
@@ -181,12 +182,17 @@ export class BitbucketAPI {
 
   pullRequestHasConflicts = async (source: string, destination: string): Promise<boolean> => {
     const endpoint = `${this.baseUrl}/diffstat/${source}..${destination}?merge=true&fields=values.status`;
-    const resp = await axios.get<BB.DiffStatResponse>(
-      endpoint,
-      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
-    );
-    const data = resp.data;
-    return data.values.some((diff) => diff.status === 'merge conflict');
+    try {
+      const resp = await axios.get<BB.DiffStatResponse>(
+        endpoint,
+        await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+      );
+      const data = resp.data;
+      return data.values.some((diff) => diff.status === 'merge conflict');
+    } catch (e) {
+      // It's possible that the source branch has been deleted, in which case we can't check for conflicts
+      return false;
+    }
   };
 
   getPullRequestBuildStatuses = async (pullRequestId: number): Promise<Array<BB.BuildStatus>> => {

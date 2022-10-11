@@ -91,6 +91,7 @@
   },
   "dependencies": {
     "@atlaskit/button": "^15.0.0",
+    "@atlaskit/checkbox": "^12.3.19",
     "@atlaskit/css-reset": "^6.3.13",
     "@atlaskit/pagination": "^8.0.5",
     "@atlaskit/section-message": "^6.1.12",

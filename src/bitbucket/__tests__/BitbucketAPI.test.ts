@@ -10,7 +10,7 @@ jest.mock('delay');
 
 jest.mock('../BitbucketAuthenticator', () => ({
   bitbucketAuthenticator: {
-    getAuthConfig: jest.fn(),
+    getAuthConfig: () => Promise.resolve({}),
   },
 }));
 
@@ -104,6 +104,28 @@ describe('mergePullRequest', () => {
         commitMessage: expect.stringContaining('[skip ci]'),
       }),
     );
+  });
+
+  test('when merge strategy is merge commit, its passed correctly', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    const data = JSON.stringify({
+      close_source_branch: true,
+      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      merge_strategy: 'merge_commit',
+    });
+    await mergePullRequest(landRequestStatus, { mergeStrategy: 'merge-commit' });
+    expect(mockedAxios.post).toBeCalledWith(expect.any(String), data, {});
+  });
+
+  test('when merge strategy is squash, its passed correctly', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    const data = JSON.stringify({
+      close_source_branch: true,
+      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      merge_strategy: 'squash',
+    });
+    await mergePullRequest(landRequestStatus, { mergeStrategy: 'squash' });
+    expect(mockedAxios.post).toBeCalledWith(expect.any(String), data, {});
   });
 
   test('Get task count, should call API and return the correct number of tasks UNRESOLVED', async () => {

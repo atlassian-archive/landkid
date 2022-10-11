@@ -9,8 +9,7 @@ import { proxyRequest, proxyRequestBare } from '../utils/RequestProxy';
 import Message from './Message';
 import Timeout = NodeJS.Timeout;
 import { LoadStatus, QueueResponse, Status } from './types';
-import getWidgetSettings from '../utils/getWidgetSettings';
-import { WidgetSettings } from '../../../types';
+import useWidgetSettings from '../utils/getWidgetSettings';
 
 type BannerMessage = {
   messageExists: boolean;
@@ -51,6 +50,17 @@ const App = () => {
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
   const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
+  const [isSquashMergeChecked, setIsSquashMergeChecked] = useState(true);
+
+  const onChange = (): void => {
+    setIsSquashMergeChecked((prev: boolean) => !prev);
+  };
+  const widgetSettings = useWidgetSettings();
+  const widgetSettingsRef = useRef(widgetSettings);
+
+  if (widgetSettings !== widgetSettingsRef.current) {
+    widgetSettingsRef.current = widgetSettings;
+  }
 
   const qs = new URLSearchParams(window.location.search);
   const appName = qs.get('appName') || 'Landkid';
@@ -74,27 +84,30 @@ const App = () => {
 
   // If only refreshing when in viewport, uses `refreshInterval`,
   // Else uses `refreshInterval` when in viewport and twice the timeout when not in viewport
-  const getRefreshInterval = (widgetSettings: WidgetSettings) => {
-    if (widgetSettings.refreshOnlyWhenInViewport) {
-      return widgetSettings.refreshInterval;
+  const getRefreshInterval = () => {
+    if (widgetSettingsRef.current.refreshOnlyWhenInViewport) {
+      return widgetSettingsRef.current.refreshInterval;
     } else {
       return inViewRef.current
-        ? widgetSettings.refreshInterval
-        : widgetSettings.refreshInterval * 2;
+        ? widgetSettingsRef.current.refreshInterval
+        : widgetSettingsRef.current.refreshInterval * 2;
     }
   };
 
   const pollAbleToLand = () => {
-    const widgetSettings = getWidgetSettings();
     const isVisible =
-      !document.hidden && (widgetSettings.refreshOnlyWhenInViewport ? inViewRef.current : true);
+      !document.hidden &&
+      (widgetSettingsRef.current.refreshOnlyWhenInViewport ? inViewRef.current : true);
 
-    let refreshIntervalMs = getRefreshInterval(widgetSettings);
+    let refreshIntervalMs = getRefreshInterval();
 
     const checkPromise = isVisible ? checkIfAbleToLand() : Promise.resolve();
 
     checkPromise.finally(async () => {
       if (statusRef.current == 'pr-closed') return;
+      if (refreshTimeoutId) {
+        clearTimeout(refreshTimeoutId);
+      }
       refreshTimeoutId = setTimeout(() => {
         pollAbleToLand();
       }, refreshIntervalMs);
@@ -174,7 +187,9 @@ const App = () => {
 
   const onLandClicked = () => {
     setLoadStatus('queuing');
-    proxyRequest('/land', 'POST')
+    proxyRequest('/land', 'POST', {
+      mergeStrategy: isSquashMergeChecked ? 'squash' : 'merge-commit',
+    })
       .then(() => {
         setStatus('queued');
         checkQueueStatus();
@@ -190,7 +205,9 @@ const App = () => {
 
   const onLandWhenAbleClicked = () => {
     setLoadStatus('queuing');
-    proxyRequest('/land-when-able', 'POST')
+    proxyRequest('/land-when-able', 'POST', {
+      mergeStrategy: isSquashMergeChecked ? 'squash' : 'merge-commit',
+    })
       .then(() => {
         setStatus('will-queue-when-ready');
         setLoadStatus('loaded');
@@ -228,6 +245,8 @@ const App = () => {
         onCheckAgainClicked={onCheckAgainClicked}
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
+        isSquashMergeChecked={isSquashMergeChecked}
+        onMergeStrategyChange={onChange}
         pullRequestId={pullRequestId}
         repoName={repoName}
       />

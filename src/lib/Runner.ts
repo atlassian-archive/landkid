@@ -245,58 +245,60 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
-    this.client.mergePullRequest(landRequestStatus, { skipCI }).then(async (result) => {
-      if (result.status === BitbucketAPI.SUCCESS) {
-        const end = Date.now();
-        const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
-        const start = queuedDate!.getTime();
-        eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-          duration: end - start,
-        });
-        await landRequest.setStatus('success');
-      } else if (result.status === BitbucketAPI.FAILED) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus(
-          'fail',
-          `Unable to merge pull request ${result.reason ? `: ${result.reason}` : ''}`,
-        );
-      } else if (result.status === BitbucketAPI.ABORTED) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus(
-          'aborted',
-          'Merging aborted due to manual cancel (PR may still merge anyway)',
-        );
-      } else if (result.status === BitbucketAPI.TIMEOUT) {
-        eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
-          landRequestId: landRequestStatus.requestId,
-          pullRequestId: landRequest.pullRequestId,
-          commit: landRequest.forCommit,
-          sourceBranch: pullRequest.sourceBranch,
-          targetBranch: pullRequest.targetBranch,
-        });
-        await landRequest.setStatus(
-          'aborted',
-          'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
-        );
-      }
-    });
+    this.client
+      .mergePullRequest(landRequestStatus, { skipCI, mergeStrategy: landRequest.mergeStrategy })
+      .then(async (result) => {
+        if (result.status === BitbucketAPI.SUCCESS) {
+          const end = Date.now();
+          const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+          const start = queuedDate!.getTime();
+          eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+            duration: end - start,
+          });
+          await landRequest.setStatus('success');
+        } else if (result.status === BitbucketAPI.FAILED) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'fail',
+            `Unable to merge pull request ${result.reason ? `: ${result.reason}` : ''}`,
+          );
+        } else if (result.status === BitbucketAPI.ABORTED) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'aborted',
+            'Merging aborted due to manual cancel (PR may still merge anyway)',
+          );
+        } else if (result.status === BitbucketAPI.TIMEOUT) {
+          eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
+            landRequestId: landRequestStatus.requestId,
+            pullRequestId: landRequest.pullRequestId,
+            commit: landRequest.forCommit,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
+          });
+          await landRequest.setStatus(
+            'aborted',
+            'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
+          );
+        }
+      });
   };
 
   failDueToDependency = async (
@@ -503,6 +505,7 @@ export class Runner {
         triggererAccountId: landRequestOptions.triggererAccountId,
         pullRequestId: pr.prId,
         forCommit: landRequestOptions.commit,
+        mergeStrategy: landRequestOptions.mergeStrategy,
       },
       {
         include: [PullRequest],
