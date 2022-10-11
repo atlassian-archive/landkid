@@ -45,11 +45,6 @@ const initialState: CanLandResponse = {
   state: null,
 };
 
-const qs = new URLSearchParams(window.location.search);
-const appName = qs.get('appName') || 'Landkid';
-const pullRequestId = parseInt(qs.get('pullRequestId') || '');
-const repoName = qs.get('repoName') || '';
-
 const App = () => {
   const [status, setStatus, statusRef] = useState<Status | undefined>();
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
@@ -66,6 +61,11 @@ const App = () => {
   if (widgetSettings !== widgetSettingsRef.current) {
     widgetSettingsRef.current = widgetSettings;
   }
+
+  const qs = new URLSearchParams(window.location.search);
+  const appName = qs.get('appName') || 'Landkid';
+  const pullRequestId = parseInt(qs.get('pullRequestId') || '');
+  const repoName = qs.get('repoName') || '';
 
   const { ref, inView } = useInView({
     threshold: 0,
