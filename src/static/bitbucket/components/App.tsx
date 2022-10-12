@@ -227,6 +227,7 @@ const App = () => {
         queue={queue}
         status={status}
         canLandWhenAble={state.canLandWhenAble}
+        canLand={state.canLand}
         errors={state.errors}
         warnings={state.warnings}
         bannerMessage={state.bannerMessage}
