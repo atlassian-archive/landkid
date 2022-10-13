@@ -66,6 +66,7 @@ type MessageProps = {
   onLandClicked: () => void;
   onLandWhenAbleClicked: () => void;
   onCheckAgainClicked: () => void;
+  canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
@@ -150,6 +151,7 @@ const Message = ({
   onLandWhenAbleClicked,
   onCheckAgainClicked,
   canLandWhenAble,
+  canLand,
   errors,
   warnings,
   bannerMessage,
@@ -237,7 +239,7 @@ const Message = ({
   const showErrors =
     status === 'cannot-land' || status === 'queued' || status == 'will-queue-when-ready';
 
-  const landButton = (
+  const getLandButton = (label: string) => (
     <div style={{ marginRight: 15 }}>
       <Confetti
         active={loadStatus === 'queuing'}
@@ -257,7 +259,7 @@ const Message = ({
         }}
       />
       <Button appearance="primary" onClick={onLandClicked} isLoading={loadStatus === 'queuing'}>
-        Land changes
+        {label}
       </Button>
     </div>
   );
@@ -266,7 +268,7 @@ const Message = ({
     const actions = [];
     switch (status) {
       case 'can-land':
-        actions.push(landButton);
+        actions.push(getLandButton('Land changes'));
         break;
       case 'running':
       case 'queued':
@@ -278,6 +280,10 @@ const Message = ({
         );
         break;
       case 'will-queue-when-ready':
+        if (canLand) {
+          actions.push(getLandButton('Land immediately'));
+        }
+
         actions.push(
           <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>,
         );
