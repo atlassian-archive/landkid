@@ -50,7 +50,7 @@ const App = () => {
   const [queue, setQueue] = useState<QueueResponse['queue'] | undefined>();
   const [_, setLoadStatus, loadStatusRef] = useState<LoadStatus>('not-loaded');
   const [state, dispatch] = useState(initialState);
-  const [isSquashMergeChecked, setIsSquashMergeChecked] = useState(true);
+  const [isSquashMergeChecked, setIsSquashMergeChecked] = useState(false);
 
   const onChange = (): void => {
     setIsSquashMergeChecked((prev: boolean) => !prev);
