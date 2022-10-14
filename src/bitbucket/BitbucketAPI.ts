@@ -9,9 +9,18 @@ import { BitbucketMerger } from './BitbucketMerger';
 
 const BBAPIBaseUrl = 'https://api.bitbucket.org/2.0/repositories';
 
+type Reason = {
+  error: {
+    fields?: {
+      merge_checks?: string[];
+    };
+    message?: string;
+  };
+};
+
 type MergePullRequestResult = {
   status: string;
-  reason?: any;
+  reason?: Reason;
 };
 
 export class BitbucketAPI {
