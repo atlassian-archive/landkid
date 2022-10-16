@@ -30,7 +30,7 @@ const queueItemStyles = css({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    marginBottom: '3px',
+    marginBottom: '10px',
   },
 
   '& .queue-item__status-line': {
@@ -38,14 +38,16 @@ const queueItemStyles = css({
     flexGrow: 1,
     flexWrap: 'nowrap',
     marginTop: 'auto',
-    height: '28px',
+    marginBottom: '5px',
   },
 
   '& .queue-item__status-item': {
     display: 'inline-flex',
     flexDirection: 'row',
     alignItems: 'center',
-    height: '28px',
+    height: '2.5%',
+    flexWrap: 'nowrap',
+    marginBottom: '5px',
 
     '& + .queue-item__status-item': {
       marginLeft: '9px',
@@ -69,9 +71,9 @@ const queueItemStyles = css({
 
   '& .queue-item__more-info': {
     marginRight: '8px',
-    overflowY: 'hidden',
-    overflowX: 'scroll',
-    whiteSpace: 'nowrap',
+    display: 'flex',
+    flexDirection: 'column',
+    flexWrap: 'wrap',
 
     '&::-webkit-scrollbar': {
       display: 'none',
@@ -275,7 +277,9 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
         </div>
         {status.reason && status.state !== 'queued' ? (
           <div className="queue-item__status-line">
-            <StatusItem title="Reason:">{status.reason}</StatusItem>
+            <StatusItem title="Reason:">
+              <span>{status.reason}</span>
+            </StatusItem>
           </div>
         ) : null}
         {status.request.triggererAaid ? (

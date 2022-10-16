@@ -269,9 +269,12 @@ export class Runner {
             sourceBranch: pullRequest.sourceBranch,
             targetBranch: pullRequest.targetBranch,
           });
+
           await landRequest.setStatus(
             'fail',
-            `Unable to merge pull request ${result.reason ? `: ${result.reason}` : ''}`,
+            `Unable to merge pull request: ${result.reason?.error?.message}. ${
+              result.reason?.error?.fields?.merge_checks?.join(', ') ?? ''
+            }`,
           );
         } else if (result.status === BitbucketAPI.ABORTED) {
           eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
