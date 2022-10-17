@@ -31,6 +31,7 @@ module.exports = {
   widgetSettings: {
     refreshInterval: 10000,
     refreshOnlyWhenInViewport: false,
+    enableSquashMerge: false,
   },
   prSettings: {
     requiredApprovals: 0,
