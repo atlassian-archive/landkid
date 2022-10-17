@@ -1,16 +1,16 @@
 import axios from 'axios';
-import { Logger } from '../../src/lib/Logger';
-import { BitbucketAPI } from '../../src/bitbucket/BitbucketAPI';
-import { MergeOptions } from '../../src/types';
+import { Logger } from '../../lib/Logger';
+import { BitbucketAPI } from '../BitbucketAPI';
+import { MergeOptions } from '../../types';
 
 jest.mock('axios');
 const mockedAxios = axios as unknown as jest.Mocked<typeof axios>;
 
 jest.mock('delay');
 
-jest.mock('../../src/bitbucket/BitbucketAuthenticator', () => ({
+jest.mock('../BitbucketAuthenticator', () => ({
   bitbucketAuthenticator: {
-    getAuthConfig: jest.fn(),
+    getAuthConfig: () => Promise.resolve({}),
   },
 }));
 
@@ -66,10 +66,34 @@ describe('mergePullRequest', () => {
     mockedAxios.post.mockResolvedValue({ status: 500, data: { error: { message: 'reason' } } });
     expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
       status: BitbucketAPI.FAILED,
-      reason: 'reason',
+      reason: { error: { message: 'reason' } },
     });
   });
 
+  test('merge failure with message containing fields with merge_checks ', async () => {
+    mockedAxios.post.mockResolvedValue({
+      status: 400,
+      data: {
+        error: {
+          fields: {
+            merge_checks: ['At least 1 approval', 'No in progress builds on last commit'],
+          },
+          message: '2 failed merge checks',
+        },
+      },
+    });
+    expect(await mergePullRequest(landRequestStatus)).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: {
+        error: {
+          fields: {
+            merge_checks: ['At least 1 approval', 'No in progress builds on last commit'],
+          },
+          message: '2 failed merge checks',
+        },
+      },
+    });
+  });
   test('Successful timeout merge', async () => {
     mockedAxios.post.mockResolvedValue({ status: 202, headers: { location: '' } });
     mockedAxios.get
@@ -104,6 +128,28 @@ describe('mergePullRequest', () => {
         commitMessage: expect.stringContaining('[skip ci]'),
       }),
     );
+  });
+
+  test('when merge strategy is merge commit, its passed correctly', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    const data = JSON.stringify({
+      close_source_branch: true,
+      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      merge_strategy: 'merge_commit',
+    });
+    await mergePullRequest(landRequestStatus, { mergeStrategy: 'merge-commit' });
+    expect(mockedAxios.post).toBeCalledWith(expect.any(String), data, {});
+  });
+
+  test('when merge strategy is squash, its passed correctly', async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    const data = JSON.stringify({
+      close_source_branch: true,
+      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      merge_strategy: 'squash',
+    });
+    await mergePullRequest(landRequestStatus, { mergeStrategy: 'squash' });
+    expect(mockedAxios.post).toBeCalledWith(expect.any(String), data, {});
   });
 
   test('Get task count, should call API and return the correct number of tasks UNRESOLVED', async () => {

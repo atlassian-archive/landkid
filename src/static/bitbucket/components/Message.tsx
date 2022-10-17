@@ -5,12 +5,14 @@ import SectionMessage, {
 } from '@atlaskit/section-message';
 import { LoadingButton as Button } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
+import { Checkbox } from '@atlaskit/checkbox';
 import Confetti from 'react-dom-confetti';
 
 import Errors from './Errors';
 import Warnings from './Warnings';
 import Queue from './Queue';
 import loadingRectangleStyles from './styles/loadingRectangleStyles';
+import checkboxStyles from './styles/checkboxStyles';
 import { LoadStatus, QueueResponse, Status } from './types';
 import { css, keyframes } from 'emotion';
 
@@ -64,6 +66,7 @@ type MessageProps = {
   onLandClicked: () => void;
   onLandWhenAbleClicked: () => void;
   onCheckAgainClicked: () => void;
+  canLand: boolean;
   canLandWhenAble: boolean;
   errors: string[];
   warnings: string[];
@@ -76,6 +79,8 @@ type MessageProps = {
     message: string;
     messageType: 'default' | 'warning' | 'error';
   } | null;
+  isSquashMergeChecked: boolean;
+  onMergeStrategyChange: () => void;
 };
 
 /**
@@ -146,9 +151,12 @@ const Message = ({
   onLandWhenAbleClicked,
   onCheckAgainClicked,
   canLandWhenAble,
+  canLand,
   errors,
   warnings,
   bannerMessage,
+  isSquashMergeChecked,
+  onMergeStrategyChange: onChange,
   pullRequestId,
   repoName,
 }: MessageProps) => {
@@ -231,7 +239,7 @@ const Message = ({
   const showErrors =
     status === 'cannot-land' || status === 'queued' || status == 'will-queue-when-ready';
 
-  const landButton = (
+  const getLandButton = (label: string) => (
     <div style={{ marginRight: 15 }}>
       <Confetti
         active={loadStatus === 'queuing'}
@@ -251,7 +259,7 @@ const Message = ({
         }}
       />
       <Button appearance="primary" onClick={onLandClicked} isLoading={loadStatus === 'queuing'}>
-        Land changes
+        {label}
       </Button>
     </div>
   );
@@ -260,7 +268,7 @@ const Message = ({
     const actions = [];
     switch (status) {
       case 'can-land':
-        actions.push(landButton);
+        actions.push(getLandButton('Land changes'));
         break;
       case 'running':
       case 'queued':
@@ -272,6 +280,10 @@ const Message = ({
         );
         break;
       case 'will-queue-when-ready':
+        if (canLand) {
+          actions.push(getLandButton('Land immediately'));
+        }
+
         actions.push(
           <SectionMessageAction onClick={onCheckAgainClicked}>Check again</SectionMessageAction>,
         );
@@ -333,6 +345,15 @@ const Message = ({
             {loadStatus === 'refreshing' && (
               <div className={refreshIndicatorStyles}>
                 <Spinner size="small" />
+              </div>
+            )}
+            {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
+              <div className={checkboxStyles}>
+                <Checkbox
+                  isChecked={isSquashMergeChecked}
+                  onChange={onChange}
+                  label={`Squash commits when merging`}
+                />
               </div>
             )}
           </div>

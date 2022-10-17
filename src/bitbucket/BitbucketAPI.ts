@@ -9,9 +9,18 @@ import { BitbucketMerger } from './BitbucketMerger';
 
 const BBAPIBaseUrl = 'https://api.bitbucket.org/2.0/repositories';
 
+type Reason = {
+  error: {
+    fields?: {
+      merge_checks?: string[];
+    };
+    message?: string;
+  };
+};
+
 type MergePullRequestResult = {
   status: string;
-  reason?: string;
+  reason?: Reason;
 };
 
 export class BitbucketAPI {
@@ -64,7 +73,7 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
-      return { status: BitbucketAPI.FAILED, reason: data?.error?.message || statusText };
+      return { status: BitbucketAPI.FAILED, reason: data };
     };
 
     const onMergeAbort = () => {
@@ -99,6 +108,7 @@ export class BitbucketAPI {
     const { status, statusText, headers, data } = await this.bitbucketMerger.attemptMerge(
       pullRequestId,
       message,
+      options.mergeStrategy,
     );
 
     if (status === 200) {
