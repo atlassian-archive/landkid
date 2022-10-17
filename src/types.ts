@@ -41,6 +41,7 @@ type CustomRule = {
 export type WidgetSettings = {
   refreshInterval: number;
   refreshOnlyWhenInViewport: boolean;
+  enableSquashMerge: boolean;
 };
 
 export type PullRequestSettings = {

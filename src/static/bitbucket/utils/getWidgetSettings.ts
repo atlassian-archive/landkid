@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 const defaultSettings = {
   refreshInterval: 10000,
   refreshOnlyWhenInViewport: false,
+  enableSquashMerge: false,
 };
 
 export default function useWidgetSettings(): WidgetSettings {

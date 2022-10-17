@@ -246,6 +246,7 @@ const App = () => {
         onCheckAgainClicked={onCheckAgainClicked}
         onLandWhenAbleClicked={onLandWhenAbleClicked}
         onLandClicked={onLandClicked}
+        enableSquashMerge={widgetSettings.enableSquashMerge}
         isSquashMergeChecked={isSquashMergeChecked}
         onMergeStrategyChange={onChange}
         pullRequestId={pullRequestId}
