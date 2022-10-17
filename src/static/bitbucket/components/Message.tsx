@@ -80,6 +80,7 @@ type MessageProps = {
     messageType: 'default' | 'warning' | 'error';
   } | null;
   isSquashMergeChecked: boolean;
+  enableSquashMerge: boolean;
   onMergeStrategyChange: () => void;
 };
 
@@ -156,6 +157,7 @@ const Message = ({
   warnings,
   bannerMessage,
   isSquashMergeChecked,
+  enableSquashMerge,
   onMergeStrategyChange: onChange,
   pullRequestId,
   repoName,
@@ -347,15 +349,16 @@ const Message = ({
                 <Spinner size="small" />
               </div>
             )}
-            {(status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
-              <div className={checkboxStyles}>
-                <Checkbox
-                  isChecked={isSquashMergeChecked}
-                  onChange={onChange}
-                  label={`Squash commits when merging`}
-                />
-              </div>
-            )}
+            {enableSquashMerge &&
+              (status === 'can-land' || (canLandWhenAble && status === 'cannot-land')) && (
+                <div className={checkboxStyles}>
+                  <Checkbox
+                    isChecked={isSquashMergeChecked}
+                    onChange={onChange}
+                    label={`Squash commits when merging`}
+                  />
+                </div>
+              )}
           </div>
         )}
       </SectionMessage>
