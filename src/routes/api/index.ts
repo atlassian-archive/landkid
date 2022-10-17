@@ -257,6 +257,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         return res.status(400).json({ err: 'Could not find PR with that ID' });
       }
 
+      Logger.info(`prInfo = ${JSON.stringify(prInfo, null, 2)}`);
+
       const landRequestOptions: LandRequestOptions = {
         prId,
         // Must always have a valid aaid, so lets set it to Luke's aaid

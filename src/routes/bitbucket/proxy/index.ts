@@ -27,6 +27,11 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       };
       const prId = parseInt(pullRequestId, 10);
 
+      const prInfo = await client.bitbucket.getPullRequest(13);
+      const prInfo14 = await client.bitbucket.getPullRequest(14);
+      Logger.info(`prInfo(13) = ${JSON.stringify(prInfo, null, 2)}`);
+      Logger.info(`prInfo(14) = ${JSON.stringify(prInfo14, null, 2)}`);
+
       Logger.info('Requesting land checks', {
         namespace: 'routes:bitbucket:proxy:can-land',
         pullRequestId,
@@ -147,6 +152,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       }
 
       const prInfo = await client.bitbucket.getPullRequest(prId);
+      Logger.info(`prInfo = ${JSON.stringify(prInfo, null, 2)}`);
 
       const landRequest: LandRequestOptions = {
         prId,
