@@ -166,7 +166,8 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         mergeStrategy,
       };
 
-      await runner.enqueue(landRequest);
+      const request = await runner.enqueue(landRequest);
+
       Logger.info('Pull request queued', {
         namespace: 'routes:bitbucket:proxy:land',
         pullRequestId: prId,
@@ -179,6 +180,17 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         sourceBranch: prInfo.sourceBranch,
         targetBranch: prInfo.targetBranch,
       });
+
+      const priority = await client.bitbucket.getPullRequestPriority(commit);
+
+      if (priority === 'HIGH' && request) {
+        await request.incrementPriority();
+        Logger.info('Pull request priority increased', {
+          namespace: 'routes:bitbucket:proxy:land',
+          pullRequestId: prId,
+          landRequest,
+        });
+      }
 
       res.sendStatus(200);
       runner.next();

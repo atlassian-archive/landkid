@@ -171,3 +171,30 @@ describe('mergePullRequest', () => {
     expect(taskCount).toEqual(1);
   });
 });
+
+describe('getPullRequestPriority', () => {
+  test('when build status includes "landkid-priority" then should return priority ', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        values: [
+          {
+            name: 'landkid-priority',
+            description: 'HIGH',
+          },
+        ],
+      },
+    });
+
+    expect(await bitbucketAPI.getPullRequestPriority('commit-foo')).toBe('HIGH');
+  });
+
+  test('when build status doesn"t include "landkid-priority" then should return default priority ', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        values: [],
+      },
+    });
+
+    expect(await bitbucketAPI.getPullRequestPriority('commit-foo')).toBe('LOW');
+  });
+});
