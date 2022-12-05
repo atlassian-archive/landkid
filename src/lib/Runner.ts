@@ -250,7 +250,7 @@ export class Runner {
       .then(async (result) => {
         if (result.status === BitbucketAPI.SUCCESS) {
           const end = Date.now();
-          const queuedDate = await this.getLandRequestQueuedDate(landRequest.id);
+          const queuedDate = await landRequest.getQueuedDate();
           const start = queuedDate!.getTime();
           eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
             landRequestId: landRequestStatus.requestId,
@@ -654,17 +654,6 @@ export class Runner {
       statuses[requestId] = landRequestStatuses;
     }
     return statuses;
-  };
-
-  getLandRequestQueuedDate = async (requestId: string): Promise<Date | null> => {
-    const status = await LandRequestStatus.findOne<LandRequestStatus>({
-      where: {
-        requestId,
-        state: 'queued',
-      },
-      order: [['date', 'ASC']],
-    });
-    return status ? status.date : null;
   };
 
   getLandRequestStateByPRId = async (pullRequestId: number): Promise<LandRequestStatus | null> => {
