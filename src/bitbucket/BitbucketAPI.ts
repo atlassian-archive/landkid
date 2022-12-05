@@ -234,7 +234,7 @@ export class BitbucketAPI {
 
     const priority =
       allBuildStatuses.find((buildStatus) => buildStatus.name === 'landkid-priority')
-        ?.description || 'HIGH';
+        ?.description || 'LOW';
 
     Logger.info('PR priority', {
       namespace: 'bitbucket:api:getPullRequestPriority',
