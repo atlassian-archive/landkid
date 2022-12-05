@@ -547,6 +547,11 @@ export class Runner {
 
     const { request } = landRequestStatus;
 
+    const priority = await this.client.bitbucket.getPullRequestPriority(request.forCommit);
+    if (priority === 'HIGH') {
+      await request.incrementPriority();
+    }
+
     const user = await this.client.getUser(request.triggererAaid);
     await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
 
