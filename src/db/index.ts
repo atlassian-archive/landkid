@@ -148,6 +148,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       prevState: prevStatus?.state,
       stateDuration: prevStatus ? Date.now() - prevStatus.date.getTime() : null,
       durationSinceQueued: queuedDate ? Date.now() - queuedDate.getTime() : null,
+      dependsOn: this.dependsOn,
     });
     return true;
   };
