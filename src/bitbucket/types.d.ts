@@ -137,6 +137,13 @@ declare namespace BB {
 
   type BuildState = 'SUCCESSFUL' | 'FAILED' | 'INPROGRESS' | 'STOPPED' | 'DEFAULT' | 'PENDING';
 
+  type PRPriority = 'LOW' | 'HIGH';
+
+  type BuildPriorityResponse = {
+    name: string;
+    description: PRPriority;
+  };
+
   type BuildStatus = {
     name: string;
     state: BuildState;

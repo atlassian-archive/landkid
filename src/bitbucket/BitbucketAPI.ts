@@ -223,6 +223,28 @@ export class BitbucketAPI {
       }));
   };
 
+  getPullRequestPriority = async (commit: string): Promise<BB.PRPriority> => {
+    const endpoint = `${this.baseUrl}/commit/${commit}/statuses`;
+    const { data } = await axios.get<{ values: BB.BuildPriorityResponse[] }>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+    );
+
+    const allBuildStatuses = data.values;
+
+    const priority =
+      allBuildStatuses.find((buildStatus) => buildStatus.name === 'landkid-priority')
+        ?.description || 'LOW';
+
+    Logger.info('PR priority', {
+      namespace: 'bitbucket:api:getPullRequestPriority',
+      commit,
+      priority,
+    });
+
+    return priority;
+  };
+
   getUser = async (aaid: string): Promise<ISessionUser> => {
     const endpoint = `https://api.bitbucket.org/2.0/users/${aaid}`;
     const resp = await axios.get(
