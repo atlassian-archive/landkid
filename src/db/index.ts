@@ -82,10 +82,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @AllowNull(true)
   @Column(
     Sequelize.ENUM({
-      values: [
-        'squash',
-        'merge-commit',
-      ],
+      values: ['squash', 'merge-commit'],
     }),
   )
   mergeStrategy: IMergeStrategy;
@@ -135,6 +132,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
         { transaction: t },
       );
     });
+    const queuedDate = await this.getQueuedDate();
     eventEmitter.emit('LAND_REQUEST.STATUS.CHANGED', {
       landRequestId: this.id,
       pullRequestId: this.pullRequestId,
@@ -148,6 +146,9 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       state,
       reason,
       prevState: prevStatus?.state,
+      stateDuration: prevStatus ? Date.now() - prevStatus.date.getTime() : null,
+      durationSinceQueued: queuedDate ? Date.now() - queuedDate.getTime() : null,
+      dependsOn: this.dependsOn,
     });
     return true;
   };
@@ -204,6 +205,17 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
 
   decrementPriority = () => {
     return this.updatePriority(this.priority - 1);
+  };
+
+  getQueuedDate = async () => {
+    const status = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        requestId: this.id,
+        state: 'queued',
+      },
+      order: [['date', 'ASC']],
+    });
+    return status ? status.date : null;
   };
 }
 
