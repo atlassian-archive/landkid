@@ -119,6 +119,7 @@ export class BitbucketClient {
       ...approvalChecks,
       errors,
       warnings,
+      pullRequest,
     };
   }
 
