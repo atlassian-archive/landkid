@@ -28,16 +28,41 @@ const returnAfter3Seconds = async () => {
 
 // Restore the original logger.Error function and don't throw when we expect errors to occur
 function expectLoggerError(loggerErrorSpy: jest.SpyInstance<any, any>) {
-  loggerErrorSpy.mockRestore();
+  loggerErrorSpy.mockImplementation(() => {
+    return undefined as any;
+  });
+}
+
+// Spy on each logging function and suppress their output
+// To temporarily unsuppress while debugging, comment out the "mockImplementation" calls
+function suppressAndSpyLogging() {
+  const info = jest.spyOn(Logger, 'info').mockImplementation(() => {
+    return undefined as any;
+  });
+  const warn = jest.spyOn(Logger, 'warn').mockImplementation(() => {
+    return undefined as any;
+  });
+  // Log the actual error from catch-all error handlers and throw to ensure we explicitly handle
+  // error cases in tests
+  const origLoggerError = Logger.error;
+  const error = jest.spyOn(Logger, 'error').mockImplementation(((msg: any, payload: any) => {
+    origLoggerError(msg, payload);
+    const err = payload.err || msg;
+    throw err;
+  }) as any);
+  return { info, warn, error };
 }
 
 describe('Runner', () => {
   let runner: Runner;
   let mockQueue: LandRequestQueue;
-  let loggerInfoSpy: jest.SpyInstance<any, any>;
+  let loggerSpies: {
+    info: jest.SpyInstance<any, any>;
+    warn: jest.SpyInstance<any, any>;
+    error: jest.SpyInstance<any, any>;
+  };
   let mockPullRequest: BB.PullRequest;
   let mockClient: BitbucketClient;
-  let loggerErrorSpy: jest.SpyInstance<any, any>;
 
   beforeEach(() => {
     mockQueue = {
@@ -55,6 +80,7 @@ describe('Runner', () => {
       commit: 'abc',
     } as BB.PullRequest;
     jest.spyOn(Runner.prototype, 'init').mockImplementation();
+    loggerSpies = suppressAndSpyLogging();
     mockClient = new BitbucketClient({} as any);
     jest.spyOn(mockClient, 'isAllowedToMerge').mockImplementation(() => {
       return {
@@ -64,15 +90,6 @@ describe('Runner', () => {
       } as any;
     });
     runner = new Runner(mockQueue, {} as any, mockClient, { maxConcurrentBuilds: 2 } as Config);
-    loggerInfoSpy = jest.spyOn(Logger, 'info');
-    // Log the actual error from catch-all error handlers and throw to ensure we explicitly handle
-    // error cases in tests
-    const origLoggerError = Logger.error;
-    loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation(((msg: any, payload: any) => {
-      origLoggerError(msg, payload);
-      const err = payload.err || msg;
-      throw err;
-    }) as any);
   });
 
   afterEach(() => {
@@ -89,8 +106,8 @@ describe('Runner', () => {
         const nextPromise = runner.next();
         const checkPromise = runner.checkWaitingLandRequests();
         await Promise.all([nextPromise, checkPromise]);
-        expect(loggerInfoSpy).toHaveBeenCalledWith('Next() called', expect.anything());
-        expect(loggerInfoSpy).not.toHaveBeenCalledWith(
+        expect(loggerSpies.info).toHaveBeenCalledWith('Next() called', expect.anything());
+        expect(loggerSpies.info).not.toHaveBeenCalledWith(
           'Checking for waiting landrequests ready to queue',
           expect.anything(),
         );
@@ -101,8 +118,8 @@ describe('Runner', () => {
         await wait(500);
         const nextPromise = runner.next();
         await Promise.all([nextPromise, checkPromise]);
-        expect(loggerInfoSpy).toHaveBeenCalledWith('Next() called', expect.anything());
-        expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect(loggerSpies.info).toHaveBeenCalledWith('Next() called', expect.anything());
+        expect(loggerSpies.info).toHaveBeenCalledWith(
           'Checking for waiting landrequests ready to queue',
           expect.anything(),
         );
@@ -113,7 +130,7 @@ describe('Runner', () => {
         const checkPromise2 = runner.checkWaitingLandRequests();
         await Promise.all([checkPromise1, checkPromise2]);
         expect(
-          loggerInfoSpy.mock.calls.filter(
+          loggerSpies.info.mock.calls.filter(
             (call) => call[0] === 'Checking for waiting landrequests ready to queue',
           ),
         ).toHaveLength(1);
@@ -369,7 +386,7 @@ describe('Runner', () => {
         } as any;
       });
 
-      expectLoggerError(loggerErrorSpy);
+      expectLoggerError(loggerSpies.error);
       expect(request.setStatus).not.toHaveBeenCalled();
       await runner.moveFromQueueToRunning(status, new Date(123));
       expect(request.setStatus).toHaveBeenCalledTimes(1);
