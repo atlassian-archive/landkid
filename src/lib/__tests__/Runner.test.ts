@@ -14,6 +14,7 @@ jest.mock('../utils/redis-client', () => ({
 
 jest.mock('../../db/index');
 jest.mock('../../bitbucket/BitbucketClient');
+jest.mock('../Config');
 
 const wait = (duration: number) =>
   new Promise((resolve) => {
