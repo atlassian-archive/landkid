@@ -38,7 +38,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const errors: string[] = [];
       const warnings: string[] = [];
-      let existingRequest = false;
+      const abortErrors: string[] = [];
       const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
         runner.getBannerMessageState(),
         permissionService.getPermissionForUser(aaid),
@@ -68,13 +68,12 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             queueFetcher: runner.getWaitingAndQueued,
             sourceBranch,
             destinationBranch,
+            commit: null,
           });
 
           warnings.push(...landChecks.warnings);
           errors.push(...landChecks.errors);
-          if (landChecks.existingRequest) {
-            existingRequest = true;
-          }
+          abortErrors.push(...landChecks.abortErrors);
         }
       } else {
         errors.push("You don't have land permissions");
@@ -85,11 +84,12 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         pullRequestId,
         errors,
         warnings,
+        abortErrors,
       });
 
       res.json({
-        canLand: !existingRequest && errors.length === 0,
-        canLandWhenAble: !existingRequest && prSettings.allowLandWhenAble,
+        canLand: abortErrors.length === 0 && errors.length === 0,
+        canLandWhenAble: abortErrors.length === 0 && prSettings.allowLandWhenAble,
         state: requestStatus?.state,
         errors,
         warnings,

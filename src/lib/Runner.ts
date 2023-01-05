@@ -91,43 +91,30 @@ export class Runner {
     const triggererUserMode = await permissionService.getPermissionForUser(
       landRequest.triggererAaid,
     );
-    const commit = landRequest.forCommit;
+
     const isAllowedToLand = await this.isAllowedToLand({
       pullRequestId: landRequest.pullRequestId,
       permissionLevel: triggererUserMode,
       queueFetcher: this.getRunning,
       sourceBranch: landRequest.pullRequest.sourceBranch,
       destinationBranch: landRequest.pullRequest.targetBranch,
+      commit: landRequest.forCommit,
     });
 
-    // ToDo: Extra checks, should probably not be here, but this will do for now
-    const currentPrInfo = await this.client.bitbucket.getPullRequest(landRequest.pullRequestId);
-    const targetBranchMatches = currentPrInfo.targetBranch === landRequest.pullRequest.targetBranch;
-    const commitMatches = currentPrInfo.commit === landRequest.forCommit;
-    if (!targetBranchMatches) {
-      Logger.info('Target branch changed between landing and running', {
+    if (isAllowedToLand.abortErrors.length > 0) {
+      Logger.warn('Aborting queued land request', {
         namespace: 'lib:runner:moveFromQueueToRunning',
-        landRequestId: landRequest.id,
-        pullRequestId: landRequest.pullRequestId,
+        isAllowedToLand,
         landRequestStatus,
-        currentPrTargetBranch: currentPrInfo.targetBranch,
-        lockId,
-      });
-      return landRequest.setStatus('aborted', 'Target branch changed between landing and running');
-    }
-    if (!commitMatches) {
-      Logger.info('Target branch changed between landing and running', {
-        namespace: 'lib:runner:moveFromQueueToRunning',
-        landRequestId: landRequest.id,
         pullRequestId: landRequest.pullRequestId,
-        landRequestStatus,
-        currentPrCommit: currentPrInfo.commit,
+        landRequestId: landRequest.id,
         lockId,
+        errors: isAllowedToLand.abortErrors,
       });
-      return landRequest.setStatus('aborted', 'PR commit changed between landing and running');
+      return landRequest.setStatus('aborted', isAllowedToLand.abortErrors.join(','));
     }
 
-    if (isAllowedToLand.errors.length > 0 || isAllowedToLand.existingRequest) {
+    if (isAllowedToLand.errors.length > 0) {
       Logger.error('LandRequest no longer passes land checks', {
         namespace: 'lib:runner:moveFromQueueToRunning',
         isAllowedToLand,
@@ -135,6 +122,7 @@ export class Runner {
         pullRequestId: landRequest.pullRequestId,
         landRequestId: landRequest.id,
         lockId,
+        errors: isAllowedToLand.errors,
       });
       return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
     }
@@ -165,7 +153,7 @@ export class Runner {
 
     const buildId = await this.client.createLandBuild(
       landRequest.id,
-      commit,
+      landRequest.forCommit,
       {
         dependencyCommits: dependencies.map((queueItem) => queueItem.request.forCommit),
         targetBranch: landRequest.pullRequest.targetBranch,
@@ -611,19 +599,22 @@ export class Runner {
                 queueFetcher: this.getQueue,
                 sourceBranch: landRequest.pullRequest.sourceBranch,
                 destinationBranch: landRequest.pullRequest.targetBranch,
+                commit: landRequest.forCommit,
               });
 
+              if (isAllowedToLand.abortErrors.length > 0) {
+                Logger.warn('Aborting waiting land request', {
+                  pullRequestId,
+                  landRequestId: landRequest.id,
+                  landRequestStatus,
+                  abortReasons: isAllowedToLand.abortErrors,
+                  namespace: 'lib:runner:checkWaitingLandRequests',
+                });
+                await landRequest.setStatus('aborted', isAllowedToLand.abortErrors.join(','));
+                continue;
+              }
+
               if (isAllowedToLand.errors.length === 0) {
-                if (isAllowedToLand.existingRequest) {
-                  Logger.warn('Already has existing Land build', {
-                    pullRequestId,
-                    landRequestId: landRequest.id,
-                    landRequestStatus,
-                    namespace: 'lib:runner:checkWaitingLandRequests',
-                  });
-                  await landRequest.setStatus('aborted', 'Already has existing Land build');
-                  continue;
-                }
                 const movedState = await this.moveFromWaitingToQueued(landRequestStatus);
                 if (movedState) return this.next();
               }
@@ -780,12 +771,14 @@ export class Runner {
     queueFetcher,
     sourceBranch,
     destinationBranch,
+    commit,
   }: {
     pullRequestId: number;
     permissionLevel: IPermissionMode;
     queueFetcher: () => Promise<LandRequestStatus[]>;
     sourceBranch: string;
     destinationBranch: string;
+    commit: string | null;
   }) {
     const isAllowedToMerge = await this.client.isAllowedToMerge({
       pullRequestId,
@@ -794,16 +787,42 @@ export class Runner {
       destinationBranch,
     });
 
-    let existingRequest = false;
+    const abortErrors: string[] = [];
+
+    if (isAllowedToMerge.pullRequest.targetBranch !== destinationBranch) {
+      Logger.warn('Target branch changed after landing', {
+        namespace: 'lib:runner:isAllowedToLand',
+        pullRequestId: pullRequestId,
+        landRequestTargetBranch: destinationBranch,
+        prTargetBranch: isAllowedToMerge.pullRequest.targetBranch,
+      });
+      abortErrors.push('Target branch changed after landing');
+    }
+
+    if (commit && commit !== isAllowedToMerge.pullRequest.commit) {
+      Logger.warn('PR commit changed after landing', {
+        namespace: 'lib:runner:isAllowedToLand',
+        pullRequestId: pullRequestId,
+        landRequestCommit: commit,
+        prCommit: isAllowedToMerge.pullRequest.commit,
+      });
+      abortErrors.push('PR commit changed after landing');
+    }
+
     const queue = await queueFetcher();
     for (const queueItem of queue) {
       if (queueItem.request.pullRequestId === pullRequestId) {
-        existingRequest = true;
+        Logger.warn('Already has existing Land build', {
+          namespace: 'lib:runner:isAllowedToLand',
+          pullRequestId: pullRequestId,
+          existingRequest: queueItem.request.id,
+        });
+        abortErrors.push('Already has existing Land build');
         break;
       }
     }
     return {
-      existingRequest,
+      abortErrors,
       ...isAllowedToMerge,
     };
   }
