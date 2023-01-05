@@ -789,7 +789,7 @@ export class Runner {
 
     const abortErrors: string[] = [];
 
-    if (isAllowedToMerge.pullRequest.targetBranch !== destinationBranch) {
+    if (destinationBranch && destinationBranch !== isAllowedToMerge.pullRequest.targetBranch) {
       Logger.warn('Target branch changed after landing', {
         namespace: 'lib:runner:isAllowedToLand',
         pullRequestId: pullRequestId,
