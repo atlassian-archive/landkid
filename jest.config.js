@@ -4,7 +4,10 @@ module.exports = {
       preset: 'ts-jest',
       displayName: 'Node tests',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/src/(auth|bitbucket|db|lib|routes)/**/__tests__/*.test.ts'],
+      testMatch: [
+        '<rootDir>/src/(auth|bitbucket|db|lib|routes)/**/__tests__/*.test.ts',
+        '<rootDir>/src/(auth|bitbucket|db|lib|routes)/**/test.ts',
+      ],
     },
     {
       preset: 'ts-jest',

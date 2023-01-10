@@ -527,4 +527,94 @@ describe('Runner', () => {
       expect(getRunningSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('onStatusUpdate', () => {
+    let request: LandRequest;
+    let nextSpy: jest.SpyInstance<any>;
+    beforeEach(() => {
+      const pullRequest = new PullRequest({
+        prId: mockPullRequest.pullRequestId,
+        authorAaid: mockPullRequest.authorAaid,
+        title: mockPullRequest.title,
+        targetBranch: mockPullRequest.targetBranch,
+      });
+      request = new LandRequest({
+        buildId: 1234,
+        created: new Date(120),
+        forCommit: 'abc',
+        id: '0',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest,
+      });
+      const runningStatus = new LandRequestStatus({
+        date: new Date(120),
+        id: '0',
+        isLatest: true,
+        request,
+        requestId: '0',
+        state: 'running',
+      });
+      mockQueue.getRunning = jest.fn(async () => [runningStatus]);
+      nextSpy = jest.spyOn(runner, 'next').mockImplementation(async () => {});
+    });
+
+    afterEach(() => {
+      nextSpy.mockRestore();
+    });
+
+    it('should set land request status to awaiting-merge on successful build status', async () => {
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 1234,
+        buildStatus: 'SUCCESSFUL',
+      });
+      expect(request.setStatus).toHaveBeenCalledWith('awaiting-merge');
+      expect(nextSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set land request status to fail on failed build status', async () => {
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 1234,
+        buildStatus: 'FAILED',
+      });
+      expect(request.setStatus).toHaveBeenCalledWith('fail', 'Landkid build failed');
+      expect(nextSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set land request status to aborted on stopped build status', async () => {
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 1234,
+        buildStatus: 'STOPPED',
+      });
+      expect(request.setStatus).toHaveBeenCalledWith(
+        'aborted',
+        'Landkid pipelines build was stopped',
+      );
+      expect(nextSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should ignore unknown status', async () => {
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 1234,
+        buildStatus: 'RANDOM' as any,
+      });
+
+      expect(request.setStatus).not.toHaveBeenCalled();
+      expect(nextSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not set status of request with non-matching build ID', async () => {
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 567,
+        buildStatus: 'SUCCESSFUL',
+      });
+      expect(request.setStatus).not.toHaveBeenCalled();
+      expect(nextSpy).not.toHaveBeenCalled();
+    });
+  });
 });
