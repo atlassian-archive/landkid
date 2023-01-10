@@ -32,7 +32,7 @@ module.exports = {
     },
     client: {
       webSocketURL: fs.existsSync('./config.js')
-        ? require('./config').baseUrl.replace('https://', '')
+        ? require('./config').baseUrl.replace('', '')
         : undefined,
     },
   },

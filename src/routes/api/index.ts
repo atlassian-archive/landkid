@@ -342,5 +342,27 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.post(
+    '/fail-build',
+    requireCustomToken,
+    wrap(async (req, res) => {
+      if (!req.body || !req.body.buildId) {
+        return res.status(400).json({ err: 'req.body.buildId expected' });
+      }
+
+      Logger.info('Failing land request', {
+        namespace: 'routes:api:fail-build',
+        buildId: req.body.buildId,
+      });
+
+      runner.onStatusUpdate({
+        buildId: req.body.buildId,
+        buildStatus: 'FAILED',
+      });
+
+      res.sendStatus(200);
+    }),
+  );
+
   return router;
 }
