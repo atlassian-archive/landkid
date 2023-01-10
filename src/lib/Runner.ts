@@ -25,6 +25,9 @@ import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 // 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
 const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
 
+// const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
+const LAND_BUILD_TIMEOUT_TIME = 1000 * 60; // 1 min
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -46,6 +49,10 @@ export class Runner {
     setInterval(() => {
       this.next();
     }, 15 * 1000); // 15s
+
+    setInterval(() => {
+      this.checkRunningLandRequests();
+    }, timeBetweenChecksMins * 60 * 1000);
   }
 
   getMaxConcurrentBuilds = () =>
@@ -627,6 +634,46 @@ export class Runner {
       },
       undefined,
       MAX_CHECK_WAITING_REQUESTS_TIME,
+    );
+  };
+
+  checkRunningLandRequests = async () => {
+    await withLock(
+      // this lock ensures we don't run multiple checks at the same time that might cause a race condition
+      'check-running-requests',
+      async () => {
+        await withLock(
+          // this lock ensures we don't run the check when we're running this.next()
+          'status-transition',
+          async () => {
+            const runningRequests = await this.queue.getRunning();
+            Logger.info('Checking for running landrequests for timeout', {
+              namespace: 'lib:runner:checkRunningLandRequests',
+              runningRequests,
+            });
+
+            for (const landRequestStatus of runningRequests) {
+              const landRequest = landRequestStatus.request;
+              const pullRequestId = landRequest.pullRequestId;
+              const timeElapsed = Date.now() - landRequestStatus.date.getTime();
+              if (timeElapsed > LAND_BUILD_TIMEOUT_TIME) {
+                Logger.warn('Failing running land request as timeout period is breached', {
+                  pullRequestId,
+                  landRequestId: landRequest.id,
+                  landRequestStatus,
+                  timeElapsed,
+                  namespace: 'lib:runner:checkRunningLandRequests',
+                });
+                await landRequest.setStatus('fail', 'Build timeout period breached');
+              }
+            }
+          },
+          undefined,
+          // release the lock immediately so that this.next() can keep running, set to 100 because ttl needs to be > 0
+          100,
+        );
+      },
+      undefined,
     );
   };
 
