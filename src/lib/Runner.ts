@@ -25,8 +25,7 @@ import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 // 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
 const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
 
-// const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
-const LAND_BUILD_TIMEOUT_TIME = 1000 * 60; // 1 min
+const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
 
 export class Runner {
   constructor(
@@ -50,9 +49,10 @@ export class Runner {
       this.next();
     }, 15 * 1000); // 15s
 
+    // call checkRunningLandRequests() function on a interval of 10 min to verify LAND_BUILD_TIMEOUT_TIME
     setInterval(() => {
       this.checkRunningLandRequests();
-    }, timeBetweenChecksMins * 60 * 1000);
+    }, 10 * 60 * 1000);
   }
 
   getMaxConcurrentBuilds = () =>
