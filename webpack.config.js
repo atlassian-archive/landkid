@@ -7,10 +7,6 @@ const outputPath = process.env.OUTPUT_PATH || '.';
 const SERVER_PORT = process.env.SERVER_PORT || '8080';
 const DEV_SERVER_PORT = process.env.DEV_SERVER_PORT || '3000';
 
-const config = fs.existsSync('./config.js') ? require('./config') : null;
-
-console.log('config', config.baseUrl);
-
 module.exports = {
   entry: {
     bitbucket: path.resolve(__dirname, './src/static/bitbucket'),
