@@ -1,0 +1,132 @@
+{
+    "type": "pipeline",
+    "uuid": "{8c42a67f-fcd0-41f7-8181-db56ea42cc8a}",
+    "repository": {
+        "type": "repository",
+        "full_name": "atlassian/atlassian-frontend",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend"
+            },
+            "html": {
+                "href": "https://bitbucket.org/atlassian/atlassian-frontend"
+            },
+            "avatar": {
+                "href": "https://bytebucket.org/ravatar/%7Bc8e2f021-38d2-46d0-9b7a-b3f7b428f724%7D?ts=js"
+            }
+        },
+        "name": "Atlassian-Frontend",
+        "uuid": "{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}"
+    },
+    "state": {
+        "name": "COMPLETED",
+        "type": "pipeline_state_completed",
+        "result": {
+            "name": "STOPPED",
+            "type": "pipeline_state_completed_stopped",
+            "terminator": {
+                "display_name": "afp-repo-bot",
+                "links": {
+                    "self": {
+                        "href": "https://bitbucket.org/!api/2.0/users/%7Bfe79e0d4-39c7-428f-8382-20deaa38015a%7D"
+                    },
+                    "avatar": {
+                        "href": "https://secure.gravatar.com/avatar/f60108553eb4939e6e03f7b3d83f8843?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/%7Bfe79e0d4-39c7-428f-8382-20deaa38015a%7D/"
+                    }
+                },
+                "type": "user",
+                "uuid": "{fe79e0d4-39c7-428f-8382-20deaa38015a}",
+                "account_id": "5de835c22c5dd20d0f9080e5",
+                "nickname": "AFP Repo Bot"
+            }
+        }
+    },
+    "build_number": 1065504,
+    "creator": {
+        "display_name": "Apoorv Kansal",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/users/%7B162a683b-09e2-4f76-bca6-cffde13f56e8%7D"
+            },
+            "avatar": {
+                "href": "https://secure.gravatar.com/avatar/507b80e3737c411da73b383aa49b61b5?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FAK-6.png"
+            },
+            "html": {
+                "href": "https://bitbucket.org/%7B162a683b-09e2-4f76-bca6-cffde13f56e8%7D/"
+            }
+        },
+        "type": "user",
+        "uuid": "{162a683b-09e2-4f76-bca6-cffde13f56e8}",
+        "account_id": "6141f6291238e80071318057",
+        "nickname": "Apoorv Kansal"
+    },
+    "created_on": "2023-01-12T03:18:39.390861Z",
+    "completed_on": "2023-01-12T03:25:53.289278Z",
+    "target": {
+        "type": "pipeline_pullrequest_target",
+        "source": "ed-16066",
+        "destination": "ye/skip-integration-tests-6-jan",
+        "destination_commit": {
+            "type": "commit",
+            "hash": "4471212d201ce1a507ce41d4a29939dafd361f04",
+            "links": {
+                "self": {
+                    "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend/commit/4471212d201ce1a507ce41d4a29939dafd361f04"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/atlassian/atlassian-frontend/commits/4471212d201ce1a507ce41d4a29939dafd361f04"
+                }
+            }
+        },
+        "pullrequest": {
+            "type": "pullrequest",
+            "id": 28428,
+            "title": "ED-16066 Wait longer for focus to appear",
+            "links": {
+                "self": {
+                    "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend/pullrequests/28428"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/atlassian/atlassian-frontend/pull-requests/28428"
+                }
+            }
+        },
+        "selector": {
+            "type": "pull-requests",
+            "pattern": "**"
+        },
+        "commit": {
+            "type": "commit",
+            "hash": "697a7debdb6562ddbbbae0e1c178eef7b9a68fa3",
+            "links": {
+                "self": {
+                    "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend/commit/697a7debdb6562ddbbbae0e1c178eef7b9a68fa3"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/atlassian/atlassian-frontend/commits/697a7debdb6562ddbbbae0e1c178eef7b9a68fa3"
+                }
+            }
+        }
+    },
+    "trigger": {
+        "name": "PUSH",
+        "type": "pipeline_trigger_push"
+    },
+    "run_number": 1,
+    "duration_in_seconds": 421,
+    "build_seconds_used": 7020,
+    "first_successful": false,
+    "expired": false,
+    "links": {
+        "self": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{8c42a67f-fcd0-41f7-8181-db56ea42cc8a}"
+        },
+        "steps": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{8c42a67f-fcd0-41f7-8181-db56ea42cc8a}/steps"
+        }
+    },
+    "has_variables": false
+}

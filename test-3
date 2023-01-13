@@ -1,0 +1,88 @@
+{
+    "type": "pipeline",
+    "uuid": "{ec2d0e78-0130-4a93-9e64-c57aba88ba3f}",
+    "repository": {
+        "type": "repository",
+        "full_name": "atlassian/atlassian-frontend",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend"
+            },
+            "html": {
+                "href": "https://bitbucket.org/atlassian/atlassian-frontend"
+            },
+            "avatar": {
+                "href": "https://bytebucket.org/ravatar/%7Bc8e2f021-38d2-46d0-9b7a-b3f7b428f724%7D?ts=js"
+            }
+        },
+        "name": "Atlassian-Frontend",
+        "uuid": "{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}"
+    },
+    "state": {
+        "name": "IN_PROGRESS",
+        "type": "pipeline_state_in_progress",
+        "stage": {
+            "name": "RUNNING",
+            "type": "pipeline_state_in_progress_running"
+        }
+    },
+    "build_number": 1065637,
+    "creator": {
+        "display_name": "afp-repo-bot",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/users/%7Bfe79e0d4-39c7-428f-8382-20deaa38015a%7D"
+            },
+            "avatar": {
+                "href": "https://secure.gravatar.com/avatar/f60108553eb4939e6e03f7b3d83f8843?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png"
+            },
+            "html": {
+                "href": "https://bitbucket.org/%7Bfe79e0d4-39c7-428f-8382-20deaa38015a%7D/"
+            }
+        },
+        "type": "user",
+        "uuid": "{fe79e0d4-39c7-428f-8382-20deaa38015a}",
+        "account_id": "5de835c22c5dd20d0f9080e5",
+        "nickname": "AFP Repo Bot"
+    },
+    "created_on": "2023-01-12T03:56:38.794737Z",
+    "target": {
+        "type": "pipeline_ref_target",
+        "ref_type": "branch",
+        "ref_name": "ed-16066",
+        "selector": {
+            "type": "custom",
+            "pattern": "editor-custom-lint"
+        },
+        "commit": {
+            "type": "commit",
+            "hash": "5b3252e3bb0fa9590167ca72516b5e45a50e9e11",
+            "links": {
+                "self": {
+                    "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend/commit/5b3252e3bb0fa9590167ca72516b5e45a50e9e11"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/atlassian/atlassian-frontend/commits/5b3252e3bb0fa9590167ca72516b5e45a50e9e11"
+                }
+            }
+        }
+    },
+    "trigger": {
+        "name": "MANUAL",
+        "type": "pipeline_trigger_manual"
+    },
+    "run_number": 1,
+    "duration_in_seconds": 0,
+    "build_seconds_used": 0,
+    "first_successful": false,
+    "expired": false,
+    "links": {
+        "self": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{ec2d0e78-0130-4a93-9e64-c57aba88ba3f}"
+        },
+        "steps": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{ec2d0e78-0130-4a93-9e64-c57aba88ba3f}/steps"
+        }
+    },
+    "has_variables": true
+}

@@ -25,7 +25,9 @@ import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 // 3 hours should be long enough to complete it now that we only fetch requests within 7 days (about 20 waiting requests)
 const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
 
-const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
+// const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
+
+const LAND_BUILD_TIMEOUT_TIME = 1000 * 60; // 1 min
 
 export class Runner {
   constructor(

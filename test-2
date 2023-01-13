@@ -1,0 +1,88 @@
+{
+    "type": "pipeline",
+    "uuid": "{c36ae3d4-7c70-48a7-9b41-92db5d5f9048}",
+    "repository": {
+        "type": "repository",
+        "full_name": "atlassian/atlassian-frontend",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend"
+            },
+            "html": {
+                "href": "https://bitbucket.org/atlassian/atlassian-frontend"
+            },
+            "avatar": {
+                "href": "https://bytebucket.org/ravatar/%7Bc8e2f021-38d2-46d0-9b7a-b3f7b428f724%7D?ts=js"
+            }
+        },
+        "name": "Atlassian-Frontend",
+        "uuid": "{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}"
+    },
+    "state": {
+        "name": "COMPLETED",
+        "type": "pipeline_state_completed",
+        "result": {
+            "name": "FAILED",
+            "type": "pipeline_state_completed_failed"
+        }
+    },
+    "build_number": 1063272,
+    "creator": {
+        "display_name": "Grace Dmello",
+        "links": {
+            "self": {
+                "href": "https://bitbucket.org/!api/2.0/users/%7B1bddc09d-8315-4316-b0ce-a00144b0b3a5%7D"
+            },
+            "avatar": {
+                "href": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/70121:807e0e54-5af6-4787-b00a-b7b5d669ce3e/3eabc669-b15f-4f31-8b1d-6ec51272660c/128"
+            },
+            "html": {
+                "href": "https://bitbucket.org/%7B1bddc09d-8315-4316-b0ce-a00144b0b3a5%7D/"
+            }
+        },
+        "type": "user",
+        "uuid": "{1bddc09d-8315-4316-b0ce-a00144b0b3a5}",
+        "account_id": "70121:807e0e54-5af6-4787-b00a-b7b5d669ce3e",
+        "nickname": "Grace Dmello"
+    },
+    "created_on": "2023-01-11T04:19:46.286578Z",
+    "completed_on": "2023-01-11T04:44:48.797086Z",
+    "target": {
+        "type": "pipeline_ref_target",
+        "ref_type": "branch",
+        "ref_name": "qa-merge-master-2023-01-09",
+        "selector": {
+            "type": "default"
+        },
+        "commit": {
+            "type": "commit",
+            "hash": "4a23adafbc141517a2e44a77e5e6cab26ffbef94",
+            "links": {
+                "self": {
+                    "href": "https://bitbucket.org/!api/2.0/repositories/atlassian/atlassian-frontend/commit/4a23adafbc141517a2e44a77e5e6cab26ffbef94"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/atlassian/atlassian-frontend/commits/4a23adafbc141517a2e44a77e5e6cab26ffbef94"
+                }
+            }
+        }
+    },
+    "trigger": {
+        "name": "PUSH",
+        "type": "pipeline_trigger_push"
+    },
+    "run_number": 1,
+    "duration_in_seconds": 1487,
+    "build_seconds_used": 29856,
+    "first_successful": false,
+    "expired": false,
+    "links": {
+        "self": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{c36ae3d4-7c70-48a7-9b41-92db5d5f9048}"
+        },
+        "steps": {
+            "href": "http://bitbucket-pipelines.prod.public.atl-paas.net//rest/1.0/accounts/{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}/repositories/{c8e2f021-38d2-46d0-9b7a-b3f7b428f724}/pipelines/{c36ae3d4-7c70-48a7-9b41-92db5d5f9048}/steps"
+        }
+    },
+    "has_variables": false
+}
