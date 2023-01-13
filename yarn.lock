@@ -3378,6 +3378,14 @@
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/parse5/-/parse5-5.0.3.tgz#e7b5aebbac150f8b5fdd4a46e7f0bd8e65e19109"
   integrity sha512-kUNnecmtkunAoQ3CnjmMkzNU/gtxG8guhi+Fk2U/kOpIKjIMKnXGp4IJCgQJrXSgMsWYimYG4TGjz/UzbGEBTw==
 
+"@types/passport-http@^0.3.9":
+  version "0.3.9"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/passport-http/-/passport-http-0.3.9.tgz#268e483ade820d4f0edb3d35cec090d1990cc081"
+  integrity sha512-uQ4vyRdvM0jdWuKpLmi6Q6ri9Nwt8YnHmF7kE6snbthxPrsMWcjRCVc5WcPaQ356ODSZTDgiRYURMPIspCkn3Q==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+
 "@types/passport-oauth2@^1.4.10":
   version "1.4.11"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/passport-oauth2/-/passport-oauth2-1.4.11.tgz#fbca527ecb44258774d17bcb251630c321515fa9"
@@ -11640,6 +11648,13 @@ pascalcase@^0.1.1:
   version "0.1.1"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/pascalcase/-/pascalcase-0.1.1.tgz#b363e55e8006ca6fe21784d2db22bd15d7917f14"
   integrity sha512-XHXfu/yOQRy9vYOtUDVMN60OEJjW013GoObG1o+xwQTpB9eYJX/BjXMsdW13ZDPruFhYYn0AG22w0xgQMwl3Nw==
+
+passport-http@^0.3.0:
+  version "0.3.0"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/passport-http/-/passport-http-0.3.0.tgz#8ee53d4380be9c60df2151925029826f77115603"
+  integrity sha512-OwK9DkqGVlJfO8oD0Bz1VDIo+ijD3c1ZbGGozIZw+joIP0U60pXY7goB+8wiDWtNqHpkTaQiJ9Ux1jE3Ykmpuw==
+  dependencies:
+    passport-strategy "1.x.x"
 
 passport-oauth2@^1.5.0:
   version "1.6.1"
