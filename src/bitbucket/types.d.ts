@@ -150,4 +150,8 @@ declare namespace BB {
     createdOn: Date;
     url: string;
   };
+
+  type Pipeline = {
+    state: { result: { name: BuildState } };
+  };
 }

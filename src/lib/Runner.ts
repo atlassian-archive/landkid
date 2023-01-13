@@ -356,7 +356,6 @@ export class Runner {
             // checking the rest of the queue
             if (didChangeState) return true;
           }
-          // otherwise, we must just be running, nothing to do here
         }
         return false;
       },
@@ -637,6 +636,7 @@ export class Runner {
     );
   };
 
+  // this check prevents the system from being hung if BB webhook doesn't work as expected
   checkRunningLandRequests = async () => {
     await withLock(
       // this lock ensures we don't run multiple checks at the same time that might cause a race condition
@@ -646,25 +646,35 @@ export class Runner {
           // this lock ensures we don't run the check when we're running this.next()
           'status-transition',
           async () => {
-            const runningRequests = await this.queue.getRunning();
-            Logger.info('Checking for running landrequests for timeout', {
+            const requests = await this.queue.getRunning();
+            const runningRequests = requests.filter((request) => request.state === 'running');
+
+            Logger.info('Checking running landrequests for timeout', {
               namespace: 'lib:runner:checkRunningLandRequests',
               runningRequests,
             });
 
             for (const landRequestStatus of runningRequests) {
-              const landRequest = landRequestStatus.request;
-              const pullRequestId = landRequest.pullRequestId;
               const timeElapsed = Date.now() - landRequestStatus.date.getTime();
+
               if (timeElapsed > LAND_BUILD_TIMEOUT_TIME) {
+                const landRequest = landRequestStatus.request;
+
                 Logger.warn('Failing running land request as timeout period is breached', {
-                  pullRequestId,
+                  pullRequestId: landRequest.pullRequestId,
                   landRequestId: landRequest.id,
-                  landRequestStatus,
-                  timeElapsed,
                   namespace: 'lib:runner:checkRunningLandRequests',
                 });
                 await landRequest.setStatus('fail', 'Build timeout period breached');
+              } else {
+                const { buildId } = landRequestStatus.request;
+                const { state } = await this.client.getLandBuild(buildId);
+
+                // buildStatus can be SUCCESSFUL, FAILED or STOPPED
+                this.onStatusUpdate({
+                  buildId,
+                  buildStatus: state.result?.name,
+                });
               }
             }
           },
