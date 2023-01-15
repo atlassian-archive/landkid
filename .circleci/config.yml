@@ -35,35 +35,6 @@ jobs:
           key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run: yarn test:unit
 
-  # TODO: Integration tests do not work anymore as Bitbucket is only accessible behind VPN.
-  # Refer to TESTING.md at the root of the repository.
-  # integration_test:
-  #   docker:
-  #     - image: cypress/base:12
-  #   working_directory: ~/repo
-  #   steps:
-  #     - checkout
-  #     # - restore_cache:
-  #     #     keys:
-  #     #       - v1-dependencies-{{ checksum "yarn.lock" }}
-  #     #       - v1-dependencies-
-  #     - run: yarn
-  #     - save_cache:
-  #         paths:
-  #           - node_modules
-  #           - .cache
-  #         key: v1-dependencies-{{ checksum "yarn.lock" }}`
-  #     - run:
-  #         name: Cypress tests
-  #         command: |
-  #           node ./.circleci/create-cypress-env.js
-  #           yarn test:integration:staging
-  #         no_output_timeout: 30m
-  #     - store_test_results:
-  #         path: ./tests/integration/junit-reports
-  #     - store_artifacts:
-  #         path: ./tests/integration/screenshots
-
 workflows:
   version: 2
   build:
@@ -72,11 +43,3 @@ workflows:
   unit_test:
     jobs:
       - unit_test
-  # See comment above
-  # integration_test:
-  #   jobs:
-  #     - hold:
-  #         type: approval
-  #     - integration_test:
-  #         requires:
-  #           - hold

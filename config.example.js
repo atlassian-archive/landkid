@@ -26,6 +26,7 @@ module.exports = {
       key: process.env.oauth_key,
       secret: process.env.oauth_secret,
     },
+    enableBasicAuth: false,
   },
   maxConcurrentBuilds: 3,
   widgetSettings: {

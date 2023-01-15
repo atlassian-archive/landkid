@@ -3,11 +3,17 @@ import passport from 'passport';
 import { permissionService } from '../../lib/PermissionService';
 import { wrap } from '../middleware';
 import { Logger } from '../../lib/Logger';
+import { Config } from '../../types';
 
-export function authRoutes() {
+export function authRoutes(config: Config) {
   const router = express();
 
-  router.get('/', passport.authenticate('bitbucket'));
+  const authStrategies = config.deployment.enableBasicAuth ? ['basic', 'bitbucket'] : 'bitbucket';
+
+  router.get('/', passport.authenticate(authStrategies), (req, res) => {
+    res.redirect('/current-state');
+  });
+
   router.get(
     '/callback',
     passport.authenticate('bitbucket', { failureRedirect: '/auth' }),
