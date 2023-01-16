@@ -89,12 +89,12 @@ export const makeDescriptor = () => {
           ],
         },
       ],
-      // webhooks: [
-      //   {
-      //     event: 'repo:commit_status_updated',
-      //     url: '/bitbucket/webhook/status-updated',
-      //   },
-      // ],
+      webhooks: [
+        {
+          event: 'repo:commit_status_updated',
+          url: '/bitbucket/webhook/status-updated',
+        },
+      ],
     },
   };
 };
