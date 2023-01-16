@@ -1,14 +1,9 @@
 import axios from 'axios';
 import { BitbucketPipelinesAPI } from '../BitbucketPipelinesAPI';
+import { bitbucketAuthenticator } from '../BitbucketAuthenticator';
 
 jest.mock('axios');
 const mockedAxios = axios as unknown as jest.Mocked<typeof axios>;
-
-jest.mock('../BitbucketAuthenticator', () => ({
-  bitbucketAuthenticator: {
-    getAuthConfig: () => Promise.resolve({}),
-  },
-}));
 
 const bitbucketPipelineAPI = new BitbucketPipelinesAPI({
   repoName: 'repo',
@@ -16,6 +11,11 @@ const bitbucketPipelineAPI = new BitbucketPipelinesAPI({
 });
 
 describe('BitbucketPipelinesAPI', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.spyOn(bitbucketAuthenticator, 'getAuthConfig').mockResolvedValue({});
+  });
+
   test(`getLandBuild > should return land build data`, async () => {
     const response = {
       data: {

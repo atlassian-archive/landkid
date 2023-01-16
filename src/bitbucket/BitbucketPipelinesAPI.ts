@@ -155,8 +155,9 @@ export class BitbucketPipelinesAPI {
     );
 
     Logger.info('Successfully loaded land build data', {
-      namespace: 'bitbucket:api:getPipeline',
+      namespace: 'bitbucket:api:getLandBuild',
       state: data.state,
+      buildId,
     });
 
     return data;
