@@ -68,6 +68,7 @@ export type DeploymentConfig = {
     port: number;
   };
   oAuth: OAuthConfig;
+  enableBasicAuth?: boolean;
 };
 
 export type OAuthConfig = {

@@ -10,8 +10,5 @@ db.sqlite
 env
 env.sh
 .logs
-cypress.env.json
-tests/integration/screenshots/
-tests/integration/junit-reports/
 config.js
 rules/

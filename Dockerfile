@@ -26,7 +26,7 @@ COPY webpack.*.js README.md /opt/service/
 COPY tools /opt/service/tools
 
 # Build
-RUN ls node_modules && NODE_ENV=production yarn build
+RUN NODE_ENV=production yarn build
 
 # Retain only dependencies
 RUN yarn --production --cache-folder ../ycache && rm -rf ../ycache
