@@ -146,4 +146,20 @@ export class BitbucketPipelinesAPI {
     }
     return true;
   };
+
+  getLandBuild = async (buildId: Number): Promise<BB.Pipeline> => {
+    const endpoint = `${this.apiBaseUrl}/pipelines/${buildId}`;
+    const { data } = await axios.get<BB.Pipeline>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+    );
+
+    Logger.info('Successfully loaded land build data', {
+      namespace: 'bitbucket:api:getLandBuild',
+      state: data.state,
+      buildId,
+    });
+
+    return data;
+  };
 }

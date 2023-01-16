@@ -131,6 +131,10 @@ export class BitbucketClient {
     return this.pipelines.stopLandBuild(buildId, lockId);
   }
 
+  getLandBuild(buildId: number) {
+    return this.pipelines.getLandBuild(buildId);
+  }
+
   mergePullRequest(landRequestStatus: LandRequestStatus, options?: MergeOptions) {
     return this.bitbucket.mergePullRequest(landRequestStatus, options);
   }

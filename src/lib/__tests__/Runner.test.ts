@@ -326,6 +326,102 @@ describe('Runner', () => {
     });
   });
 
+  describe('Check running landrequests for timeout', () => {
+    let onStatusUpdateSpy: jest.SpyInstance;
+    const getLandRequestStatus = (date: Date) => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        buildId: 1,
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: mockPullRequest,
+      });
+      return new LandRequestStatus({
+        date,
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'running',
+      });
+    };
+
+    beforeEach(() => {
+      onStatusUpdateSpy = jest.spyOn(runner, 'onStatusUpdate').mockResolvedValue();
+    });
+
+    afterEach(() => {
+      onStatusUpdateSpy.mockRestore();
+    });
+
+    test('should get land build status (failed) if timeout period is not breached', async () => {
+      jest.spyOn(mockClient, 'getLandBuild').mockResolvedValue({
+        state: {
+          result: {
+            name: 'FAILED',
+          },
+        },
+      } as any);
+      const mockLandRequestStatus = getLandRequestStatus(new Date());
+
+      //running state is within the timeout period of 2 hours
+      mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
+      await wait(500);
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      await runner.checkRunningLandRequests();
+
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      expect(mockClient.getLandBuild).toHaveBeenCalled();
+      expect(onStatusUpdateSpy).toHaveBeenCalledWith({
+        buildId: 1,
+        buildStatus: 'FAILED',
+      });
+    });
+
+    test('should get land build status (running) if timeout period is not breached', async () => {
+      jest.spyOn(mockClient, 'getLandBuild').mockResolvedValue({
+        state: {
+          stage: {
+            name: 'RUNNING',
+          },
+        },
+      } as any);
+      //running state is within the timeout period of 2 hours
+      const mockLandRequestStatus = getLandRequestStatus(new Date());
+
+      await wait(500);
+      mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
+
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      await runner.checkRunningLandRequests();
+
+      expect(mockClient.getLandBuild).toHaveBeenCalled();
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      expect(onStatusUpdateSpy).toHaveBeenCalledWith({
+        buildId: 1,
+        buildStatus: undefined,
+      });
+    });
+
+    test('should fail land request if timeout period is breached', async () => {
+      //running state is beyond the timeout period of 2 hours
+      const mockLandRequestStatus = getLandRequestStatus(new Date('2022-12-13T03:42:48.071Z'));
+
+      mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
+
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      await runner.checkRunningLandRequests();
+
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledTimes(1);
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledWith(
+        'fail',
+        'Build timeout period breached',
+      );
+    });
+  });
+
   describe('moveFromQueueToRunning', () => {
     test('should successfully transition land request from queued to running if all checks pass', async () => {
       const request = new LandRequest({
