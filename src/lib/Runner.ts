@@ -671,7 +671,7 @@ export class Runner {
                 const { state } = await this.client.getLandBuild(buildId);
 
                 // buildStatus can be SUCCESSFUL, FAILED or STOPPED
-                this.onStatusUpdate({
+                await this.onStatusUpdate({
                   buildId,
                   buildStatus: state.result?.name,
                 });
