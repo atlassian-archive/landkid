@@ -7,16 +7,15 @@ import { withLock } from './utils/locker';
 import {
   Installation,
   LandRequest,
-  PauseState,
   PullRequest,
   Permission,
   UserNote,
   LandRequestStatus,
-  BannerMessageState,
 } from '../db';
 import { permissionService } from './PermissionService';
 import { eventEmitter } from './Events';
 import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
+import { StateService } from './StateService';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -55,11 +54,6 @@ export class Runner {
     }, 10 * 60 * 1000);
   }
 
-  getMaxConcurrentBuilds = () =>
-    this.config.maxConcurrentBuilds && this.config.maxConcurrentBuilds > 0
-      ? this.config.maxConcurrentBuilds
-      : 1;
-
   getQueue = async () => {
     return this.queue.getQueue();
   };
@@ -75,13 +69,13 @@ export class Runner {
   };
 
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
-    if (await this.getPauseState()) return;
+    if (await StateService.getPauseState()) return;
     const landRequest = landRequestStatus.request;
     const running = await this.getRunning();
     const runningTargetingSameBranch = running.filter(
       (build) => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
-    const maxConcurrentBuilds = this.getMaxConcurrentBuilds();
+    const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
     if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
       Logger.verbose('No concurrent build slots left', {
         namespace: 'lib:runner:moveFromQueueToRunning',
@@ -437,45 +431,6 @@ export class Runner {
     return true;
   };
 
-  pause = async (reason: string, user: ISessionUser) => {
-    await this.unpause();
-    await PauseState.create<PauseState>({
-      pauserAaid: user.aaid,
-      reason,
-    });
-  };
-
-  unpause = async () => {
-    await PauseState.truncate();
-  };
-
-  getPauseState = async (): Promise<IPauseState | null> => {
-    const state = await PauseState.findOne<PauseState>();
-    return state ? state.get() : null;
-  };
-
-  addBannerMessage = async (
-    message: string,
-    messageType: IMessageState['messageType'],
-    user: ISessionUser,
-  ) => {
-    await this.removeBannerMessage();
-    await BannerMessageState.create<BannerMessageState>({
-      senderAaid: user.aaid,
-      message,
-      messageType,
-    });
-  };
-
-  removeBannerMessage = async () => {
-    await BannerMessageState.truncate();
-  };
-
-  getBannerMessageState = async (): Promise<IMessageState | null> => {
-    const state = await BannerMessageState.findOne<BannerMessageState>();
-    return state ? state.get() : null;
-  };
-
   private createRequestFromOptions = async (landRequestOptions: LandRequestOptions) => {
     let pr = await PullRequest.findOne<PullRequest>({
       where: {
@@ -512,7 +467,7 @@ export class Runner {
 
   enqueue = async (landRequestOptions: LandRequestOptions) => {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.getPauseState()) return;
+    if (await StateService.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     const user = await this.client.getUser(request.triggererAaid);
     await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
@@ -521,7 +476,7 @@ export class Runner {
 
   addToWaitingToLand = async (landRequestOptions: LandRequestOptions) => {
     // TODO: Ensure no land request is pending for this PR
-    if (await this.getPauseState()) return;
+    if (await StateService.getPauseState()) return;
     const request = await this.createRequestFromOptions(landRequestOptions);
     await request.setStatus('will-queue-when-ready');
 
@@ -530,7 +485,7 @@ export class Runner {
   };
 
   moveFromWaitingToQueued = async (landRequestStatus: LandRequestStatus) => {
-    if (await this.getPauseState()) return false;
+    if (await StateService.getPauseState()) return false;
 
     Logger.info('Moving land request from waiting to queue', {
       namespace: 'lib:runner:moveFromWaitingToQueued',
@@ -886,15 +841,23 @@ export class Runner {
 
   getState = async (aaid: string): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(aaid);
-    const [daysSinceLastFailure, pauseState, queue, users, waitingToQueue, bannerMessageState] =
-      await Promise.all([
-        this.getDatesSinceLastFailures(),
-        this.getPauseState(),
-        requestingUserMode === 'read' ? [] : this.getQueue(),
-        this.getUsersPermissions(requestingUserMode),
-        requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
-        this.getBannerMessageState(),
-      ]);
+    const [
+      daysSinceLastFailure,
+      pauseState,
+      queue,
+      users,
+      waitingToQueue,
+      bannerMessageState,
+      maxConcurrentBuilds,
+    ] = await Promise.all([
+      this.getDatesSinceLastFailures(),
+      StateService.getPauseState(),
+      requestingUserMode === 'read' ? [] : this.getQueue(),
+      this.getUsersPermissions(requestingUserMode),
+      requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
+      StateService.getBannerMessageState(),
+      StateService.getMaxConcurrentBuilds(),
+    ]);
     // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
     return {
@@ -908,6 +871,7 @@ export class Runner {
       // @ts-ignore
       waitingToQueue,
       bannerMessageState,
+      maxConcurrentBuilds,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${this.config.repoConfig.repoName}`,
       permissionsMessage: this.config.permissionsMessage,
     };

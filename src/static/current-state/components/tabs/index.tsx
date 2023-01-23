@@ -84,6 +84,7 @@ export type TabsProps = {
   loggedInUser: ISessionUser;
   paused: boolean;
   bannerMessageState: IMessageState | null;
+  maxConcurrentBuilds: number;
   permissionsMessage: string;
   refreshData: () => void;
 };
@@ -121,6 +122,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       loggedInUser,
       paused,
       bannerMessageState,
+      maxConcurrentBuilds,
       permissionsMessage,
       refreshData,
     } = this.props;
@@ -134,6 +136,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             loggedInUser={loggedInUser}
             defaultPaused={paused}
             bannerMessageState={bannerMessageState}
+            maxConcurrentBuilds={maxConcurrentBuilds}
             refreshData={refreshData}
           />
         ) : null}

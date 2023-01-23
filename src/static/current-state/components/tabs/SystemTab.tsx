@@ -8,11 +8,13 @@ export type SystemTabProps = {
   loggedInUser: ISessionUser;
   defaultPaused: boolean;
   bannerMessageState: IMessageState | null;
+  maxConcurrentBuilds: number;
   refreshData: () => void;
 };
 
 export type SystemTabsState = {
   paused: boolean;
+  maxConcurrentBuilds: number;
 };
 
 export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> {
@@ -20,6 +22,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     super(props);
     this.state = {
       paused: props.defaultPaused,
+      maxConcurrentBuilds: props.maxConcurrentBuilds,
     };
   }
 
@@ -51,6 +54,26 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   handleNextClick = () => {
     const { refreshData } = this.props;
     fetch('/api/next', { method: 'POST' })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          refreshData();
+        }
+      });
+  };
+
+  handleUpdateConcurrentBuilds = () => {
+    const { refreshData } = this.props;
+    const { maxConcurrentBuilds } = this.state;
+
+    fetch('/api/update-concurrent-builds', {
+      method: 'POST',
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ maxConcurrentBuilds }),
+    })
       .then((response) => response.json())
       .then((json) => {
         if (json.error) {
@@ -97,6 +120,37 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   onClick={this.handleNextClick}
                 >
                   Next Build
+                </button>
+              </div>
+              <div style={{ marginTop: '10px' }}>
+                <select
+                  className="ak-field-select"
+                  style={{
+                    width: '100px',
+                    marginTop: '10px',
+                    paddingTop: '5px',
+                    paddingBottom: '6px',
+                  }}
+                  id="concurrentBuilds"
+                  name="concurrentBuilds"
+                  defaultValue={this.state.maxConcurrentBuilds}
+                  onChange={({ currentTarget: { value } }) =>
+                    this.setState({ maxConcurrentBuilds: +value })
+                  }
+                >
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </select>
+                <button
+                  className="ak-button ak-button__appearance-default"
+                  style={{
+                    marginLeft: '10px',
+                  }}
+                  onClick={this.handleUpdateConcurrentBuilds}
+                >
+                  Update Concurrent Builds
                 </button>
               </div>
               <Messenger bannerMessageState={bannerMessageState} refreshData={refreshData} />

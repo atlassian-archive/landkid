@@ -124,6 +124,7 @@ export type RunnerState = {
   daysSinceLastFailure: number;
   users: UserState[];
   bannerMessageState: IMessageState | null;
+  maxConcurrentBuilds: number;
   bitbucketBaseUrl: string;
   permissionsMessage: string;
 };

@@ -7,6 +7,7 @@ import { LandRequestOptions } from '../../../types';
 import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
 import { eventEmitter } from '../../../lib/Events';
+import { StateService } from '../../../lib/StateService';
 
 interface LandBody {
   mergeStrategy?: IMergeStrategy;
@@ -40,7 +41,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
       const warnings: string[] = [];
       const abortErrors: string[] = [];
       const [bannerMessage, permissionLevel, requestStatus] = await Promise.all([
-        runner.getBannerMessageState(),
+        StateService.getBannerMessageState(),
         permissionService.getPermissionForUser(aaid),
         runner.getLandRequestStateByPRId(prId),
       ]);
@@ -57,7 +58,7 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
           });
           return;
         }
-        const pauseState = await runner.getPauseState();
+        const pauseState = await StateService.getPauseState();
 
         if (pauseState) {
           errors.push(`Builds have been manually paused: "${pauseState.reason}"`);

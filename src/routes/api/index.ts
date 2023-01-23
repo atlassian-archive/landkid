@@ -9,6 +9,7 @@ import { permissionService } from '../../lib/PermissionService';
 import { Config, LandRequestOptions } from '../../types';
 import { eventEmitter } from '../../lib/Events';
 import { LandRequest } from '../../db';
+import { StateService } from '../../lib/StateService';
 
 const landKidTag = process.env.LANDKID_TAG || 'Unknown';
 
@@ -29,7 +30,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
           easterEgg: easterEggText,
           targetRepo: config.repoConfig.repoName,
           prSettings,
-          maxConcurrentBuilds: runner.getMaxConcurrentBuilds(),
+          maxConcurrentBuilds: StateService.getMaxConcurrentBuilds(),
         },
         isInstalled,
       });
@@ -123,7 +124,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         pausedReason = String(req.body.reason);
       }
       Logger.verbose('Pausing', { namespace: 'routes:api:pause', pausedReason });
-      runner.pause(pausedReason, req.user!);
+      StateService.pause(pausedReason, req.user!);
       res.json({ paused: true, pausedReason });
     }),
   );
@@ -133,8 +134,21 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       Logger.verbose('Unpausing', { namespace: 'routes:api:unpause' });
-      await runner.unpause();
+      await StateService.unpause();
       res.json({ paused: false });
+    }),
+  );
+
+  router.post(
+    '/update-concurrent-builds',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const maxConcurrentBuilds = req?.body?.maxConcurrentBuilds;
+      Logger.verbose(`Updating concurrent builds to ${maxConcurrentBuilds}`, {
+        namespace: 'routes:api:update-concurrent-builds',
+      });
+      StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
+      res.json({ success: true });
     }),
   );
 
@@ -217,7 +231,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
           .json({ error: 'Message type must be one of: default, warning, error' });
       }
       // @ts-ignore -- checks value of type above
-      runner.addBannerMessage(message, type, req.user!);
+      StateService.addBannerMessage(message, type, req.user!);
       res.json({ message });
     }),
   );
@@ -227,7 +241,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       Logger.verbose('Removing message', { namespace: 'routes:api:remove-message' });
-      await runner.removeBannerMessage();
+      await StateService.removeBannerMessage();
       res.json({ removed: true });
     }),
   );
