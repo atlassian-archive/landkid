@@ -122,12 +122,14 @@ export type State = {
   bannerMessageState: IMessageState | null;
   maxConcurrentBuilds: number;
   daysSinceLastFailure: number;
+  priorityBranchList: IPriorityBranch[];
 };
 
 export type RunnerState = State & {
   queue: IStatusUpdate[];
   waitingToQueue: IStatusUpdate[];
   users: UserState[];
+  priorityBranchList: IPriorityBranch[];
   bitbucketBaseUrl: string;
   permissionsMessage: string;
 };

@@ -12,21 +12,22 @@ jest.mock('../../lib/StateService');
 describe('API Routes', () => {
   let mockExpress: Express;
   let mockRunner: Runner;
+  let mockResponse: Express['response'];
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockRunner = new Runner({} as any, {} as any, {} as any, {} as any);
     mockExpress = apiRoutes(mockRunner, {} as any, {} as any) as any;
+    mockResponse = {
+      status: jest.fn(() => mockResponse),
+      json: jest.fn(() => mockResponse),
+      sendStatus: jest.fn(() => mockResponse),
+    } as unknown as Express['response'];
   });
   describe('/fail-build', () => {
     let failBuildRoute: [string, ...Function[]];
     let failBuildHandler: Function;
-    let mockResponse: Express['response'];
     beforeEach(() => {
-      mockResponse = {
-        status: jest.fn(() => mockResponse),
-        json: jest.fn(() => mockResponse),
-        sendStatus: jest.fn(() => mockResponse),
-      } as unknown as Express['response'];
       failBuildRoute = (mockExpress.post as jest.Mock).mock.calls.find(
         (call) => call[0] === '/fail-build',
       );
@@ -76,13 +77,7 @@ describe('API Routes', () => {
   describe('/update-concurrent-builds', () => {
     let updateConcurrentBuildRoute: [string, ...Function[]];
     let updateConcurrentBuildHandler: Function;
-    let mockResponse: Express['response'];
     beforeEach(() => {
-      mockResponse = {
-        status: jest.fn(() => mockResponse),
-        json: jest.fn(() => mockResponse),
-        sendStatus: jest.fn(() => mockResponse),
-      } as unknown as Express['response'];
       updateConcurrentBuildRoute = (mockExpress.post as jest.Mock).mock.calls.find(
         (call) => call[0] === '/update-concurrent-builds',
       );
@@ -152,5 +147,104 @@ describe('API Routes', () => {
     });
   });
 
-  // todo: add tests
+  describe('/add-priority-branch', () => {
+    let addPriorityBranchRoute: [string, ...Function[]];
+    let addPriorityBranchHandler: Function;
+    beforeEach(() => {
+      addPriorityBranchRoute = (mockExpress.post as jest.Mock).mock.calls.find(
+        (call) => call[0] === '/add-priority-branch',
+      );
+      addPriorityBranchHandler = async (req: Function) => {
+        const handler = addPriorityBranchRoute && addPriorityBranchRoute[2];
+        if (!handler) return;
+        handler(req, mockResponse, () => {});
+      };
+    });
+    it('should be registered', async () => {
+      expect(mockExpress.post).toHaveBeenCalledWith(
+        '/add-priority-branch',
+        expect.any(Function),
+        expect.any(Function),
+      );
+      expect(addPriorityBranchRoute).toBeDefined();
+    });
+    it('should fail when branchName is not provided', async () => {
+      await addPriorityBranchHandler({ body: {} }, mockExpress.response, () => {});
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ err: 'Missing branch name' }),
+      );
+    });
+    it('should succeed when branchName and user is provided', async () => {
+      jest.spyOn(StateService, 'addPriorityBranch');
+      expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
+      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      await addPriorityBranchHandler(
+        {
+          body: {
+            branchName: 'test/test-branch',
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.addPriorityBranch).toHaveBeenCalledWith('test/test-branch', {
+        aaid: 'mock-user-aaid',
+      });
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'test/test-branch successfully added.' }),
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+  });
+  describe('/remove-priority-branch', () => {
+    let removePriorityBranchRoute: [string, ...Function[]];
+    let removePriorityBranchHandler: Function;
+    beforeEach(() => {
+      removePriorityBranchRoute = (mockExpress.post as jest.Mock).mock.calls.find(
+        (call) => call[0] === '/remove-priority-branch',
+      );
+      removePriorityBranchHandler = async (req: Function) => {
+        const handler = removePriorityBranchRoute && removePriorityBranchRoute[2];
+        if (!handler) return;
+        handler(req, mockResponse, () => {});
+      };
+    });
+    it('should be registered', async () => {
+      expect(mockExpress.post).toHaveBeenCalledWith(
+        '/remove-priority-branch',
+        expect.any(Function),
+        expect.any(Function),
+      );
+      expect(removePriorityBranchRoute).toBeDefined();
+    });
+    it('should fail when branchName is not provided', async () => {
+      await removePriorityBranchHandler({ body: {} }, mockExpress.response, () => {});
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ err: 'Missing branch name' }),
+      );
+    });
+    it('should succeed when branchName and user is provided', async () => {
+      jest.spyOn(StateService, 'removePriorityBranch');
+      expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
+      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      await removePriorityBranchHandler(
+        {
+          body: {
+            branchName: 'test/test-branch',
+          },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.removePriorityBranch).toHaveBeenCalledWith('test/test-branch');
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'test/test-branch successfully removed.' }),
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+  });
+  // todo: add tests for other routes
 });

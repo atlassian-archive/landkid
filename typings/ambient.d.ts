@@ -55,6 +55,12 @@ declare interface IConcurrentBuildState {
   date: Date;
 }
 
+declare interface IPriorityBranch {
+  adminAaid: string;
+  branchName: string;
+  date: Date;
+}
+
 declare interface IStatusUpdate {
   id: string;
   date: Date;

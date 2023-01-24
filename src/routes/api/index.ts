@@ -159,6 +159,39 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  //endpoints for managing priority branch list
+  router.post(
+    '/add-priority-branch',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const branchName = req?.body?.branchName;
+      if (!branchName) {
+        return res.status(400).json({ err: 'Missing branch name' });
+      }
+      Logger.verbose(`Adding priority branch ${branchName}`, {
+        namespace: 'routes:api:add-priority-branch',
+      });
+      StateService.addPriorityBranch(branchName, req.user!);
+      res.status(200).json({ message: `${branchName} successfully added.` });
+    }),
+  );
+
+  router.post(
+    '/remove-priority-branch',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const branchName = req?.body?.branchName;
+      if (!branchName) {
+        return res.status(400).json({ err: 'Missing branch name' });
+      }
+      Logger.verbose(`Removing priority branch ${branchName}`, {
+        namespace: 'routes:api:remove-priority-branch',
+      });
+      StateService.removePriorityBranch(branchName);
+      res.status(200).json({ message: `${branchName} successfully removed.` });
+    }),
+  );
+
   /**
    * This is a magic endpoint that allows us to call next() if landkid hangs
    */

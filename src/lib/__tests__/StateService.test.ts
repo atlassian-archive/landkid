@@ -1,4 +1,4 @@
-import { BannerMessageState, ConcurrentBuildState, PauseState } from '../../db';
+import { BannerMessageState, ConcurrentBuildState, PauseState, PriorityBranch } from '../../db';
 import { StateService } from '../StateService';
 
 jest.mock('../../db/index');
@@ -109,6 +109,30 @@ describe('StateService', () => {
         maxConcurrentBuilds: 2,
       }),
     );
+  });
+  test('get priority branch list', async () => {
+    jest.spyOn(PriorityBranch, 'findAll').mockResolvedValueOnce(['test/test-branch'] as any);
+
+    const getPriorityBranches = await StateService.getPriorityBranches();
+    expect(getPriorityBranches).toEqual(['test/test-branch']);
+  });
+  test('should add to priority branch list', async () => {
+    jest.spyOn(PriorityBranch, 'create').mockResolvedValueOnce({} as any);
+
+    await StateService.addPriorityBranch('test/test-branch', { aaid: 'test-aaid' } as any);
+
+    expect(PriorityBranch.create).toHaveBeenCalledWith({
+      adminAaid: 'test-aaid',
+      branchName: 'test/test-branch',
+    });
+  });
+  test('should remove from priority branch list', async () => {
+    jest.spyOn(PriorityBranch, 'destroy').mockResolvedValueOnce({} as any);
+
+    await StateService.removePriorityBranch('test/test-branch');
+    expect(PriorityBranch.destroy).toHaveBeenCalledWith({
+      where: { branchName: 'test/test-branch' },
+    });
   });
 
   // todo: add tests for getDatesSinceLastFailures

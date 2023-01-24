@@ -733,6 +733,14 @@ describe('Runner', () => {
           maxConcurrentBuilds: 2,
           pauseState: null,
           permissionsMessage: undefined,
+          priorityBranchList: [
+            {
+              id: 'test-id',
+              branchName: 'test-branch/*',
+              adminAaid: 'test-aaid',
+              date: '2023-01-25T04:28:07.817Z',
+            },
+          ],
           queue: [],
           users: [],
           waitingToQueue: [],
