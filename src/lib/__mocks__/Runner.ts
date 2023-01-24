@@ -14,12 +14,6 @@ export const Runner = jest.fn().mockImplementation((...args) => {
   runner.failDueToDependency = jest.fn();
   runner.onStatusUpdate = jest.fn();
   runner.cancelRunningBuild = jest.fn();
-  runner.pause = jest.fn();
-  runner.unpause = jest.fn();
-  runner.getPauseState = jest.fn();
-  runner.addBannerMessage = jest.fn();
-  runner.removeBannerMessage = jest.fn();
-  runner.getBannerMessageState = jest.fn();
   runner.enqueue = jest.fn();
   runner.addToWaitingToLand = jest.fn();
   runner.moveFromWaitingToQueued = jest.fn();

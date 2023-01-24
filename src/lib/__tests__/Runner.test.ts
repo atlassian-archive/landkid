@@ -6,6 +6,9 @@ import { Runner } from '../Runner';
 
 import { LandRequest, LandRequestStatus, PullRequest } from '../../db';
 import { Config } from '../../types';
+import { StateService } from '../StateService';
+import { permissionService } from '../PermissionService';
+// import { permissionService } from '../PermissionService';
 
 jest.mock('../utils/redis-client', () => ({
   // @ts-ignore incorrect type definition
@@ -15,6 +18,7 @@ jest.mock('../utils/redis-client', () => ({
 jest.mock('../../db/index');
 jest.mock('../../bitbucket/BitbucketClient');
 jest.mock('../Config');
+jest.mock('../PermissionService');
 
 const wait = (duration: number) =>
   new Promise((resolve) => {
@@ -90,7 +94,10 @@ describe('Runner', () => {
         pullRequest: mockPullRequest,
       } as any;
     });
-    runner = new Runner(mockQueue, {} as any, mockClient, { maxConcurrentBuilds: 2 } as Config);
+    runner = new Runner(mockQueue, {} as any, mockClient, {
+      maxConcurrentBuilds: 2,
+      repoConfig: {},
+    } as Config);
   });
 
   afterEach(() => {
@@ -326,7 +333,7 @@ describe('Runner', () => {
     });
   });
 
-  describe('Check running landrequests for timeout', () => {
+  describe('Check running land requests for timeout', () => {
     let onStatusUpdateSpy: jest.SpyInstance;
     const getLandRequestStatus = (date: Date) => {
       const request = new LandRequest({
@@ -423,6 +430,17 @@ describe('Runner', () => {
   });
 
   describe('moveFromQueueToRunning', () => {
+    let getMaxConcurrentBuildsSpy: jest.SpyInstance;
+    beforeEach(() => {
+      getMaxConcurrentBuildsSpy = jest
+        .spyOn(StateService, 'getMaxConcurrentBuilds')
+        .mockResolvedValue(2);
+    });
+
+    afterEach(() => {
+      getMaxConcurrentBuildsSpy.mockRestore();
+    });
+
     test('should successfully transition land request from queued to running if all checks pass', async () => {
       const request = new LandRequest({
         created: new Date(123),
@@ -618,8 +636,9 @@ describe('Runner', () => {
     });
 
     test('moveFromQueueToRunning will not run when paused', async () => {
-      // fix the tests
-      // jest.spyOn(runner, 'getPauseState').mockImplementationOnce(() => Promise.resolve({} as any));
+      jest
+        .spyOn(StateService, 'getPauseState')
+        .mockImplementationOnce(() => Promise.resolve({} as any));
       await runner.moveFromQueueToRunning({} as any, {} as any);
       expect(getRunningSpy).not.toHaveBeenCalled();
     });
@@ -712,6 +731,30 @@ describe('Runner', () => {
       });
       expect(request.setStatus).not.toHaveBeenCalled();
       expect(nextSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getState', () => {
+    test('should return current system state for read user', async () => {
+      jest.spyOn(runner as any, 'getDatesSinceLastFailures').mockResolvedValueOnce(10);
+      jest.spyOn(runner as any, 'getUsersPermissions').mockResolvedValueOnce([]);
+      jest.spyOn(StateService, 'getBannerMessageState').mockResolvedValueOnce(null);
+      jest.spyOn(StateService, 'getMaxConcurrentBuilds').mockResolvedValueOnce(2);
+      jest.spyOn(StateService, 'getPauseState').mockResolvedValueOnce(null);
+      permissionService.getPermissionForUser = jest.fn().mockResolvedValueOnce('read');
+
+      const state = await runner.getState(`user-id`);
+      expect(state).toMatchObject({
+        bannerMessageState: null,
+        bitbucketBaseUrl: 'https://bitbucket.org/undefined/undefined',
+        daysSinceLastFailure: 10,
+        maxConcurrentBuilds: 2,
+        pauseState: null,
+        permissionsMessage: undefined,
+        queue: [],
+        users: [],
+        waitingToQueue: [],
+      });
     });
   });
 });

@@ -147,8 +147,11 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       Logger.verbose(`Updating concurrent builds to ${maxConcurrentBuilds}`, {
         namespace: 'routes:api:update-concurrent-builds',
       });
+      if (!maxConcurrentBuilds) {
+        return res.status(400).json({ err: 'req.body.maxConcurrentBuilds expected' });
+      }
       StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
-      res.json({ success: true });
+      res.sendStatus(200);
     }),
   );
 
