@@ -46,7 +46,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         const state = await runner.getState(req.user!.aaid);
         eventEmitter.emit('GET_STATE.SUCCESS');
         res.header('Access-Control-Allow-Origin', '*').json(state);
-      } catch {
+      } catch (e) {
+        console.log(e);
         Logger.error('Error getting current state', { namespace: 'routes:api:current-state' });
         eventEmitter.emit('GET_STATE.FAIL');
         res.sendStatus(500);
@@ -189,6 +190,27 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       });
       StateService.removePriorityBranch(branchName);
       res.status(200).json({ message: `${branchName} successfully removed.` });
+    }),
+  );
+
+  router.post(
+    '/update-priority-branch',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const branchName = req?.body?.branchName;
+      const id = req?.body?.id;
+      if (!branchName) {
+        return res.status(400).json({ err: 'Missing branch name' });
+      }
+      if (!id) {
+        return res.status(400).json({ err: 'Missing id' });
+      }
+      Logger.verbose(`updating priority branch ${branchName}`, {
+        namespace: 'routes:api:update-priority-branch',
+      });
+
+      StateService.updatePriorityBranch(id, branchName);
+      res.status(200).json({ message: `${branchName} successfully updated.` });
     }),
   );
 

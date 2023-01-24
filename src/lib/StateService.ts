@@ -112,6 +112,21 @@ export class StateService {
     }
   }
 
+  static async updatePriorityBranch(id: string, branchName: string) {
+    try {
+      await PriorityBranch.update(
+        { branchName },
+        {
+          where: {
+            id: id,
+          },
+        },
+      );
+    } catch (e) {
+      console.log(`Error updating priority branch: ${e}`);
+    }
+  }
+
   static async getState(): Promise<State> {
     const [
       daysSinceLastFailure,
