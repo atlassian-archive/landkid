@@ -45,7 +45,6 @@ export class StateService {
   }
 
   static async updateMaxConcurrentBuild(maxConcurrentBuilds: number, user: ISessionUser) {
-    await ConcurrentBuildState.truncate();
     await ConcurrentBuildState.create<ConcurrentBuildState>({
       adminAaid: user.aaid,
       maxConcurrentBuilds,
