@@ -110,7 +110,7 @@ describe('API Routes', () => {
     });
 
     it('should update concurrent builds slots', async () => {
-      jest.spyOn(StateService, 'updateMaxConcurrentBuild');
+      expect(StateService.updateMaxConcurrentBuild).not.toHaveBeenCalled();
       expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
       expect(mockResponse.sendStatus).not.toHaveBeenCalled();
       await updateConcurrentBuildHandler(

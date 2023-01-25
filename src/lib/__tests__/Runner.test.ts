@@ -8,7 +8,6 @@ import { LandRequest, LandRequestStatus, PullRequest } from '../../db';
 import { Config } from '../../types';
 import { StateService } from '../StateService';
 import { permissionService } from '../PermissionService';
-// import { permissionService } from '../PermissionService';
 
 jest.mock('../utils/redis-client', () => ({
   // @ts-ignore incorrect type definition
@@ -19,6 +18,7 @@ jest.mock('../../db/index');
 jest.mock('../../bitbucket/BitbucketClient');
 jest.mock('../Config');
 jest.mock('../PermissionService');
+jest.mock('../StateService');
 
 const wait = (duration: number) =>
   new Promise((resolve) => {
@@ -430,17 +430,6 @@ describe('Runner', () => {
   });
 
   describe('moveFromQueueToRunning', () => {
-    let getMaxConcurrentBuildsSpy: jest.SpyInstance;
-    beforeEach(() => {
-      getMaxConcurrentBuildsSpy = jest
-        .spyOn(StateService, 'getMaxConcurrentBuilds')
-        .mockResolvedValue(2);
-    });
-
-    afterEach(() => {
-      getMaxConcurrentBuildsSpy.mockRestore();
-    });
-
     test('should successfully transition land request from queued to running if all checks pass', async () => {
       const request = new LandRequest({
         created: new Date(123),
@@ -738,23 +727,22 @@ describe('Runner', () => {
     test('should return current system state for read user', async () => {
       jest.spyOn(runner as any, 'getDatesSinceLastFailures').mockResolvedValueOnce(10);
       jest.spyOn(runner as any, 'getUsersPermissions').mockResolvedValueOnce([]);
-      jest.spyOn(StateService, 'getBannerMessageState').mockResolvedValueOnce(null);
-      jest.spyOn(StateService, 'getMaxConcurrentBuilds').mockResolvedValueOnce(2);
-      jest.spyOn(StateService, 'getPauseState').mockResolvedValueOnce(null);
       permissionService.getPermissionForUser = jest.fn().mockResolvedValueOnce('read');
 
       const state = await runner.getState(`user-id`);
-      expect(state).toMatchObject({
-        bannerMessageState: null,
-        bitbucketBaseUrl: 'https://bitbucket.org/undefined/undefined',
-        daysSinceLastFailure: 10,
-        maxConcurrentBuilds: 2,
-        pauseState: null,
-        permissionsMessage: undefined,
-        queue: [],
-        users: [],
-        waitingToQueue: [],
-      });
+      expect(state).toEqual(
+        expect.objectContaining({
+          bannerMessageState: null,
+          bitbucketBaseUrl: 'https://bitbucket.org/undefined/undefined',
+          daysSinceLastFailure: 10,
+          maxConcurrentBuilds: 2,
+          pauseState: null,
+          permissionsMessage: undefined,
+          queue: [],
+          users: [],
+          waitingToQueue: [],
+        }),
+      );
     });
   });
 });

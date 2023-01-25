@@ -5,10 +5,11 @@ jest.mock('../../db/index');
 jest.mock('../Config');
 
 describe('StateService', () => {
-  test('pause > should pause the system', async () => {
-    jest.spyOn(PauseState, 'create').mockResolvedValueOnce({} as any);
-    jest.spyOn(PauseState, 'truncate').mockResolvedValueOnce({} as any);
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
+  test('pause > should pause the system', async () => {
     await StateService.pause('test pause message', { aaid: 'test-aaid' } as any);
 
     expect(PauseState.create).toHaveBeenCalledWith({
@@ -19,8 +20,6 @@ describe('StateService', () => {
   });
 
   test('unpause > should unpause the system', async () => {
-    jest.spyOn(PauseState, 'truncate').mockResolvedValueOnce({} as any);
-
     await StateService.unpause();
     expect(PauseState.truncate).toHaveBeenCalled();
   });
@@ -36,9 +35,6 @@ describe('StateService', () => {
   });
 
   test('addBannerMessage > should add entry to the banner message table ', async () => {
-    jest.spyOn(BannerMessageState, 'create').mockResolvedValueOnce({} as any);
-    jest.spyOn(BannerMessageState, 'truncate').mockResolvedValueOnce({} as any);
-
     await StateService.addBannerMessage('test banner message', 'error', {
       aaid: 'test-aaid',
     } as any);
@@ -52,8 +48,6 @@ describe('StateService', () => {
   });
 
   test('removeBannerMessage > should remove the banner message ', async () => {
-    jest.spyOn(BannerMessageState, 'truncate').mockResolvedValueOnce({} as any);
-
     await StateService.removeBannerMessage();
     expect(BannerMessageState.truncate).toHaveBeenCalled();
   });
@@ -71,9 +65,6 @@ describe('StateService', () => {
   });
 
   test('updateMaxConcurrentBuild > should update the max concurrent builds', async () => {
-    jest.spyOn(ConcurrentBuildState, 'create').mockResolvedValueOnce({} as any);
-    jest.spyOn(ConcurrentBuildState, 'truncate').mockResolvedValueOnce({} as any);
-
     await StateService.updateMaxConcurrentBuild(3, { aaid: 'test-aaid' } as any);
 
     expect(ConcurrentBuildState.create).toHaveBeenCalledWith({
@@ -93,6 +84,7 @@ describe('StateService', () => {
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
       expect(maxConcurrentBuilds).toBe(3);
     });
+
     test('should return maxConcurrentBuilds from the config', async () => {
       jest.spyOn(ConcurrentBuildState, 'findOne').mockResolvedValueOnce(null);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();

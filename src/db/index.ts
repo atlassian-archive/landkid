@@ -377,12 +377,16 @@ export class ConcurrentBuildState
   implements IConcurrentBuildState
 {
   @PrimaryKey
+  @Default(Sequelize.UUIDV4)
+  @Column(Sequelize.UUID)
+  readonly id: string;
+
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly adminAaid: string;
 
   @AllowNull(false)
-  @Default(() => config.maxConcurrentBuilds)
+  @Default(config.maxConcurrentBuilds)
   @Column(Sequelize.INTEGER)
   readonly maxConcurrentBuilds: number;
 

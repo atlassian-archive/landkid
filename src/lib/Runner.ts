@@ -4,14 +4,7 @@ import { LandRequestHistory } from './History';
 import { Logger } from './Logger';
 import { RunnerState, Config, LandRequestOptions } from '../types';
 import { withLock } from './utils/locker';
-import {
-  Installation,
-  LandRequest,
-  PullRequest,
-  Permission,
-  UserNote,
-  LandRequestStatus,
-} from '../db';
+import { Installation, LandRequest, PullRequest, LandRequestStatus } from '../db';
 import { permissionService } from './PermissionService';
 import { eventEmitter } from './Events';
 import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
@@ -683,70 +676,6 @@ export class Runner {
     return landRequestStatus;
   };
 
-  private getUsersPermissions = async (
-    requestingUserMode: IPermissionMode,
-  ): Promise<UserState[]> => {
-    // TODO: Figure out how to use distinct
-    const perms = await Permission.findAll<Permission>({
-      order: [['dateAssigned', 'DESC']],
-    });
-
-    // Need to get only the latest record for each user
-    const aaidPerms: Record<string, Permission> = {};
-    for (const perm of perms) {
-      if (
-        !aaidPerms[perm.aaid] ||
-        aaidPerms[perm.aaid].dateAssigned.getTime() < perm.dateAssigned.getTime()
-      ) {
-        aaidPerms[perm.aaid] = perm;
-      }
-    }
-
-    const aaidNotes: Record<string, string> = {};
-    if (requestingUserMode === 'admin') {
-      const notes = await UserNote.findAll<UserNote>();
-      for (const note of notes) {
-        aaidNotes[note.aaid] = note.note;
-      }
-    }
-
-    // Now we need to filter to only show the records that the requesting user is allowed to see
-    const users: UserState[] = [];
-    for (const aaid of Object.keys(aaidPerms)) {
-      // admins see all users
-      if (requestingUserMode === 'admin') {
-        users.push({
-          aaid,
-          mode: aaidPerms[aaid].mode,
-          dateAssigned: aaidPerms[aaid].dateAssigned,
-          assignedByAaid: aaidPerms[aaid].assignedByAaid,
-          note: aaidNotes[aaid],
-        });
-        // land users can see land and admin users
-      } else if (requestingUserMode === 'land' && aaidPerms[aaid].mode !== 'read') {
-        users.push(aaidPerms[aaid]);
-        // read users can only see admins
-      } else if (requestingUserMode === 'read' && aaidPerms[aaid].mode === 'admin') {
-        users.push(aaidPerms[aaid]);
-      }
-    }
-
-    return users;
-  };
-
-  private getDatesSinceLastFailures = async (): Promise<number> => {
-    const lastFailure = await LandRequestStatus.findOne<LandRequestStatus>({
-      where: {
-        state: {
-          $in: ['fail', 'aborted'],
-        },
-      },
-      order: [['date', 'DESC']],
-    });
-    if (!lastFailure) return -1;
-    return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
   getHistory = async (page: number) => {
     return this.history.getHistory(page);
   };
@@ -841,39 +770,26 @@ export class Runner {
 
   getState = async (aaid: string): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(aaid);
-    const [
-      daysSinceLastFailure,
-      pauseState,
-      queue,
-      users,
-      waitingToQueue,
-      bannerMessageState,
-      maxConcurrentBuilds,
-    ] = await Promise.all([
-      this.getDatesSinceLastFailures(),
-      StateService.getPauseState(),
+    const state = await StateService.getState();
+
+    const [queue, users, waitingToQueue] = await Promise.all([
       requestingUserMode === 'read' ? [] : this.getQueue(),
-      this.getUsersPermissions(requestingUserMode),
+      permissionService.getUsersPermissions(requestingUserMode),
       requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
-      StateService.getBannerMessageState(),
-      StateService.getMaxConcurrentBuilds(),
     ]);
+
     // We are ignoring errors because the IDE thinks all returned values can be null
     // However, this is operating as intended
     return {
       // @ts-ignore
-      daysSinceLastFailure,
-      pauseState,
-      // @ts-ignore
       queue,
       // @ts-ignore
       users,
       // @ts-ignore
       waitingToQueue,
-      bannerMessageState,
-      maxConcurrentBuilds,
       bitbucketBaseUrl: `https://bitbucket.org/${this.config.repoConfig.repoOwner}/${this.config.repoConfig.repoName}`,
       permissionsMessage: this.config.permissionsMessage,
+      ...state,
     };
   };
 

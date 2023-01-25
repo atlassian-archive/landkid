@@ -1,4 +1,5 @@
-import { BannerMessageState, ConcurrentBuildState, PauseState } from '../db';
+import { BannerMessageState, ConcurrentBuildState, LandRequestStatus, PauseState } from '../db';
+import { State } from '../types';
 import { config } from './Config';
 
 export class StateService {
@@ -52,9 +53,44 @@ export class StateService {
   }
 
   static async getMaxConcurrentBuilds(): Promise<number> {
-    const state = await ConcurrentBuildState.findOne<ConcurrentBuildState>();
-    const maxConcurrentBuilds = state?.get().maxConcurrentBuilds || config.maxConcurrentBuilds;
+    const concurrentBuildState = await ConcurrentBuildState.findAll<ConcurrentBuildState>({
+      order: [['date', 'DESC']],
+    });
+
+    const maxConcurrentBuilds = concurrentBuildState.length
+      ? concurrentBuildState[0].maxConcurrentBuilds
+      : config.maxConcurrentBuilds || 1;
 
     return maxConcurrentBuilds > 0 ? maxConcurrentBuilds : 1;
+  }
+
+  static async getDatesSinceLastFailures(): Promise<number> {
+    const lastFailure = await LandRequestStatus.findOne<LandRequestStatus>({
+      where: {
+        state: {
+          $in: ['fail', 'aborted'],
+        },
+      },
+      order: [['date', 'DESC']],
+    });
+    if (!lastFailure) return -1;
+    return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  static async getState(): Promise<State> {
+    const [daysSinceLastFailure, pauseState, bannerMessageState, maxConcurrentBuilds] =
+      await Promise.all([
+        this.getDatesSinceLastFailures(),
+        this.getPauseState(),
+        this.getBannerMessageState(),
+        this.getMaxConcurrentBuilds(),
+      ]);
+
+    return {
+      daysSinceLastFailure,
+      pauseState,
+      bannerMessageState,
+      maxConcurrentBuilds,
+    };
   }
 }
