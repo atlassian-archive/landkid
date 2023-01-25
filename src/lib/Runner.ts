@@ -770,12 +770,12 @@ export class Runner {
 
   getState = async (aaid: string): Promise<RunnerState> => {
     const requestingUserMode = await permissionService.getPermissionForUser(aaid);
-    const state = await StateService.getState();
 
-    const [queue, users, waitingToQueue] = await Promise.all([
+    const [queue, users, waitingToQueue, state] = await Promise.all([
       requestingUserMode === 'read' ? [] : this.getQueue(),
       permissionService.getUsersPermissions(requestingUserMode),
       requestingUserMode === 'read' ? [] : this.queue.getStatusesForWaitingRequests(),
+      StateService.getState(),
     ]);
 
     // We are ignoring errors because the IDE thinks all returned values can be null

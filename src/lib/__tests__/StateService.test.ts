@@ -77,30 +77,22 @@ describe('StateService', () => {
   describe('getMaxConcurrentBuilds', () => {
     test('should return maxConcurrentBuilds from the table', async () => {
       jest
-        .spyOn(ConcurrentBuildState, 'findAll')
-        .mockResolvedValueOnce([{ maxConcurrentBuilds: 4 }] as any);
+        .spyOn(ConcurrentBuildState, 'findOne')
+        .mockResolvedValueOnce({ maxConcurrentBuilds: 4 } as any);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
       expect(maxConcurrentBuilds).toBe(4);
     });
 
     test('should return maxConcurrentBuilds from the config when the table is empty', async () => {
-      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([]);
-      const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
-      expect(maxConcurrentBuilds).toBe(2);
-    });
-
-    test('should return maxConcurrentBuilds from the config', async () => {
-      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([]);
+      jest.spyOn(ConcurrentBuildState, 'findOne').mockResolvedValueOnce(null);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
       expect(maxConcurrentBuilds).toBe(2);
     });
 
     test('should return positive maxConcurrentBuilds from the config', async () => {
-      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([
-        {
-          maxConcurrentBuilds: -1,
-        },
-      ] as any);
+      jest.spyOn(ConcurrentBuildState, 'findOne').mockResolvedValueOnce({
+        maxConcurrentBuilds: -1,
+      } as any);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
       expect(maxConcurrentBuilds).toBe(1);
     });

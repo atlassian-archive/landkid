@@ -57,13 +57,12 @@ export class StateService {
    * @returns maxConcurrentBuilds
    */
   static async getMaxConcurrentBuilds(): Promise<number> {
-    const concurrentBuildState = await ConcurrentBuildState.findAll<ConcurrentBuildState>({
+    const lastConcurrentBuildState = await ConcurrentBuildState.findOne<ConcurrentBuildState>({
       order: [['date', 'DESC']],
     });
 
-    const maxConcurrentBuilds = concurrentBuildState?.length
-      ? concurrentBuildState[0].maxConcurrentBuilds
-      : config.maxConcurrentBuilds || 1;
+    const maxConcurrentBuilds =
+      lastConcurrentBuildState?.maxConcurrentBuilds || config.maxConcurrentBuilds || 1;
 
     return maxConcurrentBuilds > 0 ? maxConcurrentBuilds : 1;
   }
