@@ -75,20 +75,50 @@ describe('StateService', () => {
   });
 
   describe('getMaxConcurrentBuilds', () => {
-    test('should return maxConcurrentBuilds from the ConcurrentBuildState table', async () => {
-      jest.spyOn(ConcurrentBuildState, 'findOne').mockResolvedValueOnce({
-        get: () => ({
-          maxConcurrentBuilds: 3,
-        }),
-      } as any);
+    test('should return maxConcurrentBuilds from the table', async () => {
+      jest
+        .spyOn(ConcurrentBuildState, 'findAll')
+        .mockResolvedValueOnce([{ maxConcurrentBuilds: 4 }] as any);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
-      expect(maxConcurrentBuilds).toBe(3);
+      expect(maxConcurrentBuilds).toBe(4);
     });
 
-    test('should return maxConcurrentBuilds from the config', async () => {
-      jest.spyOn(ConcurrentBuildState, 'findOne').mockResolvedValueOnce(null);
+    test('should return maxConcurrentBuilds from the config when the table is empty', async () => {
+      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([]);
       const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
       expect(maxConcurrentBuilds).toBe(2);
     });
+
+    test('should return maxConcurrentBuilds from the config', async () => {
+      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([]);
+      const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
+      expect(maxConcurrentBuilds).toBe(2);
+    });
+
+    test('should return positive maxConcurrentBuilds from the config', async () => {
+      jest.spyOn(ConcurrentBuildState, 'findAll').mockResolvedValueOnce([
+        {
+          maxConcurrentBuilds: -1,
+        },
+      ] as any);
+      const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
+      expect(maxConcurrentBuilds).toBe(1);
+    });
   });
+
+  test('getState > should return state', async () => {
+    jest.spyOn(StateService, 'getDatesSinceLastFailures').mockResolvedValueOnce(10);
+
+    const state = await StateService.getState();
+    expect(state).toEqual(
+      expect.objectContaining({
+        daysSinceLastFailure: 10,
+        pauseState: null,
+        bannerMessageState: null,
+        maxConcurrentBuilds: 2,
+      }),
+    );
+  });
+
+  // todo: add tests for getDatesSinceLastFailures
 });

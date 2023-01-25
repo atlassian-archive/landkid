@@ -7,7 +7,6 @@ import { Runner } from '../Runner';
 import { LandRequest, LandRequestStatus, PullRequest } from '../../db';
 import { Config } from '../../types';
 import { StateService } from '../StateService';
-import { permissionService } from '../PermissionService';
 
 jest.mock('../utils/redis-client', () => ({
   // @ts-ignore incorrect type definition
@@ -725,10 +724,6 @@ describe('Runner', () => {
 
   describe('getState', () => {
     test('should return current system state for read user', async () => {
-      jest.spyOn(runner as any, 'getDatesSinceLastFailures').mockResolvedValueOnce(10);
-      jest.spyOn(runner as any, 'getUsersPermissions').mockResolvedValueOnce([]);
-      permissionService.getPermissionForUser = jest.fn().mockResolvedValueOnce('read');
-
       const state = await runner.getState(`user-id`);
       expect(state).toEqual(
         expect.objectContaining({

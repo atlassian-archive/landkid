@@ -52,12 +52,16 @@ export class StateService {
     });
   }
 
+  /**
+   * Use the latest ConcurrentBuildState or fallback to system configuration or 1.
+   * @returns maxConcurrentBuilds
+   */
   static async getMaxConcurrentBuilds(): Promise<number> {
     const concurrentBuildState = await ConcurrentBuildState.findAll<ConcurrentBuildState>({
       order: [['date', 'DESC']],
     });
 
-    const maxConcurrentBuilds = concurrentBuildState.length
+    const maxConcurrentBuilds = concurrentBuildState?.length
       ? concurrentBuildState[0].maxConcurrentBuilds
       : config.maxConcurrentBuilds || 1;
 
