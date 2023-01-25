@@ -105,9 +105,31 @@ describe('API Routes', () => {
       await updateConcurrentBuildHandler({ body: {} }, mockExpress.response, () => {});
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({ err: 'req.body.maxConcurrentBuilds expected' }),
+        expect.objectContaining({ err: 'req.body.maxConcurrentBuilds should be positive number' }),
       );
     });
+
+    it.each([[-1], [0], ['5']])(
+      'should fail with status 400 if maxConcurrentBuilds %s is not a positive number',
+      async (input) => {
+        expect(mockResponse.status).not.toHaveBeenCalled();
+        await updateConcurrentBuildHandler(
+          {
+            body: {
+              maxConcurrentBuilds: input,
+            },
+          },
+          mockExpress.response,
+          () => {},
+        );
+        expect(mockResponse.status).toHaveBeenCalledWith(400);
+        expect(mockResponse.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            err: 'req.body.maxConcurrentBuilds should be positive number',
+          }),
+        );
+      },
+    );
 
     it('should update concurrent builds slots', async () => {
       expect(StateService.updateMaxConcurrentBuild).not.toHaveBeenCalled();

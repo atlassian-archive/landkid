@@ -386,7 +386,6 @@ export class ConcurrentBuildState
   readonly adminAaid: string;
 
   @AllowNull(false)
-  @Default(config.maxConcurrentBuilds)
   @Column(Sequelize.INTEGER)
   readonly maxConcurrentBuilds: number;
 
