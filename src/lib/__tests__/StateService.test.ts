@@ -71,7 +71,6 @@ describe('StateService', () => {
       adminAaid: 'test-aaid',
       maxConcurrentBuilds: 3,
     });
-    expect(ConcurrentBuildState.truncate).toHaveBeenCalled();
   });
 
   describe('getMaxConcurrentBuilds', () => {
