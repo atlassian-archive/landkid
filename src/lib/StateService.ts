@@ -44,6 +44,10 @@ export class StateService {
     return state ? state.get() : null;
   }
 
+  static async dropTable() {
+    await ConcurrentBuildState.drop();
+  }
+
   static async updateMaxConcurrentBuild(maxConcurrentBuilds: number, user: ISessionUser) {
     await ConcurrentBuildState.create<ConcurrentBuildState>({
       adminAaid: user.aaid,
@@ -80,19 +84,18 @@ export class StateService {
   }
 
   static async getState(): Promise<State> {
-    const [daysSinceLastFailure, pauseState, bannerMessageState, maxConcurrentBuilds] =
-      await Promise.all([
-        this.getDatesSinceLastFailures(),
-        this.getPauseState(),
-        this.getBannerMessageState(),
-        this.getMaxConcurrentBuilds(),
-      ]);
+    const [daysSinceLastFailure, pauseState, bannerMessageState] = await Promise.all([
+      this.getDatesSinceLastFailures(),
+      this.getPauseState(),
+      this.getBannerMessageState(),
+      // this.getMaxConcurrentBuilds(),
+    ]);
 
     return {
       daysSinceLastFailure,
       pauseState,
       bannerMessageState,
-      maxConcurrentBuilds,
+      maxConcurrentBuilds: 2,
     };
   }
 }

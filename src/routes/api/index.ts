@@ -149,7 +149,8 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       });
 
       if (typeof maxConcurrentBuilds == 'number' && maxConcurrentBuilds > 0) {
-        StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
+        StateService.dropTable();
+        // StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
         return res.sendStatus(200);
       }
 

@@ -376,11 +376,12 @@ export class ConcurrentBuildState
   extends Model<ConcurrentBuildState>
   implements IConcurrentBuildState
 {
-  @PrimaryKey
-  @Default(Sequelize.UUIDV4)
-  @Column(Sequelize.UUID)
-  readonly id: string;
+  // @PrimaryKey
+  // @Default(Sequelize.UUIDV4)
+  // @Column(Sequelize.UUID)
+  // readonly id: string;
 
+  @PrimaryKey
   @AllowNull(false)
   @Column(Sequelize.STRING)
   readonly adminAaid: string;
