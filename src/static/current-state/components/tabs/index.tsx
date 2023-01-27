@@ -57,18 +57,21 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
       <button
         onClick={() => selectTab(0)}
         className={`ak-button__appearance-subtle ${selected === 0 ? '--selected' : ''}`}
+        data-test-id="system-tab"
       >
         System
       </button>
       <button
         onClick={() => selectTab(1)}
         className={`ak-button__appearance-subtle ${selected === 1 ? '--selected' : ''}`}
+        data-test-id="queue-tab"
       >
         Queue
       </button>
       <button
         onClick={() => selectTab(2)}
         className={`ak-button__appearance-subtle ${selected === 2 ? '--selected' : ''}`}
+        data-test-id="history-tab"
       >
         History
       </button>

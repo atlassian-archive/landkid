@@ -30,7 +30,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
           easterEgg: easterEggText,
           targetRepo: config.repoConfig.repoName,
           prSettings,
-          maxConcurrentBuilds: StateService.getMaxConcurrentBuilds(),
+          maxConcurrentBuilds: await StateService.getMaxConcurrentBuilds(),
         },
         isInstalled,
       });

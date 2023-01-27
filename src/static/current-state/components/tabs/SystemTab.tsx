@@ -137,6 +137,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   onChange={({ currentTarget: { value } }) =>
                     this.setState({ maxConcurrentBuilds: +value })
                   }
+                  data-test-id="update-concurrent-builds-select"
                 >
                   <option>1</option>
                   <option>2</option>
@@ -149,6 +150,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                     marginLeft: '10px',
                   }}
                   onClick={this.handleUpdateConcurrentBuilds}
+                  data-test-id="update-concurrent-builds-btn"
                 >
                   Update Concurrent Builds
                 </button>
