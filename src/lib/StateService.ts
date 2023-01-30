@@ -1,4 +1,10 @@
-import { BannerMessageState, ConcurrentBuildState, LandRequestStatus, PauseState } from '../db';
+import {
+  BannerMessageState,
+  ConcurrentBuildState,
+  LandRequestStatus,
+  PauseState,
+  PriorityBranch,
+} from '../db';
 import { State } from '../types';
 import { config } from './Config';
 
@@ -78,21 +84,55 @@ export class StateService {
     if (!lastFailure) return -1;
     return Math.floor((Date.now() - lastFailure.date.getTime()) / (1000 * 60 * 60 * 24));
   }
+  static async getPriorityBranches(): Promise<IPriorityBranch[]> {
+    const state = await PriorityBranch.findAll();
+    return state;
+  }
+
+  static async addPriorityBranch(branchName: string, user: ISessionUser) {
+    try {
+      await PriorityBranch.create<PriorityBranch>({
+        adminAaid: user.aaid,
+        branchName,
+      });
+    } catch (e) {
+      console.log(`Error adding priority branch: ${e}`);
+    }
+  }
+
+  static async removePriorityBranch(branchName: string) {
+    try {
+      await PriorityBranch.destroy({
+        where: {
+          branchName: branchName,
+        },
+      });
+    } catch (e) {
+      console.log(`Error removing priority branch: ${e}`);
+    }
+  }
 
   static async getState(): Promise<State> {
-    const [daysSinceLastFailure, pauseState, bannerMessageState, maxConcurrentBuilds] =
-      await Promise.all([
-        this.getDatesSinceLastFailures(),
-        this.getPauseState(),
-        this.getBannerMessageState(),
-        this.getMaxConcurrentBuilds(),
-      ]);
+    const [
+      daysSinceLastFailure,
+      pauseState,
+      bannerMessageState,
+      maxConcurrentBuilds,
+      priorityBranchList,
+    ] = await Promise.all([
+      this.getDatesSinceLastFailures(),
+      this.getPauseState(),
+      this.getBannerMessageState(),
+      this.getMaxConcurrentBuilds(),
+      this.getPriorityBranches(),
+    ]);
 
     return {
       daysSinceLastFailure,
       pauseState,
       bannerMessageState,
       maxConcurrentBuilds,
+      priorityBranchList,
     };
   }
 }

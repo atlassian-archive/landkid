@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   AfterCreate,
+  Unique,
 } from 'sequelize-typescript';
 import path from 'path';
 import { config } from '../lib/Config';
@@ -395,6 +396,28 @@ export class ConcurrentBuildState
   readonly date: Date;
 }
 
+@Table
+export class PriorityBranch extends Model<PriorityBranch> implements IPriorityBranch {
+  @PrimaryKey
+  @Default(Sequelize.UUIDV4)
+  @Column(Sequelize.UUID)
+  readonly id: string;
+
+  @AllowNull(false)
+  @Unique
+  @Column(Sequelize.STRING)
+  readonly branchName: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly adminAaid: string;
+
+  @AllowNull(false)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly date: Date;
+}
+
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize(
     config.sequelize ||
@@ -410,6 +433,7 @@ export const initializeSequelize = async () => {
     PauseState,
     BannerMessageState,
     ConcurrentBuildState,
+    PriorityBranch,
     Permission,
     UserNote,
     PullRequest,

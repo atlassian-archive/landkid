@@ -10,4 +10,12 @@ StateService.getState.mockResolvedValue({
   pauseState: null,
   maxConcurrentBuilds: 2,
   daysSinceLastFailure: 10,
+  priorityBranchList: [
+    {
+      id: 'test-id',
+      branchName: 'test-branch/*',
+      adminAaid: 'test-aaid',
+      date: '2023-01-25T04:28:07.817Z',
+    },
+  ],
 });
