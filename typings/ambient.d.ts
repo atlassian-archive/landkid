@@ -49,6 +49,12 @@ declare interface IMessageState {
   date: Date;
 }
 
+declare interface IConcurrentBuildState {
+  adminAaid: string;
+  maxConcurrentBuilds: number;
+  date: Date;
+}
+
 declare interface IStatusUpdate {
   id: string;
   date: Date;

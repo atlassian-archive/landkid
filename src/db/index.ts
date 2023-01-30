@@ -371,6 +371,30 @@ export class BannerMessageState extends Model<BannerMessageState> implements IMe
   readonly date: Date;
 }
 
+@Table
+export class ConcurrentBuildState
+  extends Model<ConcurrentBuildState>
+  implements IConcurrentBuildState
+{
+  @PrimaryKey
+  @Default(Sequelize.UUIDV4)
+  @Column(Sequelize.UUID)
+  readonly id: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly adminAaid: string;
+
+  @AllowNull(false)
+  @Column(Sequelize.INTEGER)
+  readonly maxConcurrentBuilds: number;
+
+  @AllowNull(false)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly date: Date;
+}
+
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize(
     config.sequelize ||
@@ -385,6 +409,7 @@ export const initializeSequelize = async () => {
     Installation,
     PauseState,
     BannerMessageState,
+    ConcurrentBuildState,
     Permission,
     UserNote,
     PullRequest,

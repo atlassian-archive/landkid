@@ -36,6 +36,7 @@ export const App: React.FunctionComponent = () => (
                       loggedInUser={loggedInUser}
                       paused={data.pauseState !== null}
                       bannerMessageState={data.bannerMessageState}
+                      maxConcurrentBuilds={data.maxConcurrentBuilds}
                       permissionsMessage={data.permissionsMessage}
                       refreshData={refresh}
                     />

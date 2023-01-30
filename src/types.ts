@@ -117,13 +117,17 @@ export type MergeSettings = {
   // waitForBuild?: { // TBD };
 };
 
-export type RunnerState = {
+export type State = {
+  pauseState: IPauseState | null;
+  bannerMessageState: IMessageState | null;
+  maxConcurrentBuilds: number;
+  daysSinceLastFailure: number;
+};
+
+export type RunnerState = State & {
   queue: IStatusUpdate[];
   waitingToQueue: IStatusUpdate[];
-  pauseState: IPauseState | null;
-  daysSinceLastFailure: number;
   users: UserState[];
-  bannerMessageState: IMessageState | null;
   bitbucketBaseUrl: string;
   permissionsMessage: string;
 };

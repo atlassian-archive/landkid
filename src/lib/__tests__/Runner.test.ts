@@ -6,6 +6,7 @@ import { Runner } from '../Runner';
 
 import { LandRequest, LandRequestStatus, PullRequest } from '../../db';
 import { Config } from '../../types';
+import { StateService } from '../StateService';
 
 jest.mock('../utils/redis-client', () => ({
   // @ts-ignore incorrect type definition
@@ -15,6 +16,8 @@ jest.mock('../utils/redis-client', () => ({
 jest.mock('../../db/index');
 jest.mock('../../bitbucket/BitbucketClient');
 jest.mock('../Config');
+jest.mock('../PermissionService');
+jest.mock('../StateService');
 
 const wait = (duration: number) =>
   new Promise((resolve) => {
@@ -90,7 +93,10 @@ describe('Runner', () => {
         pullRequest: mockPullRequest,
       } as any;
     });
-    runner = new Runner(mockQueue, {} as any, mockClient, { maxConcurrentBuilds: 2 } as Config);
+    runner = new Runner(mockQueue, {} as any, mockClient, {
+      maxConcurrentBuilds: 2,
+      repoConfig: {},
+    } as Config);
   });
 
   afterEach(() => {
@@ -326,7 +332,7 @@ describe('Runner', () => {
     });
   });
 
-  describe('Check running landrequests for timeout', () => {
+  describe('Check running land requests for timeout', () => {
     let onStatusUpdateSpy: jest.SpyInstance;
     const getLandRequestStatus = (date: Date) => {
       const request = new LandRequest({
@@ -618,7 +624,9 @@ describe('Runner', () => {
     });
 
     test('moveFromQueueToRunning will not run when paused', async () => {
-      jest.spyOn(runner, 'getPauseState').mockImplementationOnce(() => Promise.resolve({} as any));
+      jest
+        .spyOn(StateService, 'getPauseState')
+        .mockImplementationOnce(() => Promise.resolve({} as any));
       await runner.moveFromQueueToRunning({} as any, {} as any);
       expect(getRunningSpy).not.toHaveBeenCalled();
     });
@@ -711,6 +719,25 @@ describe('Runner', () => {
       });
       expect(request.setStatus).not.toHaveBeenCalled();
       expect(nextSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getState', () => {
+    test('should return current system state for read user', async () => {
+      const state = await runner.getState(`user-id`);
+      expect(state).toEqual(
+        expect.objectContaining({
+          bannerMessageState: null,
+          bitbucketBaseUrl: 'https://bitbucket.org/undefined/undefined',
+          daysSinceLastFailure: 10,
+          maxConcurrentBuilds: 2,
+          pauseState: null,
+          permissionsMessage: undefined,
+          queue: [],
+          users: [],
+          waitingToQueue: [],
+        }),
+      );
     });
   });
 });

@@ -32,4 +32,5 @@ export const Permission = MockedDb.Permission;
 export const UserNote = MockedDb.UserNote;
 export const PauseState = MockedDb.PauseState;
 export const BannerMessageState = MockedDb.BannerMessageState;
+export const ConcurrentBuildState = MockedDb.ConcurrentBuildState;
 export const initializeSequelize = MockedDb.initializeSequelize;

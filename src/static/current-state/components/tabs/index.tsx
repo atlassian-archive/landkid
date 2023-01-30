@@ -57,18 +57,21 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
       <button
         onClick={() => selectTab(0)}
         className={`ak-button__appearance-subtle ${selected === 0 ? '--selected' : ''}`}
+        data-test-id="system-tab"
       >
         System
       </button>
       <button
         onClick={() => selectTab(1)}
         className={`ak-button__appearance-subtle ${selected === 1 ? '--selected' : ''}`}
+        data-test-id="queue-tab"
       >
         Queue
       </button>
       <button
         onClick={() => selectTab(2)}
         className={`ak-button__appearance-subtle ${selected === 2 ? '--selected' : ''}`}
+        data-test-id="history-tab"
       >
         History
       </button>
@@ -84,6 +87,7 @@ export type TabsProps = {
   loggedInUser: ISessionUser;
   paused: boolean;
   bannerMessageState: IMessageState | null;
+  maxConcurrentBuilds: number;
   permissionsMessage: string;
   refreshData: () => void;
 };
@@ -121,6 +125,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       loggedInUser,
       paused,
       bannerMessageState,
+      maxConcurrentBuilds,
       permissionsMessage,
       refreshData,
     } = this.props;
@@ -134,6 +139,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             loggedInUser={loggedInUser}
             defaultPaused={paused}
             bannerMessageState={bannerMessageState}
+            maxConcurrentBuilds={maxConcurrentBuilds}
             refreshData={refreshData}
           />
         ) : null}
