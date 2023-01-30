@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   AfterCreate,
+  Unique,
 } from 'sequelize-typescript';
 import path from 'path';
 import { config } from '../lib/Config';
@@ -403,6 +404,7 @@ export class PriorityBranch extends Model<PriorityBranch> implements IPriorityBr
   readonly id: string;
 
   @AllowNull(false)
+  @Unique
   @Column(Sequelize.STRING)
   readonly branchName: string;
 

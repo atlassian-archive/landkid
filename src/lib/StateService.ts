@@ -86,7 +86,7 @@ export class StateService {
   }
   static async getPriorityBranches(): Promise<IPriorityBranch[]> {
     const state = await PriorityBranch.findAll();
-    return state ?? [];
+    return state;
   }
 
   static async addPriorityBranch(branchName: string, user: ISessionUser) {
