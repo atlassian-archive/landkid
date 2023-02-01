@@ -7,6 +7,7 @@ import Tooltip from '@atlaskit/tooltip';
 
 const wrapper = css({
   paddingTop: '20px',
+  width: '400px',
 });
 
 const innerWrapper = css({ paddingTop: '10px', width: '400px' });
