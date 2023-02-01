@@ -8,6 +8,7 @@ import { Runner } from '../../../lib/Runner';
 import { Logger } from '../../../lib/Logger';
 import { eventEmitter } from '../../../lib/Events';
 import { StateService } from '../../../lib/StateService';
+import { validatePriorityBranch } from '../../../lib/utils/helper-functions';
 
 interface LandBody {
   mergeStrategy?: IMergeStrategy;
@@ -181,6 +182,17 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
         sourceBranch: prInfo.sourceBranch,
         targetBranch: prInfo.targetBranch,
       });
+
+      const priorityBranches = await StateService.getPriorityBranches();
+      const isPriorityBranch = validatePriorityBranch(priorityBranches, landRequest.prSourceBranch);
+      if (isPriorityBranch && request) {
+        await request.incrementPriority();
+        Logger.info(`Priority increased as ${landRequest.prSourceBranch} is a priority branch.`, {
+          namespace: 'routes:bitbucket:proxy:land',
+          pullRequestId: prId,
+          landRequest,
+        });
+      }
 
       const priority = await client.bitbucket.getPullRequestPriority(commit);
 

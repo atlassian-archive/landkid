@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { css } from 'emotion';
 import Check from '@atlaskit/icon/glyph/check';
 import Cross from '@atlaskit/icon/glyph/cross';
+import Edit from '@atlaskit/icon/glyph/edit';
+
+const inputWrapper = css({
+  width: '400px',
+  paddingBottom: '5px',
+});
 
 const editButton = css({
   marginLeft: '5px',
@@ -25,16 +31,22 @@ const valueSpan = css({
   verticalAlign: 'middle',
 });
 
-const icon = css({
-  height: '15px',
-  width: '15px',
+const inputButtons = css({
+  paddingTop: '5px',
+  display: 'flex',
+  height: '50px',
+});
+
+const errorText = css({
+  color: 'red',
+  paddingTop: '2px',
 });
 
 type InlineEditProps = {
   value: string;
   id: string;
-  removeHandler: (value: string) => void;
-  editHandler: (id: string, updatedValue: string) => boolean | void;
+  handleRemove: (value: string) => void;
+  handleEdit: (id: string, updatedValue: string) => boolean | void;
   hasInlineError: boolean;
   setHasInLineError: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -42,41 +54,49 @@ type InlineEditProps = {
 export const InlineEdit: React.FunctionComponent<InlineEditProps> = ({
   value,
   id,
-  editHandler,
-  removeHandler,
+  handleEdit,
+  handleRemove,
   hasInlineError,
   setHasInLineError,
 }) => {
-  const [displayInput, setDisplayInput] = useState<boolean>(false);
+  const [isInputDisplayed, setIsInputDisplayed] = useState<boolean>(false);
   const [editedValue, setEditedValue] = useState<string>(value);
 
-  const cancelHandler = () => {
-    setDisplayInput(false);
+  const defaultSpan = css({
+    display: isInputDisplayed ? 'none' : 'block',
+  });
+
+  const displayInput = css({
+    display: isInputDisplayed ? 'flex' : 'none',
+  });
+
+  const errorWrapper = css({
+    display: hasInlineError ? 'block' : 'none',
+  });
+
+  const handleCancel = () => {
+    setIsInputDisplayed(false);
     setHasInLineError(false);
     setEditedValue(value);
   };
   return (
     <React.Fragment>
-      <span style={{ display: displayInput ? 'none' : 'block' }}>
+      <span className={defaultSpan}>
         <span className={valueSpan}>{value}</span>
         <button
           className={editButton}
           onClick={() => {
-            setDisplayInput(true);
+            setIsInputDisplayed(true);
           }}
         >
-          <svg focusable="false" className={icon}>
-            <use xlinkHref="#ak-icon-edit" />
-          </svg>
+          <Edit label="edit" size="small" />
         </button>
-        <button className={editButton} onClick={() => removeHandler(value)}>
-          <svg focusable="false" className={icon}>
-            <use xlinkHref="#ak-icon-cross" />
-          </svg>
+        <button className={editButton} onClick={() => handleRemove(value)}>
+          <Cross label="cross" size="small" />
         </button>
       </span>
-      <div style={{ display: displayInput ? 'flex' : 'none' }}>
-        <div style={{ width: '400px', paddingBottom: '5px' }}>
+      <div className={displayInput}>
+        <div className={inputWrapper}>
           <input
             className="ak-field-text"
             type="text"
@@ -87,25 +107,25 @@ export const InlineEdit: React.FunctionComponent<InlineEditProps> = ({
               setEditedValue(e.target.value);
             }}
           />
-          <div style={{ display: hasInlineError ? 'block' : 'none' }}>
-            <p style={{ color: 'red', paddingTop: '2px' }}>Priority branch name already exists.</p>
+          <div className={errorWrapper}>
+            <p className={errorText}>Priority branch name already exists.</p>
           </div>
         </div>
-        <div style={{ paddingTop: '5px', display: 'flex' }}>
+        <div className={inputButtons}>
           <button
             className={editButton}
             onClick={() => {
-              const validation = editHandler(id, editedValue);
+              const validation = handleEdit(id, editedValue);
               if (validation === false) {
-                setDisplayInput(true);
+                setIsInputDisplayed(true);
               } else {
-                setDisplayInput(false);
+                setIsInputDisplayed(false);
               }
             }}
           >
             <Check label="check" />
           </button>
-          <button className={editButton} onClick={cancelHandler}>
+          <button className={editButton} onClick={handleCancel}>
             <Cross label="cross" size="small" />
           </button>
         </div>

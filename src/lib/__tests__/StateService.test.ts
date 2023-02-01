@@ -134,6 +134,17 @@ describe('StateService', () => {
       where: { branchName: 'test/test-branch' },
     });
   });
+  test('should update an existing priority branch', async () => {
+    jest.spyOn(PriorityBranch, 'update').mockResolvedValueOnce({} as any);
+
+    await StateService.updatePriorityBranch('test-id', 'test/test-branch');
+    expect(PriorityBranch.update).toHaveBeenCalledWith(
+      { branchName: 'test/test-branch' },
+      {
+        where: { id: 'test-id' },
+      },
+    );
+  });
 
   // todo: add tests for getDatesSinceLastFailures
 });

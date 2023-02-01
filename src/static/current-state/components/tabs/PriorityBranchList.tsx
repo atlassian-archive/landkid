@@ -4,9 +4,28 @@ import { InlineEdit } from '../InlineEdit';
 import { css } from 'emotion';
 import Info from '@atlaskit/icon/glyph/info';
 import Tooltip from '@atlaskit/tooltip';
+
 const wrapper = css({
-  paddingTop: '10px',
-  width: '400px',
+  paddingTop: '20px',
+});
+
+const innerWrapper = css({ paddingTop: '10px', width: '400px' });
+
+const labelWrapper = css({ display: 'flex' });
+
+const h4 = css({ marginBottom: '5px' });
+
+const h5 = css({
+  marginBottom: '5px',
+});
+
+const errorText = css({
+  color: 'red',
+  paddingTop: '2px',
+});
+
+const akButton = css({
+  marginTop: '10px',
 });
 
 export type PriorityBranchListProps = {
@@ -35,7 +54,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
     return exists;
   };
   const handleAddBranch = () => {
-    branchValidationCheck(branchName);
+    if (branchValidationCheck(branchName)) return;
     fetch('/api/add-priority-branch', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
@@ -47,6 +66,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
           console.error(json.error);
           window.alert(json.error);
         } else {
+          setBranchName('');
           refreshData();
         }
       });
@@ -87,26 +107,27 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
       });
   };
 
+  const errorWrapper = css({ display: hasError ? 'block' : 'none' });
   return (
-    <div style={{ paddingTop: '20px' }}>
-      <div className={wrapper}>
-        <h4 style={{ marginBottom: '5px' }}>Priority Branch list</h4>
+    <div className={wrapper}>
+      <div className={innerWrapper}>
+        <h4 className={h4}>Priority Branch list</h4>
         {priorityBranchList.map((branch) => (
           <InlineEdit
             key={branch.id}
             value={branch.branchName}
             id={branch.id}
-            editHandler={handleUpdateBranch}
-            removeHandler={handleRemoveBranch}
+            handleEdit={handleUpdateBranch}
+            handleRemove={handleRemoveBranch}
             hasInlineError={hasInlineError}
             setHasInLineError={setHasInlineError}
           />
         ))}
       </div>
       <div className={wrapper}>
-        <div style={{ display: 'flex' }}>
+        <div className={labelWrapper}>
           <label>
-            <h5 style={{ marginBottom: '5px' }}>Add new branch</h5>
+            <h5 className={h5}>Add new branch</h5>
           </label>
           <Tooltip
             content="Enter branch name or as an ANT pattern e.g. release-candidate/*"
@@ -126,14 +147,11 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
             setBranchName(e.target.value);
           }}
         />
-        <div style={{ display: hasError ? 'block' : 'none' }}>
-          <p style={{ color: 'red', paddingTop: '2px' }}>Priority branch name already exists.</p>
+        <div className={errorWrapper}>
+          <p className={errorText}>Priority branch name already exists.</p>
         </div>
         <button
-          className="ak-button ak-button__appearance-default"
-          style={{
-            marginTop: '10px',
-          }}
+          className={`ak-button ak-button__appearance-default ${akButton}`}
           onClick={() => handleAddBranch()}
         >
           Add priority branch
