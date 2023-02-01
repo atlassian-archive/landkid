@@ -14,13 +14,9 @@ const branchInputWrapper = css({
 });
 const innerWrapper = css({ paddingTop: '10px' });
 
-const labelWrapper = css({ display: 'flex' });
+const headerWrapper = css({ display: 'flex', marginTop: '10px' });
 
-const h4 = css({ marginBottom: '5px' });
-
-const h5 = css({
-  marginBottom: '5px',
-});
+const header = css({ marginBottom: '5px' });
 
 const errorText = css({
   color: 'red',
@@ -114,7 +110,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
   return (
     <div className={wrapper}>
       <div className={innerWrapper}>
-        <h4 className={h4}>Priority Branch list</h4>
+        <h4 className={header}>Priority Branch list</h4>
         {priorityBranchList.map((branch) => (
           <InlineEdit
             data-test-id={`inline-edit-${branch.id}`}
@@ -129,10 +125,8 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
         ))}
       </div>
       <div className={branchInputWrapper}>
-        <div className={labelWrapper}>
-          <label>
-            <h5 className={h5}>Add new branch</h5>
-          </label>
+        <div className={headerWrapper}>
+          <h5 className={header}>Add new branch</h5>
           <Tooltip
             content="Enter branch name or as an ANT pattern e.g. release-candidate/*"
             position="top"
