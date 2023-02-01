@@ -47,7 +47,6 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         eventEmitter.emit('GET_STATE.SUCCESS');
         res.header('Access-Control-Allow-Origin', '*').json(state);
       } catch (e) {
-        console.log(e);
         Logger.error('Error getting current state', { namespace: 'routes:api:current-state' });
         eventEmitter.emit('GET_STATE.FAIL');
         res.sendStatus(500);
