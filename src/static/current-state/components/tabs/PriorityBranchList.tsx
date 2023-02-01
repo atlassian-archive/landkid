@@ -7,10 +7,12 @@ import Tooltip from '@atlaskit/tooltip';
 
 const wrapper = css({
   paddingTop: '20px',
-  width: '400px',
 });
 
-const innerWrapper = css({ paddingTop: '10px', width: '400px' });
+const branchInputWrapper = css({
+  width: '400px',
+});
+const innerWrapper = css({ paddingTop: '10px' });
 
 const labelWrapper = css({ display: 'flex' });
 
@@ -115,6 +117,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
         <h4 className={h4}>Priority Branch list</h4>
         {priorityBranchList.map((branch) => (
           <InlineEdit
+            data-test-id={`inline-edit-${branch.id}`}
             key={branch.id}
             value={branch.branchName}
             id={branch.id}
@@ -125,7 +128,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
           />
         ))}
       </div>
-      <div className={wrapper}>
+      <div className={branchInputWrapper}>
         <div className={labelWrapper}>
           <label>
             <h5 className={h5}>Add new branch</h5>
@@ -133,6 +136,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
           <Tooltip
             content="Enter branch name or as an ANT pattern e.g. release-candidate/*"
             position="top"
+            data-test-id="ant-pattern-tooltip"
           >
             <Info label="info" size="small"></Info>
           </Tooltip>
@@ -142,6 +146,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
           type="text"
           name="priority-branch-input"
           id="add-priority-branch-input"
+          data-test-id="add-priority-branch-input"
           value={branchName}
           onChange={(e) => {
             setHasError(false);
@@ -149,11 +154,14 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
           }}
         />
         <div className={errorWrapper}>
-          <p className={errorText}>Priority branch name already exists.</p>
+          <p className={errorText} data-test-id="error-text">
+            Priority branch name already exists.
+          </p>
         </div>
         <button
           className={`ak-button ak-button__appearance-default ${akButton}`}
           onClick={() => handleAddBranch()}
+          data-test-id="add-priority-branch-button"
         >
           Add priority branch
         </button>

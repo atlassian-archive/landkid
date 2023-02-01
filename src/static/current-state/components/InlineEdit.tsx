@@ -82,16 +82,23 @@ export const InlineEdit: React.FunctionComponent<InlineEditProps> = ({
   return (
     <React.Fragment>
       <span className={defaultSpan}>
-        <span className={valueSpan}>{value}</span>
+        <span className={valueSpan} data-test-id="priority-branch-name">
+          {value}
+        </span>
         <button
           className={editButton}
           onClick={() => {
             setIsInputDisplayed(true);
           }}
+          data-test-id="edit-priority-branch-button"
         >
           <Edit label="edit" size="small" />
         </button>
-        <button className={editButton} onClick={() => handleRemove(value)}>
+        <button
+          className={editButton}
+          onClick={() => handleRemove(value)}
+          data-test-id="priority-branch-remove-button"
+        >
           <Cross label="cross" size="small" />
         </button>
       </span>
@@ -100,15 +107,18 @@ export const InlineEdit: React.FunctionComponent<InlineEditProps> = ({
           <input
             className="ak-field-text"
             type="text"
-            name="priority-branch-input"
-            id="add-priority-branch-input"
+            name="edit-priority-branch-input"
+            id="edit-priority-branch-input"
+            data-test-id="edit-priority-branch-input"
             value={editedValue}
             onChange={(e) => {
               setEditedValue(e.target.value);
             }}
           />
           <div className={errorWrapper}>
-            <p className={errorText}>Priority branch name already exists.</p>
+            <p className={errorText} data-test-id="edit-error-text">
+              Priority branch name already exists.
+            </p>
           </div>
         </div>
         <div className={inputButtons}>
@@ -122,10 +132,11 @@ export const InlineEdit: React.FunctionComponent<InlineEditProps> = ({
                 setIsInputDisplayed(false);
               }
             }}
+            data-test-id="update-edit-button"
           >
             <Check label="check" />
           </button>
-          <button className={editButton} onClick={handleCancel}>
+          <button className={editButton} onClick={handleCancel} data-test-id="cancel-edit-button">
             <Cross label="cross" size="small" />
           </button>
         </div>
