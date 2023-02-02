@@ -56,6 +56,7 @@ declare interface IConcurrentBuildState {
 }
 
 declare interface IPriorityBranch {
+  id: string;
   adminAaid: string;
   branchName: string;
   date: Date;

@@ -89,6 +89,7 @@ export type TabsProps = {
   bannerMessageState: IMessageState | null;
   maxConcurrentBuilds: number;
   permissionsMessage: string;
+  priorityBranchList: IPriorityBranch[];
   refreshData: () => void;
 };
 
@@ -127,6 +128,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       bannerMessageState,
       maxConcurrentBuilds,
       permissionsMessage,
+      priorityBranchList,
       refreshData,
     } = this.props;
 
@@ -140,6 +142,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             defaultPaused={paused}
             bannerMessageState={bannerMessageState}
             maxConcurrentBuilds={maxConcurrentBuilds}
+            priorityBranchList={priorityBranchList}
             refreshData={refreshData}
           />
         ) : null}

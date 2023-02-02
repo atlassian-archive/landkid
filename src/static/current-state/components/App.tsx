@@ -38,6 +38,7 @@ export const App: React.FunctionComponent = () => (
                       bannerMessageState={data.bannerMessageState}
                       maxConcurrentBuilds={data.maxConcurrentBuilds}
                       permissionsMessage={data.permissionsMessage}
+                      priorityBranchList={data.priorityBranchList}
                       refreshData={refresh}
                     />
                   </div>

@@ -9,6 +9,7 @@ import { permissionService } from './PermissionService';
 import { eventEmitter } from './Events';
 import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 import { StateService } from './StateService';
+import { validatePriorityBranch } from './utils/helper-functions';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -487,7 +488,23 @@ export class Runner {
       pullRequestId: landRequestStatus.request.pullRequestId,
     });
 
-    const { request } = landRequestStatus;
+    const {
+      request,
+      request: {
+        pullRequest: { sourceBranch },
+      },
+    } = landRequestStatus;
+
+    const priorityBranches = await StateService.getPriorityBranches();
+    const isPriorityBranch = validatePriorityBranch(priorityBranches, sourceBranch);
+    if (isPriorityBranch) {
+      await request.incrementPriority();
+      Logger.info(`Priority increased as ${sourceBranch} is a priority branch.`, {
+        namespace: 'lib:runner:moveFromWaitingToQueued',
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequestStatus.request.pullRequestId,
+      });
+    }
 
     const priority = await this.client.bitbucket.getPullRequestPriority(request.forCommit);
     if (priority === 'HIGH') {

@@ -80,6 +80,7 @@ describe('Runner', () => {
       pullRequestId: 1,
       authorAaid: '123',
       title: 'Foo',
+      sourceBranch: 'test',
       targetBranch: 'master',
       commit: 'abc',
     } as BB.PullRequest;
@@ -155,6 +156,7 @@ describe('Runner', () => {
           prId: mockPullRequest.pullRequestId,
           authorAaid: mockPullRequest.authorAaid,
           title: mockPullRequest.title,
+          sourceBranch: mockPullRequest.sourceBranch,
           targetBranch: mockPullRequest.targetBranch,
         }),
       });

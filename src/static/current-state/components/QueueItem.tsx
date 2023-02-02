@@ -145,12 +145,15 @@ const duration = (start: number, end: number) => {
 
 export type StatusItemProps = {
   title: string;
+  id?: string;
 };
 
 export const StatusItem: React.FunctionComponent<StatusItemProps> = (props) => (
   <div className="queue-item__status-item">
-    <span className="queue-item__status-item-title">{props.title}</span>
-    {props.children}
+    <span className="queue-item__status-item-title" data-test-id={`queue-item-${props?.id}`}>
+      {props.title}
+    </span>
+    <span data-test-id={`${props?.id}-value`}>{props.children}</span>
   </div>
 );
 
@@ -302,7 +305,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
         ) : null}
         {status.state === 'queued' && status.request.priority !== null ? (
           <div className="queue-item__status-line">
-            <StatusItem title="Priority:">
+            <StatusItem id="priority" title="Priority:">
               {status.request.priority}
               &nbsp;
               <button
@@ -449,7 +452,10 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             <svg focusable="false" className={icon}>
               <use xlinkHref={`#ak-icon-${this.state.landRequestInfo ? 'cross' : 'add'}`} />
             </svg>
-            <StatusItem title={this.state.landRequestInfo ? 'Show less' : 'Show more...'} />
+            <StatusItem
+              title={this.state.landRequestInfo ? 'Show less' : 'Show more...'}
+              id={status.state === 'queued' && status.request.priority !== null ? 'show-more' : ''}
+            />
           </div>
         </div>
         {this.renderMoreInfo(status, dependsOnPRs)}

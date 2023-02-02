@@ -2,6 +2,7 @@ import React from 'react';
 import { TabContent } from './TabContent';
 import { Messenger } from './Messenger';
 import { UsersList } from './UsersList';
+import { PriorityBranchList } from './PriorityBranchList';
 
 export type SystemTabProps = {
   users: UserState[];
@@ -9,6 +10,7 @@ export type SystemTabProps = {
   defaultPaused: boolean;
   bannerMessageState: IMessageState | null;
   maxConcurrentBuilds: number;
+  priorityBranchList: IPriorityBranch[];
   refreshData: () => void;
 };
 
@@ -25,7 +27,6 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
       maxConcurrentBuilds: props.maxConcurrentBuilds,
     };
   }
-
   handlePauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { refreshData } = this.props;
     const checked = e.target.checked;
@@ -156,6 +157,10 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                 </button>
               </div>
               <Messenger bannerMessageState={bannerMessageState} refreshData={refreshData} />
+              <PriorityBranchList
+                priorityBranchList={this.props.priorityBranchList}
+                refreshData={refreshData}
+              ></PriorityBranchList>
             </React.Fragment>
           )}
           <UsersList users={users} loggedInUser={loggedInUser} />
