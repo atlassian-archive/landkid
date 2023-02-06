@@ -128,7 +128,7 @@ export const PriorityBranchList: React.FunctionComponent<PriorityBranchListProps
         <div className={headerWrapper}>
           <h5 className={header}>Add new branch</h5>
           <Tooltip
-            content="Enter branch name or as an ANT pattern e.g. release-candidate/*"
+            content="Enter exact branch name or use prefix e.g. release-candidate/*"
             position="top"
             data-test-id="ant-pattern-tooltip"
           >
