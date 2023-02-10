@@ -23,6 +23,9 @@ type MergePullRequestResult = {
   reason?: Reason;
 };
 
+// Wait 15 seconds before retrying a merge
+const MergeFailureTimeoutMs = 15000;
+
 export class BitbucketAPI {
   private baseUrl = `${BBAPIBaseUrl}/${this.config.repoOwner}/${this.config.repoName}`;
   private bitbucketMerger = new BitbucketMerger(this.baseUrl);
@@ -60,7 +63,7 @@ export class BitbucketAPI {
       return { status: BitbucketAPI.SUCCESS };
     };
 
-    const onMergeFailure = ({ status, statusText, headers, data }: AxiosResponse) => {
+    const onMergeFailure = async ({ status, statusText, headers, data }: AxiosResponse) => {
       Logger.error('Unable to merge pull request', {
         namespace: 'bitbucket:api:mergePullRequest:onMergeFailure',
         response: {
@@ -73,6 +76,16 @@ export class BitbucketAPI {
         landRequestId,
         landRequestStatus,
       });
+      // Retry merge on failure if numRetries is passed
+      if (options.numRetries && options.numRetries > 0) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, MergeFailureTimeoutMs);
+        });
+        return this.mergePullRequest(landRequestStatus, {
+          ...options,
+          numRetries: options.numRetries - 1,
+        });
+      }
       return { status: BitbucketAPI.FAILED, reason: data };
     };
 

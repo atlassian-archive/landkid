@@ -1,5 +1,6 @@
 import Redis from 'ioredis-mock';
 import { BitbucketClient } from '../../bitbucket/BitbucketClient';
+import { eventEmitter } from '../Events';
 import { Logger } from '../Logger';
 import { LandRequestQueue } from '../Queue';
 import { Runner } from '../Runner';
@@ -18,6 +19,11 @@ jest.mock('../../bitbucket/BitbucketClient');
 jest.mock('../Config');
 jest.mock('../PermissionService');
 jest.mock('../StateService');
+
+// https://stackoverflow.com/a/58716087
+function flushPromises() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
 
 const wait = (duration: number) =>
   new Promise((resolve) => {
@@ -748,6 +754,64 @@ describe('Runner', () => {
           waitingToQueue: [],
         }),
       );
+    });
+  });
+
+  describe('moveFromAwaitingMerge', () => {
+    let emitSpy: jest.SpyInstance;
+    beforeEach(() => {
+      emitSpy = jest.spyOn(eventEmitter, 'emit');
+    });
+    it('should merge the pull request', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          sourceBranch: mockPullRequest.sourceBranch,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'queued',
+      });
+
+      jest.spyOn(mockClient, 'mergePullRequest').mockImplementation(() => {
+        return Promise.resolve({
+          status: 'success',
+        });
+      });
+
+      await runner.moveFromAwaitingMerge(status, new Date('2020-01-01'), []);
+      // The merge isn't awaited within the function so we need to await it ourselves
+      await flushPromises();
+      expect(mockClient.mergePullRequest).toHaveBeenCalledTimes(1);
+      expect(mockClient.mergePullRequest).toHaveBeenCalledWith(status, {
+        skipCI: false,
+        numRetries: 2,
+      });
+      expect(request.setStatus).toHaveBeenCalledTimes(2);
+      expect(request.setStatus).toHaveBeenNthCalledWith(1, 'merging');
+      expect(request.setStatus).toHaveBeenNthCalledWith(2, 'success');
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+      expect(emitSpy).toHaveBeenCalledWith('PULL_REQUEST.MERGE.SUCCESS', {
+        landRequestId: request.id,
+        pullRequestId: request.pullRequestId,
+        commit: request.forCommit,
+        sourceBranch: mockPullRequest.sourceBranch,
+        targetBranch: mockPullRequest.targetBranch,
+        duration: expect.any(Number),
+      });
     });
   });
 });

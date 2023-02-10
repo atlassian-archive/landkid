@@ -137,4 +137,5 @@ export type RunnerState = State & {
 export type MergeOptions = {
   skipCI?: boolean;
   mergeStrategy?: IMergeStrategy;
+  numRetries?: number;
 };

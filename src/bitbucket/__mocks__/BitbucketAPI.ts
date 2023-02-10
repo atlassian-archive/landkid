@@ -15,3 +15,8 @@ export const BitbucketAPI = jest.fn().mockImplementation((...args) => {
 
   return api;
 });
+// Mock static properties
+(BitbucketAPI as any).SUCCESS = 'success';
+(BitbucketAPI as any).FAILED = 'failed';
+(BitbucketAPI as any).ABORTED = 'aborted';
+(BitbucketAPI as any).TIMEOUT = 'timeout';
