@@ -234,7 +234,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       Logger.verbose(`Removing all priority branches`, {
-        namespace: 'routes:api:remove-priority-branch',
+        namespace: 'routes:api:remove-all-priority-branches',
       });
       const success = await StateService.removeAllPriorityBranches();
       if (success) {
