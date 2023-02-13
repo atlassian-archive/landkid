@@ -75,6 +75,7 @@ export class BitbucketAPI {
         pullRequestId,
         landRequestId,
         landRequestStatus,
+        numRetries: options.numRetries,
       });
       // Retry merge on failure if numRetries is passed
       if (options.numRetries && options.numRetries > 0) {
