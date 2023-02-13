@@ -7,6 +7,7 @@ import {
 } from '../db';
 import { State } from '../types';
 import { config } from './Config';
+import { Logger } from './Logger';
 
 export class StateService {
   constructor() {}
@@ -51,10 +52,22 @@ export class StateService {
   }
 
   static async updateMaxConcurrentBuild(maxConcurrentBuilds: number, user: ISessionUser) {
-    await ConcurrentBuildState.create<ConcurrentBuildState>({
-      adminAaid: user.aaid,
-      maxConcurrentBuilds,
-    });
+    try {
+      await ConcurrentBuildState.create<ConcurrentBuildState>({
+        adminAaid: user.aaid,
+        maxConcurrentBuilds,
+      });
+      return true;
+    } catch (error) {
+      Logger.error('Error updating max concurrency', {
+        namespace: 'lib:stateService:updateMaxConcurrentBuild',
+        maxConcurrentBuilds,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
+    }
   }
 
   /**
@@ -95,8 +108,16 @@ export class StateService {
         adminAaid: user.aaid,
         branchName,
       });
-    } catch (e) {
-      console.log(`Error adding priority branch: ${e}`);
+      return true;
+    } catch (error) {
+      Logger.error('Error adding priority branch', {
+        namespace: 'lib:stateService:addPriorityBranch',
+        branchName,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
     }
   }
 
@@ -107,8 +128,32 @@ export class StateService {
           branchName: branchName,
         },
       });
-    } catch (e) {
-      console.log(`Error removing priority branch: ${e}`);
+      return true;
+    } catch (error) {
+      Logger.error('Error removing priority branch', {
+        namespace: 'lib:stateService:removePriorityBranch',
+        branchName,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
+    }
+  }
+
+  // Used for end to end testing
+  static async removeAllPriorityBranches() {
+    try {
+      await PriorityBranch.truncate();
+      return true;
+    } catch (error) {
+      Logger.error('Error removing all priority branches', {
+        namespace: 'lib:stateService:removeAllPriorityBranches',
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
     }
   }
 
@@ -122,8 +167,16 @@ export class StateService {
           },
         },
       );
-    } catch (e) {
-      console.log(`Error updating priority branch: ${e}`);
+      return true;
+    } catch (error) {
+      Logger.error('Error updating priority branch', {
+        namespace: 'lib:stateService:updatePriorityBranch',
+        branchName,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
     }
   }
 
