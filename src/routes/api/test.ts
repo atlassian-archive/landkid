@@ -129,7 +129,8 @@ describe('API Routes', () => {
     it('should update concurrent builds slots', async () => {
       expect(StateService.updateMaxConcurrentBuild).not.toHaveBeenCalled();
       expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
-      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
       await updateConcurrentBuildHandler(
         {
           body: {
@@ -143,7 +144,8 @@ describe('API Routes', () => {
       expect(StateService.updateMaxConcurrentBuild).toHaveBeenCalledWith(3, {
         aaid: 'mock-user-aaid',
       });
-      expect(mockResponse.sendStatus).toHaveBeenCalledWith(200);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ success: true });
     });
   });
 

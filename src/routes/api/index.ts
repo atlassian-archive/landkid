@@ -150,7 +150,7 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
 
       if (typeof maxConcurrentBuilds == 'number' && maxConcurrentBuilds > 0) {
         StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
-        return res.sendStatus(200);
+        return res.status(200).json({ success: true });
       }
 
       return res
