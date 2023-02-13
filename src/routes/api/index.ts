@@ -149,8 +149,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       });
 
       if (typeof maxConcurrentBuilds == 'number' && maxConcurrentBuilds > 0) {
-        StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
-        return res.status(200).json({ success: true });
+        const success = await StateService.updateMaxConcurrentBuild(maxConcurrentBuilds, req.user!);
+        if (success) {
+          return res.status(200).json({ success: true });
+        } else {
+          return res.sendStatus(500);
+        }
       }
 
       return res
@@ -171,8 +175,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       Logger.verbose(`Adding priority branch ${branchName}`, {
         namespace: 'routes:api:add-priority-branch',
       });
-      StateService.addPriorityBranch(branchName, req.user!);
-      res.status(200).json({ message: `${branchName} successfully added.` });
+      const success = await StateService.addPriorityBranch(branchName, req.user!);
+      if (success) {
+        res.status(200).json({ message: `${branchName} successfully added.` });
+      } else {
+        res.sendStatus(500);
+      }
     }),
   );
 
@@ -187,8 +195,12 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       Logger.verbose(`Removing priority branch ${branchName}`, {
         namespace: 'routes:api:remove-priority-branch',
       });
-      StateService.removePriorityBranch(branchName);
-      res.status(200).json({ message: `${branchName} successfully removed.` });
+      const success = await StateService.removePriorityBranch(branchName);
+      if (success) {
+        res.status(200).json({ message: `${branchName} successfully removed.` });
+      } else {
+        res.sendStatus(500);
+      }
     }),
   );
 
@@ -208,8 +220,28 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         namespace: 'routes:api:update-priority-branch',
       });
 
-      StateService.updatePriorityBranch(id, branchName);
-      res.status(200).json({ message: `${branchName} successfully updated.` });
+      const success = await StateService.updatePriorityBranch(id, branchName);
+      if (success) {
+        res.status(200).json({ message: `${branchName} successfully updated.` });
+      } else {
+        res.sendStatus(500);
+      }
+    }),
+  );
+
+  router.post(
+    '/remove-all-priority-branches',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      Logger.verbose(`Removing all priority branches`, {
+        namespace: 'routes:api:remove-priority-branch',
+      });
+      const success = await StateService.removeAllPriorityBranches();
+      if (success) {
+        res.status(200).json({ message: `All branches successfully removed.` });
+      } else {
+        res.sendStatus(500);
+      }
     }),
   );
 
