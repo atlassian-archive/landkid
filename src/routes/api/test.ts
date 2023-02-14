@@ -34,7 +34,7 @@ describe('API Routes', () => {
       failBuildHandler = async (req: Function) => {
         const handler = failBuildRoute && failBuildRoute[2];
         if (!handler) return;
-        handler(req, mockResponse, () => {});
+        return handler(req, mockResponse, () => {});
       };
     });
     it('should be registered', async () => {
@@ -84,7 +84,7 @@ describe('API Routes', () => {
       updateConcurrentBuildHandler = async (req: Function) => {
         const handler = updateConcurrentBuildRoute && updateConcurrentBuildRoute[2];
         if (!handler) return;
-        handler(req, mockResponse, () => {});
+        return handler(req, mockResponse, () => {});
       };
     });
     it('should be registered', async () => {
@@ -128,8 +128,8 @@ describe('API Routes', () => {
 
     it('should update concurrent builds slots', async () => {
       expect(StateService.updateMaxConcurrentBuild).not.toHaveBeenCalled();
-      expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
-      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
       await updateConcurrentBuildHandler(
         {
           body: {
@@ -143,7 +143,28 @@ describe('API Routes', () => {
       expect(StateService.updateMaxConcurrentBuild).toHaveBeenCalledWith(3, {
         aaid: 'mock-user-aaid',
       });
-      expect(mockResponse.sendStatus).toHaveBeenCalledWith(200);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ success: true });
+    });
+
+    it('should return 500 on unexpected failure', async () => {
+      expect(StateService.updateMaxConcurrentBuild).not.toHaveBeenCalled();
+      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      (StateService.updateMaxConcurrentBuild as jest.Mock).mockResolvedValueOnce(false);
+      await updateConcurrentBuildHandler(
+        {
+          body: {
+            maxConcurrentBuilds: 3,
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.updateMaxConcurrentBuild).toHaveBeenCalledWith(3, {
+        aaid: 'mock-user-aaid',
+      });
+      expect(mockResponse.sendStatus).toHaveBeenCalledWith(500);
     });
   });
 
@@ -157,7 +178,7 @@ describe('API Routes', () => {
       addPriorityBranchHandler = async (req: Function) => {
         const handler = addPriorityBranchRoute && addPriorityBranchRoute[2];
         if (!handler) return;
-        handler(req, mockResponse, () => {});
+        return handler(req, mockResponse, () => {});
       };
     });
     it('should be registered', async () => {
@@ -176,9 +197,6 @@ describe('API Routes', () => {
       );
     });
     it('should succeed when branchName and user is provided', async () => {
-      jest.spyOn(StateService, 'addPriorityBranch');
-      expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
-      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
       await addPriorityBranchHandler(
         {
           body: {
@@ -197,6 +215,23 @@ describe('API Routes', () => {
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
+    it('should return 500 on unexpected failure', async () => {
+      (StateService.addPriorityBranch as jest.Mock).mockResolvedValueOnce(false);
+      await addPriorityBranchHandler(
+        {
+          body: {
+            branchName: 'test/test-branch',
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.addPriorityBranch).toHaveBeenCalledWith('test/test-branch', {
+        aaid: 'mock-user-aaid',
+      });
+      expect(mockResponse.sendStatus).toHaveBeenCalledWith(500);
+    });
   });
   describe('/remove-priority-branch', () => {
     let removePriorityBranchRoute: [string, ...Function[]];
@@ -208,7 +243,7 @@ describe('API Routes', () => {
       removePriorityBranchHandler = async (req: Function) => {
         const handler = removePriorityBranchRoute && removePriorityBranchRoute[2];
         if (!handler) return;
-        handler(req, mockResponse, () => {});
+        return handler(req, mockResponse, () => {});
       };
     });
     it('should be registered', async () => {
@@ -227,9 +262,6 @@ describe('API Routes', () => {
       );
     });
     it('should succeed when branchName and user is provided', async () => {
-      jest.spyOn(StateService, 'removePriorityBranch');
-      expect(mockRunner.onStatusUpdate).not.toHaveBeenCalled();
-      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
       await removePriorityBranchHandler(
         {
           body: {
@@ -244,6 +276,21 @@ describe('API Routes', () => {
         expect.objectContaining({ message: 'test/test-branch successfully removed.' }),
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+    it('should return 500 on unexpected failure', async () => {
+      (StateService.removePriorityBranch as jest.Mock).mockResolvedValueOnce(false);
+      await removePriorityBranchHandler(
+        {
+          body: {
+            branchName: 'test/test-branch',
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.removePriorityBranch).toHaveBeenCalledWith('test/test-branch');
+      expect(mockResponse.sendStatus).toHaveBeenCalledWith(500);
     });
   });
   // todo: add tests for other routes

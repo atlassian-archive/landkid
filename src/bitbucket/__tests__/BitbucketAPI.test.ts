@@ -52,6 +52,7 @@ describe('mergePullRequest', () => {
       status: BitbucketAPI.FAILED,
       reason: undefined,
     });
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
   });
 
   test('5xx merge failure', async () => {
@@ -68,6 +69,19 @@ describe('mergePullRequest', () => {
       status: BitbucketAPI.FAILED,
       reason: { error: { message: 'reason' } },
     });
+  });
+
+  test('Merge failure with retry attempts', async () => {
+    const spy = jest.spyOn(global, 'setTimeout').mockImplementation((fn: any) => fn());
+    mockedAxios.post.mockResolvedValue({ status: 400 });
+    const result = await mergePullRequest(landRequestStatus, { numRetries: 2 });
+    expect(mockedAxios.post).toHaveBeenCalledTimes(3);
+    expect(global.setTimeout).toHaveBeenCalledTimes(2);
+    expect(result).toStrictEqual({
+      status: BitbucketAPI.FAILED,
+      reason: undefined,
+    });
+    spy.mockRestore();
   });
 
   test('merge failure with message containing fields with merge_checks ', async () => {

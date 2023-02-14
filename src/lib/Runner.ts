@@ -229,7 +229,11 @@ export class Runner {
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
     this.client
-      .mergePullRequest(landRequestStatus, { skipCI, mergeStrategy: landRequest.mergeStrategy })
+      .mergePullRequest(landRequestStatus, {
+        skipCI,
+        mergeStrategy: landRequest.mergeStrategy,
+        numRetries: 2,
+      })
       .then(async (result) => {
         if (result.status === BitbucketAPI.SUCCESS) {
           const end = Date.now();

@@ -2,6 +2,7 @@ const MockedStateServiceModule: any = jest.genMockFromModule('../StateService');
 
 export const StateService = MockedStateServiceModule.StateService;
 
+StateService.updateMaxConcurrentBuild.mockResolvedValue(true);
 StateService.getMaxConcurrentBuilds.mockResolvedValue(2);
 StateService.getPauseState.mockResolvedValue(null);
 StateService.getBannerMessageState.mockResolvedValue(null);
@@ -27,3 +28,5 @@ StateService.getState.mockResolvedValue({
     },
   ],
 });
+StateService.addPriorityBranch.mockResolvedValue(true);
+StateService.removePriorityBranch.mockResolvedValue(true);
