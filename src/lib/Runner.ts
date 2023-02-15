@@ -360,52 +360,46 @@ export class Runner {
 
   // onStatusUpdate only updates status' for landrequests, never moves a state and always exits early
   onStatusUpdate = async (statusEvent: BB.BuildStatusEvent) => {
-    const running = await this.getRunning();
-    if (!running.length) {
-      Logger.info('No builds running, status event is irrelevant', {
+    const requests = await this.getRunning();
+    const landRequestStatus = requests.find(
+      ({ state, request }) => state === 'running' && request.buildId === statusEvent.buildId,
+    );
+
+    const landRequest = landRequestStatus?.request;
+
+    if (!landRequest) {
+      Logger.info('No running build for status event, ignoring', {
         namespace: 'lib:runner:onStatusUpdate',
         statusEvent,
       });
       return;
     }
-    for (const landRequestStatus of running) {
-      const landRequest = landRequestStatus.request;
-      if (statusEvent.buildId !== landRequest.buildId) continue; // check next landRequest
-      switch (statusEvent.buildStatus) {
-        case 'SUCCESSFUL':
-          Logger.info('Moving landRequest to awaiting-merge state', {
-            namespace: 'lib:runner:onStatusUpdate',
-            landRequestId: landRequest.id,
-            pullRequestId: landRequest.pullRequestId,
-            landRequestStatus,
-          });
-          await landRequest.setStatus('awaiting-merge');
-          return this.next();
-        case 'FAILED':
-          Logger.info('Moving landRequest to failed state', {
-            namespace: 'lib:runner:onStatusUpdate',
-            landRequestId: landRequest.id,
-            pullRequestId: landRequest.pullRequestId,
-            landRequestStatus,
-          });
-          await landRequest.setStatus('fail', 'Landkid build failed');
-          return this.next();
-        case 'STOPPED':
-          Logger.info('Moving landRequest to aborted state', {
-            namespace: 'lib:runner:onStatusUpdate',
-            landRequestId: landRequest.id,
-            pullRequestId: landRequest.pullRequestId,
-            landRequestStatus,
-          });
-          await landRequest.setStatus('aborted', 'Landkid pipelines build was stopped');
-          return this.next();
-        default:
-          Logger.info('Dont know what to do with build status, ignoring', {
-            namespace: 'lib:runner:onStatusUpdate',
-            statusEvent,
-          });
-          break;
-      }
+
+    const logMessage = (message: string) =>
+      Logger.info(message, {
+        namespace: 'lib:runner:onStatusUpdate',
+        landRequestId: landRequest.id,
+        pullRequestId: landRequest.pullRequestId,
+        landRequestStatus,
+        statusEvent,
+      });
+
+    switch (statusEvent.buildStatus) {
+      case 'SUCCESSFUL':
+        logMessage('Moving landRequest to awaiting-merge state');
+        await landRequest.setStatus('awaiting-merge');
+        return this.next();
+      case 'FAILED':
+        logMessage('Moving landRequest to failed state');
+        await landRequest.setStatus('fail', 'Landkid build failed');
+        return this.next();
+      case 'STOPPED':
+        logMessage('Moving landRequest to aborted state');
+        await landRequest.setStatus('aborted', 'Landkid pipelines build was stopped');
+        return this.next();
+      default:
+        logMessage('Dont know what to do with build status, ignoring');
+        break;
     }
   };
 

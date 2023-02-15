@@ -643,6 +643,7 @@ describe('Runner', () => {
   describe('onStatusUpdate', () => {
     let request: LandRequest;
     let nextSpy: jest.SpyInstance<any>;
+    let runningStatuses: LandRequestStatus[];
     beforeEach(() => {
       const pullRequest = new PullRequest({
         prId: mockPullRequest.pullRequestId,
@@ -659,15 +660,17 @@ describe('Runner', () => {
         pullRequestId: 1,
         pullRequest,
       });
-      const runningStatus = new LandRequestStatus({
-        date: new Date(120),
-        id: '0',
-        isLatest: true,
-        request,
-        requestId: '0',
-        state: 'running',
-      });
-      mockQueue.getRunning = jest.fn(async () => [runningStatus]);
+      runningStatuses = [
+        new LandRequestStatus({
+          date: new Date(120),
+          id: '0',
+          isLatest: true,
+          request,
+          requestId: '0',
+          state: 'running',
+        }),
+      ];
+      mockQueue.getRunning = jest.fn(async () => runningStatuses);
       nextSpy = jest.spyOn(runner, 'next').mockImplementation(async () => {});
     });
 
@@ -723,6 +726,33 @@ describe('Runner', () => {
       expect(request.setStatus).not.toHaveBeenCalled();
       await runner.onStatusUpdate({
         buildId: 567,
+        buildStatus: 'SUCCESSFUL',
+      });
+      expect(request.setStatus).not.toHaveBeenCalled();
+      expect(nextSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not set status of request with matching build ID and currently in awaiting-merge state', async () => {
+      runningStatuses = [
+        new LandRequestStatus({
+          date: new Date(120),
+          id: '0',
+          isLatest: true,
+          request: new LandRequest({
+            buildId: 1234,
+            created: new Date(120),
+            forCommit: 'abc',
+            id: '0',
+            triggererAaid: '123',
+            pullRequestId: 1,
+          }),
+          requestId: '0',
+          state: 'awaiting-merge',
+        }),
+      ];
+      expect(request.setStatus).not.toHaveBeenCalled();
+      await runner.onStatusUpdate({
+        buildId: 1234,
         buildStatus: 'SUCCESSFUL',
       });
       expect(request.setStatus).not.toHaveBeenCalled();
