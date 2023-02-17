@@ -85,7 +85,7 @@ if (process.mainModule === module) {
   main().catch((err) => {
     Logger.error('Fatal error occurred in main()', {
       err: { message: err.message, stack: err.stack },
-      maybeResponse: err.response,
+      maybeResponse: err.response ? [err.response.status, err.response.data] : undefined,
     });
   });
 }
