@@ -62,6 +62,11 @@ declare interface IPriorityBranch {
   date: Date;
 }
 
+declare interface IAdminSettings {
+  adminAaid: string;
+  mergeBlockingEnabled: boolean;
+}
+
 declare interface IStatusUpdate {
   id: string;
   date: Date;

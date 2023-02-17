@@ -1,4 +1,5 @@
 import {
+  AdminSettings,
   BannerMessageState,
   ConcurrentBuildState,
   LandRequestStatus,
@@ -172,6 +173,47 @@ export class StateService {
       Logger.error('Error updating priority branch', {
         namespace: 'lib:stateService:updatePriorityBranch',
         branchName,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
+    }
+  }
+
+  static async getAdminSettings(): Promise<IAdminSettings | null> {
+    const settings = await AdminSettings.findOne<AdminSettings>({
+      order: [['date', 'DESC']],
+    });
+
+    if (!settings) {
+      return null;
+    }
+
+    const mergeBlockingEnabled = config.mergeSettings?.mergeBlocking?.enabled
+      ? settings.mergeBlockingEnabled
+      : false;
+
+    return {
+      ...settings,
+      mergeBlockingEnabled,
+    };
+  }
+
+  static async updateAdminSettings(
+    settings: Omit<IAdminSettings, 'adminAaid'>,
+    user: ISessionUser,
+  ) {
+    try {
+      await AdminSettings.create<AdminSettings>({
+        adminAaid: user.aaid,
+        mergeBlockingEnabled: settings.mergeBlockingEnabled,
+      });
+      return true;
+    } catch (error) {
+      Logger.error('Error updating admin settings', {
+        namespace: 'lib:stateService:updateAdminSettings',
+        settings,
         error,
         errorString: String(error),
         errorStack: String(error.stack),

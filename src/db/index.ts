@@ -418,6 +418,30 @@ export class PriorityBranch extends Model<PriorityBranch> implements IPriorityBr
   readonly date: Date;
 }
 
+@Table
+export class AdminSettings extends Model<AdminSettings> implements IAdminSettings {
+  @PrimaryKey
+  @Default(Sequelize.UUIDV4)
+  @Column(Sequelize.UUID)
+  readonly id: string;
+
+  /** Admin that made the change */
+  @AllowNull(false)
+  @Column(Sequelize.STRING)
+  readonly adminAaid: string;
+
+  @AllowNull(false)
+  @Default(() => new Date())
+  @Column(Sequelize.DATE)
+  readonly date: Date;
+
+  /** Live feature toggling of config.mergeSettings.waitForBuild. Must be first enabled in config to be enabled here */
+  @AllowNull(false)
+  @Default(false)
+  @Column(Sequelize.BOOLEAN)
+  readonly mergeBlockingEnabled: boolean;
+}
+
 export const initializeSequelize = async () => {
   const sequelize = new Sequelize(
     config.sequelize ||
@@ -439,6 +463,7 @@ export const initializeSequelize = async () => {
     PullRequest,
     LandRequestStatus,
     LandRequest,
+    AdminSettings,
   ]);
 
   await sequelize.authenticate();

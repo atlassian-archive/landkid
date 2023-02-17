@@ -151,7 +151,94 @@ declare namespace BB {
     url: string;
   };
 
-  type Pipeline = {
-    state: { result: { name: BuildState } };
+  interface PipelineTarget {
+    type: 'pipeline_commit_target' | 'pipeline_ref_target' | 'pipeline_pullrequest_target';
+    selector:
+      | { type: 'default' }
+      | {
+          type: 'custom';
+          pattern: string;
+        }
+      | {
+          type: 'branches';
+          pattern: string;
+        }
+      | {
+          type: 'pull-requests';
+          pattern: string;
+        };
+    commit: {
+      type: 'commit';
+      hash: string;
+    };
+    ref_type?: string;
+    ref_name?: string;
+  }
+
+  type PendingState = {
+    name: 'PENDING';
+  };
+
+  type InprogressState = {
+    name: 'INPROGRESS';
+  };
+
+  type CompletedState = {
+    name: 'COMPLETED';
+    result: {
+      name: 'SUCCESSFUL' | 'FAILED' | 'STOPPED';
+    };
+  };
+
+  interface PipelineBase {
+    uuid: string;
+    repository: { [key: string]: any };
+    state: PendingState | InprogressState | CompletedState;
+    build_number: string;
+    creator: { [key: string]: any };
+    created_on: string;
+    completed_on?: string;
+    target: PipelineTarget;
+    trigger: any;
+    run_number: number;
+    duration_in_seconds: number;
+    build_seconds_used: number;
+    first_successful: boolean;
+    expired: boolean;
+    links: SelfLink & StepLink;
+    has_variables: boolean;
+  }
+
+  interface InprogressPipeline extends PipelineBase {
+    state: InprogressState;
+  }
+
+  interface CompletedPipeline extends PipelineBase {
+    state: CompletedState;
+    completed_on: string;
+  }
+
+  interface PendingPipeline extends PipelineBase {
+    state: PendingState;
+  }
+
+  type Pipeline = InprogressPipeline | CompletedPipeline | PendingPipeline;
+
+  type PaginatedResponse<T> = {
+    size: number;
+    page: number;
+    pagelen: number;
+    // URI
+    next?: string;
+    // URI
+    previous?: string;
+    values: T[];
+  };
+
+  type QueryParams = {
+    pagelen?: number;
+    sort?: string;
+    'target.ref_name'?: string;
+    'target.ref_type'?: 'BRANCH';
   };
 }

@@ -200,16 +200,40 @@ export class Runner {
     const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
 
-    if (!dependencies.every((dep) => dep.statuses[0].state === 'success')) {
-      Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
+    function log(msg: string, extraProps: Record<string, any> = {}) {
+      Logger.info(msg, {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         pullRequestId: landRequest.pullRequestId,
         landRequestId: landRequest.id,
         landRequestStatus,
+        ...extraProps,
+      });
+    }
+
+    if (!dependencies.every((dep) => dep.statuses[0].state === 'success')) {
+      log('LandRequest is awaiting-merge but still waiting on dependencies', {
         dependencies,
         lockId,
       });
       return false; // did not move state, return false
+    }
+
+    const adminSettings = await StateService.getAdminSettings();
+    // TODO: Remove true
+    if (adminSettings?.mergeBlockingEnabled || true) {
+      const result = await this.client.isBlockingBuildRunning(pullRequest.targetBranch);
+      if (result.running) {
+        log('LandRequest blocked from merging due to in-progress target branch build', {
+          builds: result.pipelines?.map(({ build_number, created_on, state }) => ({
+            build_number,
+            created_on,
+            state,
+          })),
+        });
+        return false;
+      } else {
+        log('No blocking pipelines running on target branch');
+      }
     }
 
     Logger.info('Triggering merge attempt', {
@@ -636,7 +660,7 @@ export class Runner {
                 // buildStatus can be SUCCESSFUL, FAILED or STOPPED
                 await this.onStatusUpdate({
                   buildId,
-                  buildStatus: state.result?.name,
+                  buildStatus: 'result' in state ? state.result.name : state.name,
                 });
               }
             }

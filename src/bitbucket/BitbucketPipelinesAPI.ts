@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { fromMethodAndPathAndBody, fromMethodAndUrl } from 'atlassian-jwt';
+import pRetry from 'p-retry';
 
 import { Logger } from '../lib/Logger';
 import { RepoConfig } from '../types';
@@ -145,6 +146,50 @@ export class BitbucketPipelinesAPI {
       return false;
     }
     return true;
+  };
+
+  public getPipelines = async (queryParams: BB.QueryParams = {}, numRetries = 3) => {
+    // We add a queryString to ensure we dont get cached responses
+    // const endpoint = `${this.apiBaseUrl}}/pipelines/?${+new Date()}`;
+    const endpoint = `${this.apiBaseUrl}/pipelines/?${+new Date()}`;
+    // const endpointWithParams = axios.getUri({
+    //   url: endpoint,
+    //   params: queryParams,
+    // });
+    // console.log({ endpointWithParams });
+    const paramsWithAuth = await bitbucketAuthenticator.getAuthConfig(
+      fromMethodAndUrl('get', endpoint),
+      {
+        params: queryParams,
+      },
+    );
+    async function fetchPipelines() {
+      const { data } = await axios.get<BB.PaginatedResponse<BB.Pipeline>>(endpoint, paramsWithAuth);
+      return data;
+    }
+
+    const data = await pRetry(fetchPipelines, {
+      onFailedAttempt: (error) => {
+        const anyError: any = error;
+        Logger.error('Error fetching pipelines', {
+          namespace: 'bitbucket:pipelines:getPipelines',
+          attemptNumber: error.attemptNumber,
+          retriesLeft: error.retriesLeft,
+          queryParams,
+          errorString: String(error),
+          errorStack: String(error.stack),
+          error: anyError.response ? [anyError.response.status, anyError.response.data] : null,
+        });
+      },
+      retries: numRetries,
+    });
+
+    Logger.info('Successfully fetched pipelines', {
+      namespace: 'bitbucket:pipelines:getPipelines',
+      queryParams,
+    });
+
+    return data;
   };
 
   getLandBuild = async (buildId: Number): Promise<BB.Pipeline> => {

@@ -156,4 +156,49 @@ export class BitbucketClient {
   getUser(aaid: string): Promise<ISessionUser> {
     return this.bitbucket.getUser(aaid);
   }
+
+  async isBlockingBuildRunning(targetBranch: string): Promise<{
+    running: boolean;
+    pipelines?: BB.Pipeline[];
+  }> {
+    const notRunning = {
+      running: false,
+    };
+    const mergeBlockingConfig = this.config.mergeSettings?.mergeBlocking;
+    if (!mergeBlockingConfig?.enabled) {
+      Logger.error('Attempting to check merge blocking build with disabled config', {
+        targetBranch,
+      });
+      return notRunning;
+    }
+
+    const blockingBuildConfig = mergeBlockingConfig.builds.find(
+      (buildConfig) => buildConfig.targetBranch === targetBranch,
+    );
+    if (!blockingBuildConfig) {
+      Logger.info('No blocking build configured for target branch', {
+        targetBranch,
+      });
+      return notRunning;
+    }
+
+    const pipelinesResult = await this.pipelines.getPipelines({
+      // Fetching last 30 builds should be more than sufficient for finding the latest in-progress build
+      pagelen: 30,
+      // get the most recent builds first
+      sort: '-created_on',
+      'target.ref_name': blockingBuildConfig.targetBranch,
+      'target.ref_type': 'BRANCH',
+    });
+
+    const blockingBuild = blockingBuildConfig.pipelineFilterFn(pipelinesResult.values);
+    if (blockingBuild.length === 0) {
+      return notRunning;
+    } else {
+      return {
+        running: true,
+        pipelines: blockingBuild,
+      };
+    }
+  }
 }
