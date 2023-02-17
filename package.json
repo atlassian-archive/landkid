@@ -106,6 +106,7 @@
     "express": "^4.16.2",
     "express-session": "^1.17.1",
     "express-winston": "^3.0.1",
+    "mem": "^8",
     "micromatch": "^4.0.2",
     "mime": "^3.0.0",
     "p-limit": "^3.1.0",

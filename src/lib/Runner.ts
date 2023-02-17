@@ -1,3 +1,5 @@
+import mem from 'mem';
+
 import { LandRequestQueue } from './Queue';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
 import { LandRequestHistory } from './History';
@@ -221,7 +223,13 @@ export class Runner {
     const adminSettings = await StateService.getAdminSettings();
     // TODO: Remove true
     if (adminSettings?.mergeBlockingEnabled || true) {
-      const result = await this.client.isBlockingBuildRunning(pullRequest.targetBranch);
+      const isBlockingBuildRunning: BitbucketClient['isBlockingBuildRunning'] = mem(
+        this.client.isBlockingBuildRunning.bind(this.client),
+        {
+          maxAge: 30 * 1000,
+        },
+      );
+      const result = await isBlockingBuildRunning(pullRequest.targetBranch);
       if (result.running) {
         log('LandRequest blocked from merging due to in-progress target branch build', {
           builds: result.pipelines?.map(({ build_number, created_on, state }) => ({
@@ -233,6 +241,16 @@ export class Runner {
         return false;
       } else {
         log('No blocking pipelines running on target branch');
+        if (dependentsAwaitingMerge.length === 0) {
+          // We are fine to cache successful calls (i.e. no blocking builds running) if there are further PRs in the
+          // queue that are awaiting merge since a blocking build shouldn't start when all are merged in quick succession (especially
+          // if skipBuildOnDependentsAwaitingMerge is set).
+          // However, we shouldn't cache a successful call if there aren't any other PRs in the queue to prevent a PR being merged
+          // after a blocking build has started during the 30s cache window.
+          // NOTE: This is inefficient as the cache is cleared across all targetBranches but this isn't a major concern as the default
+          //       use case is having a single blocking build for only one target branch.
+          mem.clear(isBlockingBuildRunning);
+        }
       }
     }
 
