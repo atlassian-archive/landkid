@@ -90,6 +90,7 @@ export type TabsProps = {
   maxConcurrentBuilds: number;
   permissionsMessage: string;
   priorityBranchList: IPriorityBranch[];
+  adminSettings: IAdminSettings;
   refreshData: () => void;
 };
 
@@ -129,6 +130,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       maxConcurrentBuilds,
       permissionsMessage,
       priorityBranchList,
+      adminSettings,
       refreshData,
     } = this.props;
 
@@ -143,6 +145,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             bannerMessageState={bannerMessageState}
             maxConcurrentBuilds={maxConcurrentBuilds}
             priorityBranchList={priorityBranchList}
+            adminSettings={adminSettings}
             refreshData={refreshData}
           />
         ) : null}

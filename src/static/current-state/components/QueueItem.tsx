@@ -391,6 +391,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
               <span className={pipeSeparator}> | </span>
             </>
           )}
+          {`PR #${pullRequest.prId}`}
+          <span className={pipeSeparator}> | </span>
           <a
             className={prTitleLink}
             href={prUrlFromId(bitbucketBaseUrl, pullRequestId)}

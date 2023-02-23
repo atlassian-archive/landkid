@@ -435,7 +435,7 @@ export class AdminSettings extends Model<AdminSettings> implements IAdminSetting
   @Column(Sequelize.DATE)
   readonly date: Date;
 
-  /** Live feature toggling of config.mergeSettings.waitForBuild. Must be first enabled in config to be enabled here */
+  /** Live feature toggling of config.mergeSettings.mergeBlocking. Must be first enabled in config to be enabled here */
   @AllowNull(false)
   @Default(false)
   @Column(Sequelize.BOOLEAN)

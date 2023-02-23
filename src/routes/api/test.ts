@@ -168,6 +168,106 @@ describe('API Routes', () => {
     });
   });
 
+  describe('/update-admin-settings', () => {
+    let updateAdminSettingsRoute: [string, ...Function[]];
+    let updateCupdateAdminSettingsHandler: Function;
+    beforeEach(() => {
+      updateAdminSettingsRoute = (mockExpress.post as jest.Mock).mock.calls.find(
+        (call) => call[0] === '/update-admin-settings',
+      );
+      updateCupdateAdminSettingsHandler = async (req: Function) => {
+        const handler = updateAdminSettingsRoute && updateAdminSettingsRoute[2];
+        if (!handler) return;
+        return handler(req, mockResponse, () => {});
+      };
+    });
+    it('should be registered', async () => {
+      expect(mockExpress.post).toHaveBeenCalledWith(
+        '/update-admin-settings',
+        expect.any(Function),
+        expect.any(Function),
+      );
+      expect(updateAdminSettingsRoute).toBeDefined();
+    });
+    it('should fail with status 400 if mergeBlockingEnabled is not supplied', async () => {
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      await updateCupdateAdminSettingsHandler({ body: {} }, mockExpress.response, () => {});
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({ err: 'req.body.mergeBlockingEnabled should be boolean' }),
+      );
+    });
+
+    it.each([[null], ['true']])(
+      'should fail with status 400 if mergeBlockingEnabled %s is not boolean',
+      async (input) => {
+        expect(mockResponse.status).not.toHaveBeenCalled();
+        await updateCupdateAdminSettingsHandler(
+          {
+            body: {
+              mergeBlockingEnabled: input,
+            },
+          },
+          mockExpress.response,
+          () => {},
+        );
+        expect(mockResponse.status).toHaveBeenCalledWith(400);
+        expect(mockResponse.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            err: 'req.body.mergeBlockingEnabled should be boolean',
+          }),
+        );
+      },
+    );
+
+    it('should update admin settings', async () => {
+      expect(StateService.updateAdminSettings).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
+      await updateCupdateAdminSettingsHandler(
+        {
+          body: {
+            mergeBlockingEnabled: true,
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.updateAdminSettings).toHaveBeenCalledWith(
+        { mergeBlockingEnabled: true },
+        {
+          aaid: 'mock-user-aaid',
+        },
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ success: true });
+    });
+
+    it('should return 500 on unexpected failure', async () => {
+      expect(StateService.updateAdminSettings).not.toHaveBeenCalled();
+      expect(mockResponse.sendStatus).not.toHaveBeenCalled();
+      (StateService.updateAdminSettings as jest.Mock).mockResolvedValueOnce(false);
+      await updateCupdateAdminSettingsHandler(
+        {
+          body: {
+            mergeBlockingEnabled: true,
+          },
+          user: { aaid: 'mock-user-aaid' },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(StateService.updateAdminSettings).toHaveBeenCalledWith(
+        { mergeBlockingEnabled: true },
+        {
+          aaid: 'mock-user-aaid',
+        },
+      );
+      expect(mockResponse.sendStatus).toHaveBeenCalledWith(500);
+    });
+  });
+
   describe('/add-priority-branch', () => {
     let addPriorityBranchRoute: [string, ...Function[]];
     let addPriorityBranchHandler: Function;

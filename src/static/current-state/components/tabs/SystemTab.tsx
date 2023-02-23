@@ -11,12 +11,14 @@ export type SystemTabProps = {
   bannerMessageState: IMessageState | null;
   maxConcurrentBuilds: number;
   priorityBranchList: IPriorityBranch[];
+  adminSettings: { mergeBlockingEnabled: boolean };
   refreshData: () => void;
 };
 
 export type SystemTabsState = {
   paused: boolean;
   maxConcurrentBuilds: number;
+  adminSettings: { mergeBlockingEnabled: boolean };
 };
 
 export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> {
@@ -25,6 +27,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
     this.state = {
       paused: props.defaultPaused,
       maxConcurrentBuilds: props.maxConcurrentBuilds,
+      adminSettings: props.adminSettings,
     };
   }
   handlePauseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +53,27 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
         refreshData();
       });
     }
+  };
+
+  handleMergeBlockingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { refreshData } = this.props;
+    const mergeBlockingEnabled = e.target.checked;
+
+    fetch('/api/update-admin-settings', {
+      method: 'POST',
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ mergeBlockingEnabled }),
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.error) {
+          console.error(json.error);
+          window.alert(json.error);
+        } else {
+          this.setState({ adminSettings: { mergeBlockingEnabled } });
+          refreshData();
+        }
+      });
   };
 
   handleNextClick = () => {
@@ -114,6 +138,27 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                   onChange={this.handlePauseChange}
                 />
                 <label htmlFor="pause-toggle">Option</label>
+              </div>
+              <div
+                className="ak-field-toggle ak-field-toggle__size-large"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  fontSize: '14px',
+                  marginTop: '10px',
+                }}
+              >
+                <span>Merge blocking: </span>
+                <input
+                  type="checkbox"
+                  name="merge-blocking-toggle"
+                  id="merge-blocking-toggle"
+                  value="merge-blocking-toggle"
+                  checked={this.state.adminSettings.mergeBlockingEnabled}
+                  onChange={this.handleMergeBlockingChange}
+                />
+                <label htmlFor="merge-blocking-toggle">Merge blocking enabled</label>
               </div>
               <div style={{ marginTop: '10px' }}>
                 <button

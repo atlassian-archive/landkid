@@ -63,7 +63,7 @@ declare interface IPriorityBranch {
 }
 
 declare interface IAdminSettings {
-  adminAaid: string;
+  adminAaid?: string;
   mergeBlockingEnabled: boolean;
 }
 

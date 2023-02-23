@@ -181,22 +181,20 @@ export class StateService {
     }
   }
 
-  static async getAdminSettings(): Promise<IAdminSettings | null> {
+  static async getAdminSettings(): Promise<IAdminSettings> {
+    const defaultMergeBlockingEnabled = !!config.mergeSettings?.mergeBlocking?.enabled;
     const settings = await AdminSettings.findOne<AdminSettings>({
       order: [['date', 'DESC']],
     });
 
     if (!settings) {
-      return null;
+      return {
+        mergeBlockingEnabled: defaultMergeBlockingEnabled,
+      };
     }
 
-    const mergeBlockingEnabled = config.mergeSettings?.mergeBlocking?.enabled
-      ? settings.mergeBlockingEnabled
-      : false;
-
     return {
-      ...settings,
-      mergeBlockingEnabled,
+      mergeBlockingEnabled: defaultMergeBlockingEnabled ? settings.mergeBlockingEnabled : false,
     };
   }
 
@@ -229,12 +227,14 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
+      adminSettings,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.getBannerMessageState(),
       this.getMaxConcurrentBuilds(),
       this.getPriorityBranches(),
+      this.getAdminSettings(),
     ]);
 
     return {
@@ -243,6 +243,7 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
+      adminSettings,
     };
   }
 }

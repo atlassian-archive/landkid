@@ -132,6 +132,7 @@ export type State = {
   maxConcurrentBuilds: number;
   daysSinceLastFailure: number;
   priorityBranchList: IPriorityBranch[];
+  adminSettings: IAdminSettings;
 };
 
 export type RunnerState = State & {

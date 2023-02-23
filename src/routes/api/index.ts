@@ -163,6 +163,28 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     }),
   );
 
+  router.post(
+    '/update-admin-settings',
+    requireAuth('admin'),
+    wrap(async (req, res) => {
+      const mergeBlockingEnabled = req?.body?.mergeBlockingEnabled;
+      Logger.verbose(`Updating mergeBlockingEnabled to ${mergeBlockingEnabled}`, {
+        namespace: 'routes:api:uupdate-admin-settings',
+      });
+
+      if (typeof mergeBlockingEnabled == 'boolean') {
+        const success = await StateService.updateAdminSettings({ mergeBlockingEnabled }, req.user!);
+        if (success) {
+          return res.status(200).json({ success: true });
+        } else {
+          return res.sendStatus(500);
+        }
+      }
+
+      return res.status(400).json({ err: 'req.body.mergeBlockingEnabled should be boolean' });
+    }),
+  );
+
   //endpoints for managing priority branch list
   router.post(
     '/add-priority-branch',

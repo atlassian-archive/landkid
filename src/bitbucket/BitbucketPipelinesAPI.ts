@@ -149,14 +149,7 @@ export class BitbucketPipelinesAPI {
   };
 
   public getPipelines = async (queryParams: BB.QueryParams = {}, numRetries = 3) => {
-    // We add a queryString to ensure we dont get cached responses
-    // const endpoint = `${this.apiBaseUrl}}/pipelines/?${+new Date()}`;
     const endpoint = `${this.apiBaseUrl}/pipelines/?${+new Date()}`;
-    // const endpointWithParams = axios.getUri({
-    //   url: endpoint,
-    //   params: queryParams,
-    // });
-    // console.log({ endpointWithParams });
     const paramsWithAuth = await bitbucketAuthenticator.getAuthConfig(
       fromMethodAndUrl('get', endpoint),
       {
@@ -164,8 +157,8 @@ export class BitbucketPipelinesAPI {
       },
     );
     async function fetchPipelines() {
-      const { data } = await axios.get<BB.PaginatedResponse<BB.Pipeline>>(endpoint, paramsWithAuth);
-      return data;
+      const response = await axios.get<BB.PaginatedResponse<BB.Pipeline>>(endpoint, paramsWithAuth);
+      return response?.data;
     }
 
     const data = await pRetry(fetchPipelines, {
