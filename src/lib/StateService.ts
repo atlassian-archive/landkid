@@ -1,4 +1,5 @@
 import {
+  AdminSettings,
   BannerMessageState,
   ConcurrentBuildState,
   LandRequestStatus,
@@ -180,6 +181,45 @@ export class StateService {
     }
   }
 
+  static async getAdminSettings(): Promise<IAdminSettings> {
+    const defaultMergeBlockingEnabled = !!config.mergeSettings?.mergeBlocking?.enabled;
+    const settings = await AdminSettings.findOne<AdminSettings>({
+      order: [['date', 'DESC']],
+    });
+
+    if (!settings) {
+      return {
+        mergeBlockingEnabled: defaultMergeBlockingEnabled,
+      };
+    }
+
+    return {
+      mergeBlockingEnabled: defaultMergeBlockingEnabled ? settings.mergeBlockingEnabled : false,
+    };
+  }
+
+  static async updateAdminSettings(
+    settings: Omit<IAdminSettings, 'adminAaid'>,
+    user: ISessionUser,
+  ) {
+    try {
+      await AdminSettings.create<AdminSettings>({
+        adminAaid: user.aaid,
+        mergeBlockingEnabled: settings.mergeBlockingEnabled,
+      });
+      return true;
+    } catch (error) {
+      Logger.error('Error updating admin settings', {
+        namespace: 'lib:stateService:updateAdminSettings',
+        settings,
+        error,
+        errorString: String(error),
+        errorStack: String(error.stack),
+      });
+      return false;
+    }
+  }
+
   static async getState(): Promise<State> {
     const [
       daysSinceLastFailure,
@@ -187,12 +227,14 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
+      adminSettings,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.getBannerMessageState(),
       this.getMaxConcurrentBuilds(),
       this.getPriorityBranches(),
+      this.getAdminSettings(),
     ]);
 
     return {
@@ -201,6 +243,8 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
+      adminSettings,
+      config: { mergeSettings: config.mergeSettings },
     };
   }
 }

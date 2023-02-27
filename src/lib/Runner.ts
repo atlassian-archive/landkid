@@ -1,3 +1,5 @@
+import mem from 'mem';
+
 import { LandRequestQueue } from './Queue';
 import { BitbucketClient } from '../bitbucket/BitbucketClient';
 import { LandRequestHistory } from './History';
@@ -62,6 +64,12 @@ export class Runner {
     return [...queued, ...waiting];
   };
 
+  areMaxConcurrentBuildsRunning = async (processingLandRequestStatuses: LandRequestStatus[]) => {
+    const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
+    const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
+    return running.length >= maxConcurrentBuilds;
+  };
+
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     if (await StateService.getPauseState()) return;
     const landRequest = landRequestStatus.request;
@@ -69,15 +77,13 @@ export class Runner {
     const runningTargetingSameBranch = running.filter(
       (build) => build.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
     );
-    const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
-    if (runningTargetingSameBranch.length >= maxConcurrentBuilds) {
+    if (await this.areMaxConcurrentBuildsRunning(runningTargetingSameBranch)) {
       Logger.verbose('No concurrent build slots left', {
         namespace: 'lib:runner:moveFromQueueToRunning',
         landRequestId: landRequest.id,
         pullRequestId: landRequest.pullRequestId,
         landRequestStatus,
         runningTargetingSameBranch,
-        maxConcurrentBuilds,
         lockId,
       });
       return false;
@@ -200,16 +206,55 @@ export class Runner {
     const pullRequest = landRequest.pullRequest;
     const dependencies = await landRequest.getDependencies();
 
-    if (!dependencies.every((dep) => dep.statuses[0].state === 'success')) {
-      Logger.info('LandRequest is awaiting-merge but still waiting on dependencies', {
+    function log(msg: string, extraProps: Record<string, any> = {}) {
+      Logger.info(msg, {
         namespace: 'lib:runner:moveFromAwaitingMerge',
         pullRequestId: landRequest.pullRequestId,
         landRequestId: landRequest.id,
         landRequestStatus,
+        ...extraProps,
+      });
+    }
+
+    if (!dependencies.every((dep) => dep.statuses[0].state === 'success')) {
+      log('LandRequest is awaiting-merge but still waiting on dependencies', {
         dependencies,
         lockId,
       });
       return false; // did not move state, return false
+    }
+
+    const adminSettings = await StateService.getAdminSettings();
+    if (adminSettings?.mergeBlockingEnabled) {
+      const isBlockingBuildRunning: BitbucketClient['isBlockingBuildRunning'] = mem(
+        this.client.isBlockingBuildRunning.bind(this.client),
+        {
+          maxAge: 30 * 1000,
+        },
+      );
+      const result = await isBlockingBuildRunning(pullRequest.targetBranch);
+      if (result.running) {
+        log('LandRequest blocked from merging due to in-progress target branch build', {
+          builds: result.pipelines?.map(({ build_number, created_on, state }) => ({
+            build_number,
+            created_on,
+            state,
+          })),
+        });
+        return false;
+      } else {
+        log('No blocking pipelines running on target branch');
+        if (dependentsAwaitingMerge.length === 0) {
+          // We are fine to cache successful calls (i.e. no blocking builds running) if there are further PRs in the
+          // queue that are awaiting merge since a blocking build shouldn't start when all are merged in quick succession (especially
+          // if skipBuildOnDependentsAwaitingMerge is set).
+          // However, we shouldn't cache a successful call if there aren't any other PRs in the queue to prevent a PR being merged
+          // after a blocking build has started during the 30s cache window.
+          // NOTE: This is inefficient as the cache is cleared across all targetBranches but this isn't a major concern as the default
+          //       use case is having a single blocking build for only one target branch.
+          mem.clear(isBlockingBuildRunning);
+        }
+      }
     }
 
     Logger.info('Triggering merge attempt', {
@@ -228,6 +273,16 @@ export class Runner {
       this.config.mergeSettings &&
       this.config.mergeSettings.skipBuildOnDependentsAwaitingMerge;
 
+    const emitEvent = (message: string, extraProps?: {}) => {
+      eventEmitter.emit(message, {
+        landRequestId: landRequestStatus.requestId,
+        pullRequestId: landRequest.pullRequestId,
+        commit: landRequest.forCommit,
+        sourceBranch: pullRequest.sourceBranch,
+        targetBranch: pullRequest.targetBranch,
+        ...extraProps,
+      });
+    };
     this.client
       .mergePullRequest(landRequestStatus, {
         skipCI,
@@ -239,24 +294,10 @@ export class Runner {
           const end = Date.now();
           const queuedDate = await landRequest.getQueuedDate();
           const start = queuedDate!.getTime();
-          eventEmitter.emit('PULL_REQUEST.MERGE.SUCCESS', {
-            landRequestId: landRequestStatus.requestId,
-            pullRequestId: landRequest.pullRequestId,
-            commit: landRequest.forCommit,
-            sourceBranch: pullRequest.sourceBranch,
-            targetBranch: pullRequest.targetBranch,
-            duration: end - start,
-          });
+          emitEvent('PULL_REQUEST.MERGE.SUCCESS', { duration: end - start });
           await landRequest.setStatus('success');
         } else if (result.status === BitbucketAPI.FAILED) {
-          eventEmitter.emit('PULL_REQUEST.MERGE.FAIL', {
-            landRequestId: landRequestStatus.requestId,
-            pullRequestId: landRequest.pullRequestId,
-            commit: landRequest.forCommit,
-            sourceBranch: pullRequest.sourceBranch,
-            targetBranch: pullRequest.targetBranch,
-          });
-
+          emitEvent('PULL_REQUEST.MERGE.FAIL');
           await landRequest.setStatus(
             'fail',
             `Unable to merge pull request: ${result.reason?.error?.message}. ${
@@ -264,25 +305,13 @@ export class Runner {
             }`,
           );
         } else if (result.status === BitbucketAPI.ABORTED) {
-          eventEmitter.emit('PULL_REQUEST.MERGE.ABORT', {
-            landRequestId: landRequestStatus.requestId,
-            pullRequestId: landRequest.pullRequestId,
-            commit: landRequest.forCommit,
-            sourceBranch: pullRequest.sourceBranch,
-            targetBranch: pullRequest.targetBranch,
-          });
+          emitEvent('PULL_REQUEST.MERGE.ABORT');
           await landRequest.setStatus(
             'aborted',
             'Merging aborted due to manual cancel (PR may still merge anyway)',
           );
         } else if (result.status === BitbucketAPI.TIMEOUT) {
-          eventEmitter.emit('PULL_REQUEST.MERGE.POLL_TIMEOUT', {
-            landRequestId: landRequestStatus.requestId,
-            pullRequestId: landRequest.pullRequestId,
-            commit: landRequest.forCommit,
-            sourceBranch: pullRequest.sourceBranch,
-            targetBranch: pullRequest.targetBranch,
-          });
+          emitEvent('PULL_REQUEST.MERGE.POLL_TIMEOUT');
           await landRequest.setStatus(
             'aborted',
             'Merging aborted due to polling exceeding maximum attempts (PR may still merge anyway)',
@@ -636,7 +665,7 @@ export class Runner {
                 // buildStatus can be SUCCESSFUL, FAILED or STOPPED
                 await this.onStatusUpdate({
                   buildId,
-                  buildStatus: state.result?.name,
+                  buildStatus: 'result' in state ? state.result.name : state.name,
                 });
               }
             }

@@ -28,7 +28,6 @@ export const withLock = async <T>(
   } catch (err) {
     Logger.error(`Error failed while in lock for "${resource}"`, {
       namespace: 'lib:utils:locker:withLock',
-      err,
       errString: String(err),
       errStack: String(err.stack),
     });

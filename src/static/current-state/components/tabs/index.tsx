@@ -4,6 +4,7 @@ import { Section } from '../Section';
 import { SystemTab } from './SystemTab';
 import { QueueTab } from './QueueTab';
 import { HistoryTab } from './HistoryTab';
+import { MergeSettings } from '../../../../types';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -90,6 +91,8 @@ export type TabsProps = {
   maxConcurrentBuilds: number;
   permissionsMessage: string;
   priorityBranchList: IPriorityBranch[];
+  adminSettings: IAdminSettings;
+  config: { mergeSettings?: MergeSettings };
   refreshData: () => void;
 };
 
@@ -129,6 +132,8 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
       maxConcurrentBuilds,
       permissionsMessage,
       priorityBranchList,
+      adminSettings,
+      config,
       refreshData,
     } = this.props;
 
@@ -143,6 +148,8 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             bannerMessageState={bannerMessageState}
             maxConcurrentBuilds={maxConcurrentBuilds}
             priorityBranchList={priorityBranchList}
+            adminSettings={adminSettings}
+            config={config}
             refreshData={refreshData}
           />
         ) : null}

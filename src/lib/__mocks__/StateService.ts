@@ -30,3 +30,4 @@ StateService.getState.mockResolvedValue({
 });
 StateService.addPriorityBranch.mockResolvedValue(true);
 StateService.removePriorityBranch.mockResolvedValue(true);
+StateService.updateAdminSettings.mockResolvedValue(true);

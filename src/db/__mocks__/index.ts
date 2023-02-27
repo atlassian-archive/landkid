@@ -34,4 +34,5 @@ export const PauseState = MockedDb.PauseState;
 export const BannerMessageState = MockedDb.BannerMessageState;
 export const ConcurrentBuildState = MockedDb.ConcurrentBuildState;
 export const PriorityBranch = MockedDb.PriorityBranch;
+export const AdminSettings = MockedDb.AdminSettings;
 export const initializeSequelize = MockedDb.initializeSequelize;

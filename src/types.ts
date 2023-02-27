@@ -110,11 +110,20 @@ export type Config = {
 
 export type MergeSettings = {
   /** Skip the destination branch build when there are successful dependent requests awaiting merge.
-   * This prevents multiple branch builds triggering multiple merges happen in quick succession.
+   * This prevents multiple branch builds triggering multiple merges that happen in quick succession.
    * Achieved by adding [skip ci] to the merge commit message
    */
   skipBuildOnDependentsAwaitingMerge?: boolean;
-  // waitForBuild?: { // TBD };
+  /** Wait for particular builds on the target branch to finish before merging */
+  mergeBlocking?: {
+    enabled: boolean;
+    builds: [
+      {
+        targetBranch: string;
+        pipelineFilterFn: (pipelines: BB.Pipeline[]) => BB.Pipeline[];
+      },
+    ];
+  };
 };
 
 export type State = {
@@ -123,6 +132,8 @@ export type State = {
   maxConcurrentBuilds: number;
   daysSinceLastFailure: number;
   priorityBranchList: IPriorityBranch[];
+  adminSettings: IAdminSettings;
+  config: { mergeSettings?: MergeSettings };
 };
 
 export type RunnerState = State & {

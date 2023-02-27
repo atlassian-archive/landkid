@@ -436,7 +436,67 @@ describe('Runner', () => {
     });
   });
 
+  describe('areMaxConcurrentBuildsRunning', () => {
+    test('should return true when all concurrent slots are used', async () => {
+      const runningStatus = new LandRequestStatus({
+        state: 'running',
+      });
+
+      const areMaxConcurrentBuildsRunning = await runner.areMaxConcurrentBuildsRunning([
+        runningStatus,
+        runningStatus,
+      ]);
+      expect(areMaxConcurrentBuildsRunning).toBe(true);
+    });
+
+    test('should return false when all concurrent slots are not used', async () => {
+      const runningStatus = new LandRequestStatus({
+        state: 'running',
+      });
+      const awaitingMergeStatus = new LandRequestStatus({
+        state: 'awaiting-merge',
+      });
+
+      const areMaxConcurrentBuildsRunning = await runner.areMaxConcurrentBuildsRunning([
+        runningStatus,
+        awaitingMergeStatus,
+      ]);
+      expect(areMaxConcurrentBuildsRunning).toBe(false);
+    });
+  });
+
   describe('moveFromQueueToRunning', () => {
+    test('should return false if all running slots are occupied', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'queued',
+      });
+      jest.spyOn(runner, 'areMaxConcurrentBuildsRunning').mockResolvedValueOnce(true);
+
+      const response = await runner.moveFromQueueToRunning(status, new Date());
+
+      expect(runner.areMaxConcurrentBuildsRunning).toHaveBeenCalledWith([]);
+      expect(response).toBe(false);
+      expect(request.setStatus).not.toHaveBeenCalled();
+    });
+
     test('should successfully transition land request from queued to running if all checks pass', async () => {
       const request = new LandRequest({
         created: new Date(123),
@@ -792,7 +852,7 @@ describe('Runner', () => {
     beforeEach(() => {
       emitSpy = jest.spyOn(eventEmitter, 'emit');
     });
-    it('should merge the pull request', async () => {
+    test('should merge the pull request', async () => {
       const request = new LandRequest({
         created: new Date(123),
         forCommit: 'abc',
@@ -842,6 +902,81 @@ describe('Runner', () => {
         targetBranch: mockPullRequest.targetBranch,
         duration: expect.any(Number),
       });
+    });
+
+    test('should not merge the pull request if the blocking build is running', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          sourceBranch: mockPullRequest.sourceBranch,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'awaiting-merge',
+      });
+      jest
+        .spyOn(StateService, 'getAdminSettings')
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+      jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: true });
+
+      const response = await runner.moveFromAwaitingMerge(status, new Date('2020-01-01'), []);
+
+      expect(response).toBe(false);
+      expect(mockClient.isBlockingBuildRunning).toHaveBeenCalledWith('master');
+      expect(request.setStatus).not.toHaveBeenCalled();
+    });
+    test('should merge the pull request if the blocking build is completed', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          sourceBranch: mockPullRequest.sourceBranch,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'awaiting-merge',
+      });
+      jest
+        .spyOn(StateService, 'getAdminSettings')
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+      jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: false });
+      jest.spyOn(mockClient, 'mergePullRequest').mockResolvedValueOnce({
+        status: 'success',
+      });
+
+      await runner.moveFromAwaitingMerge(status, new Date('2020-01-01'), []);
+      // The merge isn't awaited within the function so we need to await it ourselves
+      await flushPromises();
+
+      expect(mockClient.isBlockingBuildRunning).toHaveBeenCalledWith('master');
+      expect(request.setStatus).toHaveBeenCalledTimes(2);
+      expect(request.setStatus).toHaveBeenNthCalledWith(1, 'merging');
+      expect(request.setStatus).toHaveBeenNthCalledWith(2, 'success');
     });
   });
 });

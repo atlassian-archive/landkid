@@ -39,6 +39,8 @@ export const App: React.FunctionComponent = () => (
                       maxConcurrentBuilds={data.maxConcurrentBuilds}
                       permissionsMessage={data.permissionsMessage}
                       priorityBranchList={data.priorityBranchList}
+                      adminSettings={data.adminSettings}
+                      config={data.config}
                       refreshData={refresh}
                     />
                   </div>

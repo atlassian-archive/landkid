@@ -52,7 +52,29 @@ module.exports = {
      */
   },
   mergeSettings: {
-    skipBuildOnDependentsAwaitingMerge: false,
+    skipBuildOnDependentsAwaitingMerge: true,
+    mergeBlocking: {
+      enabled: false,
+      builds: [
+        {
+          targetBranch: 'master',
+          pipelineFilterFn: (pipelines) => {
+            return (
+              pipelines
+                .filter(
+                  (pipeline) =>
+                    pipeline.state.name === 'IN_PROGRESS' || pipeline.state.name === 'PENDING',
+                )
+                // Filter to only default builds run on 'push'.
+                // Allow manual trigger of default builds but exclude custom builds that are triggered manually
+                .filter(
+                  (job) => job.trigger.name !== 'SCHEDULE' && job.target.selector.type !== 'custom',
+                )
+            );
+          },
+        },
+      ],
+    },
   },
   eventListeners: [
     {
