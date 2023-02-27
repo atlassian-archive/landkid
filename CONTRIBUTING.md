@@ -11,7 +11,7 @@ First you'll need to have a repo to test in that is under your name. So [create 
 Now you'll need to set up Pipelines. On the sidebar you should see a `Pipelines` button, click that. It will ask which kind of build you wish to create, select `Javascript`. It should have a sample config in front of you. Replace it with:
 
 ```yml
-image: node:12
+image: node:18
 
 pipelines:
   default: # This is the default branch build
