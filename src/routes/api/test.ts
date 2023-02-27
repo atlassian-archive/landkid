@@ -170,12 +170,12 @@ describe('API Routes', () => {
 
   describe('/update-admin-settings', () => {
     let updateAdminSettingsRoute: [string, ...Function[]];
-    let updateCupdateAdminSettingsHandler: Function;
+    let updateAdminSettingsHandler: Function;
     beforeEach(() => {
       updateAdminSettingsRoute = (mockExpress.post as jest.Mock).mock.calls.find(
         (call) => call[0] === '/update-admin-settings',
       );
-      updateCupdateAdminSettingsHandler = async (req: Function) => {
+      updateAdminSettingsHandler = async (req: Function) => {
         const handler = updateAdminSettingsRoute && updateAdminSettingsRoute[2];
         if (!handler) return;
         return handler(req, mockResponse, () => {});
@@ -191,7 +191,7 @@ describe('API Routes', () => {
     });
     it('should fail with status 400 if mergeBlockingEnabled is not supplied', async () => {
       expect(mockResponse.status).not.toHaveBeenCalled();
-      await updateCupdateAdminSettingsHandler({ body: {} }, mockExpress.response, () => {});
+      await updateAdminSettingsHandler({ body: {} }, mockExpress.response, () => {});
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({ err: 'req.body.mergeBlockingEnabled should be boolean' }),
@@ -202,7 +202,7 @@ describe('API Routes', () => {
       'should fail with status 400 if mergeBlockingEnabled %s is not boolean',
       async (input) => {
         expect(mockResponse.status).not.toHaveBeenCalled();
-        await updateCupdateAdminSettingsHandler(
+        await updateAdminSettingsHandler(
           {
             body: {
               mergeBlockingEnabled: input,
@@ -224,7 +224,7 @@ describe('API Routes', () => {
       expect(StateService.updateAdminSettings).not.toHaveBeenCalled();
       expect(mockResponse.status).not.toHaveBeenCalled();
       expect(mockResponse.json).not.toHaveBeenCalled();
-      await updateCupdateAdminSettingsHandler(
+      await updateAdminSettingsHandler(
         {
           body: {
             mergeBlockingEnabled: true,
@@ -248,7 +248,7 @@ describe('API Routes', () => {
       expect(StateService.updateAdminSettings).not.toHaveBeenCalled();
       expect(mockResponse.sendStatus).not.toHaveBeenCalled();
       (StateService.updateAdminSettings as jest.Mock).mockResolvedValueOnce(false);
-      await updateCupdateAdminSettingsHandler(
+      await updateAdminSettingsHandler(
         {
           body: {
             mergeBlockingEnabled: true,

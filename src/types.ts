@@ -133,6 +133,7 @@ export type State = {
   daysSinceLastFailure: number;
   priorityBranchList: IPriorityBranch[];
   adminSettings: IAdminSettings;
+  config: { mergeSettings?: MergeSettings };
 };
 
 export type RunnerState = State & {

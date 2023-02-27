@@ -40,6 +40,7 @@ export const App: React.FunctionComponent = () => (
                       permissionsMessage={data.permissionsMessage}
                       priorityBranchList={data.priorityBranchList}
                       adminSettings={data.adminSettings}
+                      config={data.config}
                       refreshData={refresh}
                     />
                   </div>

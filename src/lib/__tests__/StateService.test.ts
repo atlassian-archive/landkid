@@ -107,11 +107,11 @@ describe('StateService', () => {
 
   describe('getAdminSettings', () => {
     let oldMergeSettings: MergeSettings | undefined;
-    beforeEach(() => {
+    beforeAll(() => {
       oldMergeSettings = config.mergeSettings;
     });
 
-    afterEach(() => {
+    afterAll(() => {
       config.mergeSettings = oldMergeSettings;
     });
 

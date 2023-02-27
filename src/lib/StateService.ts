@@ -244,6 +244,7 @@ export class StateService {
       maxConcurrentBuilds,
       priorityBranchList,
       adminSettings,
+      config: { mergeSettings: config.mergeSettings },
     };
   }
 }

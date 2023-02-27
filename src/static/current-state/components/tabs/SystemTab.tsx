@@ -3,6 +3,9 @@ import { TabContent } from './TabContent';
 import { Messenger } from './Messenger';
 import { UsersList } from './UsersList';
 import { PriorityBranchList } from './PriorityBranchList';
+import { MergeSettings } from '../../../../types';
+import Info from '@atlaskit/icon/glyph/info';
+import Tooltip from '@atlaskit/tooltip';
 
 export type SystemTabProps = {
   users: UserState[];
@@ -12,6 +15,7 @@ export type SystemTabProps = {
   maxConcurrentBuilds: number;
   priorityBranchList: IPriorityBranch[];
   adminSettings: { mergeBlockingEnabled: boolean };
+  config: { mergeSettings?: MergeSettings };
   refreshData: () => void;
 };
 
@@ -111,7 +115,7 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   render() {
-    const { users, loggedInUser, bannerMessageState, refreshData } = this.props;
+    const { users, loggedInUser, bannerMessageState, refreshData, config } = this.props;
     return (
       <TabContent>
         <div style={{ marginTop: '27px' }}>
@@ -139,27 +143,36 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                 />
                 <label htmlFor="pause-toggle">Option</label>
               </div>
-              <div
-                className="ak-field-toggle ak-field-toggle__size-large"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  fontSize: '14px',
-                  marginTop: '10px',
-                }}
-              >
-                <span>Merge blocking: </span>
-                <input
-                  type="checkbox"
-                  name="merge-blocking-toggle"
-                  id="merge-blocking-toggle"
-                  value="merge-blocking-toggle"
-                  checked={this.state.adminSettings.mergeBlockingEnabled}
-                  onChange={this.handleMergeBlockingChange}
-                />
-                <label htmlFor="merge-blocking-toggle">Merge blocking enabled</label>
-              </div>
+              {config.mergeSettings?.mergeBlocking?.enabled && (
+                <div
+                  className="ak-field-toggle ak-field-toggle__size-large"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    fontSize: '14px',
+                    marginTop: '10px',
+                  }}
+                >
+                  <span>Merge blocking: </span>
+                  <Tooltip
+                    content="Block merging of PRs based on the configured builds"
+                    position="top"
+                  >
+                    <Info label="info" size="small"></Info>
+                  </Tooltip>
+                  <input
+                    type="checkbox"
+                    name="merge-blocking-toggle"
+                    id="merge-blocking-toggle"
+                    value="merge-blocking-toggle"
+                    checked={this.state.adminSettings.mergeBlockingEnabled}
+                    onChange={this.handleMergeBlockingChange}
+                  />
+                  <label htmlFor="merge-blocking-toggle">Merge blocking enabled</label>
+                </div>
+              )}
+
               <div style={{ marginTop: '10px' }}>
                 <button
                   className="ak-button ak-button__appearance-default"
