@@ -440,6 +440,12 @@ export class AdminSettings extends Model<AdminSettings> implements IAdminSetting
   @Default(false)
   @Column(Sequelize.BOOLEAN)
   readonly mergeBlockingEnabled: boolean;
+
+  // // adding coulmn is causing an issue, db upgrade is required.
+  // @AllowNull(false)
+  // @Default(false)
+  // @Column(Sequelize.BOOLEAN)
+  // readonly speculationEngineEnabled: boolean;
 }
 
 export const initializeSequelize = async () => {

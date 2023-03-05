@@ -12,6 +12,7 @@ import { eventEmitter } from './Events';
 import { BitbucketAPI } from '../bitbucket/BitbucketAPI';
 import { StateService } from './StateService';
 import { validatePriorityBranch } from './utils/helper-functions';
+import { SepculationEngine } from './SpeculationEngine';
 
 // const MAX_WAITING_TIME_FOR_PR_MS = 2 * 24 * 60 * 60 * 1000; // 2 days - max time build can "land-when able"
 
@@ -50,12 +51,12 @@ export class Runner {
     }, 10 * 60 * 1000);
   }
 
-  getQueue = async () => {
-    return this.queue.getQueue();
+  getQueue = async (states?: IStatusState[]) => {
+    return this.queue.getQueue(states);
   };
 
-  getRunning = async () => {
-    return this.queue.getRunning();
+  getRunning = async (states?: IStatusState[]) => {
+    return this.queue.getRunning(states);
   };
 
   getWaitingAndQueued = async () => {
@@ -68,6 +69,12 @@ export class Runner {
     const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
     const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
     return running.length >= maxConcurrentBuilds;
+  };
+
+  getAvailableSlots = async (processingLandRequestStatuses: LandRequestStatus[]) => {
+    const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
+    const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
+    return maxConcurrentBuilds - running.length;
   };
 
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
@@ -126,6 +133,16 @@ export class Runner {
         errors: isAllowedToLand.errors,
       });
       return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
+    }
+
+    if (
+      await SepculationEngine.reOrderRequest(
+        runningTargetingSameBranch,
+        await this.getQueue(['queued']),
+        landRequestStatus,
+      )
+    ) {
+      return false;
     }
 
     const runningExceptSelf = runningTargetingSameBranch.filter(

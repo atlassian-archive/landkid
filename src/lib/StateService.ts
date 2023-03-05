@@ -190,11 +190,13 @@ export class StateService {
     if (!settings) {
       return {
         mergeBlockingEnabled: defaultMergeBlockingEnabled,
+        speculationEngineEnabled: true,
       };
     }
 
     return {
       mergeBlockingEnabled: defaultMergeBlockingEnabled ? settings.mergeBlockingEnabled : false,
+      speculationEngineEnabled: true,
     };
   }
 
@@ -227,14 +229,14 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
-      adminSettings,
+      // adminSettings,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.getBannerMessageState(),
       this.getMaxConcurrentBuilds(),
       this.getPriorityBranches(),
-      this.getAdminSettings(),
+      // this.getAdminSettings(),
     ]);
 
     return {
@@ -243,7 +245,7 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
-      adminSettings,
+      adminSettings: {} as any,
       config: { mergeSettings: config.mergeSettings },
     };
   }
