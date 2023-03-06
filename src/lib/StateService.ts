@@ -229,14 +229,14 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
-      // adminSettings,
+      adminSettings,
     ] = await Promise.all([
       this.getDatesSinceLastFailures(),
       this.getPauseState(),
       this.getBannerMessageState(),
       this.getMaxConcurrentBuilds(),
       this.getPriorityBranches(),
-      // this.getAdminSettings(),
+      this.getAdminSettings(),
     ]);
 
     return {
@@ -245,7 +245,7 @@ export class StateService {
       bannerMessageState,
       maxConcurrentBuilds,
       priorityBranchList,
-      adminSettings: {} as any,
+      adminSettings,
       config: { mergeSettings: config.mergeSettings },
     };
   }

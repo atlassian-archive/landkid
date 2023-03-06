@@ -17,17 +17,18 @@ export class SepculationEngine {
   static async getImpact(queued: LandRequestStatus[], position: number) {
     const currentRequestStatus = queued[position];
     const nextRequestStatus = queued[position + 1];
+    const currentImpact = Math.round(Math.random() * 100);
+    const nextImpact = Math.round(Math.random() * 100);
 
     Logger.info('Calculating impact of', {
       namespace: 'lib:speculationEngine:getImpact',
-      currentRequestStatus,
-      nextRequestStatus,
+      pullRequestId: currentRequestStatus.request.pullRequestId,
+      nextPullRequestId: nextRequestStatus.request.pullRequestId,
+      currentImpact,
+      nextImpact,
     });
 
-    return {
-      currentImpact: Math.round(Math.random() * 100),
-      nextImpact: Math.round(Math.random() * 100),
-    };
+    return { currentImpact, nextImpact };
   }
 
   /**
@@ -39,7 +40,7 @@ export class SepculationEngine {
    *         for example if 2 slots are available consider re-ordering 1st request from the queue
    *                     if 3 slots are available consider re-ordering 1st and 2nd request from the queue
    *      4. Size of queue is more than 1
-   *      5. Impact of the current request
+   *      5. Impact of the current request compared to the next in queue
    *
    * @param running
    * @param queued
@@ -60,29 +61,34 @@ export class SepculationEngine {
     const availableSlots = await this.getAvailableSlots(running);
     const landRequest: LandRequest = currentlandRequestStatus.request;
     const position = await this.positionInQueue(queued, currentlandRequestStatus);
-    if (availableSlots < 2 || position == availableSlots - 1) {
+    const logMessage = (message: string, extraProps = {}) =>
+      Logger.info(message, {
+        namespace: 'lib:speculationEngine:reOrderRequest',
+        pullRequestId: landRequest.pullRequestId,
+        ...extraProps,
+      });
+
+    logMessage('Speculation engine details', {
+      availableSlots,
+      position,
+      queued: queued.map(({ request }) => request.pullRequestId),
+    });
+
+    if (availableSlots < 2 || position >= availableSlots - 1 || queued.length < 2) {
+      logMessage('Not attempting to re-order the PR');
       return false;
     }
 
-    Logger.info('Attempting to re-order PR based on impact', {
-      namespace: 'lib:speculationEngine:reOrderRequest',
-      landRequestId: landRequest.id,
-      pullRequestId: landRequest.pullRequestId,
-    });
+    logMessage('Attempting to re-order PR based on impact');
 
     const { currentImpact, nextImpact } = await this.getImpact(queued, position);
     if (currentImpact > nextImpact) {
       // re-order as current impact is greater than next impact
-      Logger.info('PR re-ordered based on speculation', {
-        namespace: 'lib:speculationEngine:reOrderRequest',
-        landRequestId: landRequest.id,
-        pullRequestId: landRequest.pullRequestId,
-        currentImpact,
-        nextImpact,
-      });
+      logMessage('PR re-ordered based on speculation');
       return true;
     }
 
+    logMessage('PR not re-ordered based on speculation');
     return false;
   }
 }
