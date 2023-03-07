@@ -81,6 +81,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   priority: number;
 
   @AllowNull(true)
+  @Default(0)
+  @Column(Sequelize.INTEGER)
+  impact: number;
+
+  @AllowNull(true)
   @Column(
     Sequelize.ENUM({
       values: ['squash', 'merge-commit'],
@@ -217,6 +222,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       order: [['date', 'ASC']],
     });
     return status ? status.date : null;
+  };
+
+  updateImpact = (impact: number) => {
+    this.impact = impact;
+    return this.save();
   };
 }
 
