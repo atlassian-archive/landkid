@@ -80,6 +80,12 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   priority: number;
 
+  // Impact is used by the speculationEngine
+  @AllowNull(true)
+  @Default(0)
+  @Column(Sequelize.INTEGER)
+  impact: number;
+
   @AllowNull(true)
   @Column(
     Sequelize.ENUM({
@@ -217,6 +223,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       order: [['date', 'ASC']],
     });
     return status ? status.date : null;
+  };
+
+  updateImpact = (impact: number) => {
+    this.impact = impact;
+    return this.save();
   };
 }
 

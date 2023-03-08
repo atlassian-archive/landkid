@@ -10,6 +10,7 @@ export const BitbucketAPI = jest.fn().mockImplementation((...args) => {
   api.pullRequestHasConflicts = jest.fn();
   api.getPullRequestBuildStatuses = jest.fn();
   api.getPullRequestPriority = jest.fn();
+  api.getPRImpact = jest.fn();
   api.getUser = jest.fn();
   api.getRepository = jest.fn();
 
