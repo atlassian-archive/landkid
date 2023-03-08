@@ -441,7 +441,7 @@ export class AdminSettings extends Model<AdminSettings> implements IAdminSetting
   @Column(Sequelize.BOOLEAN)
   readonly mergeBlockingEnabled: boolean;
 
-  // adding coulmn is causing an issue, db upgrade is required.
+  /** Live feature toggling of config.speculationEngineEnabled. Must be first enabled in config to be enabled here */
   @AllowNull(false)
   @Default(false)
   @Column(Sequelize.BOOLEAN)

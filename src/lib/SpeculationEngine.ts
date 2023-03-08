@@ -17,10 +17,11 @@ export class SepculationEngine {
   static async getImpact(queued: LandRequestStatus[], position: number) {
     const currentRequestStatus = queued[position];
     const nextRequestStatus = queued[position + 1];
+    // TODO: Replace with impact from land request.
     const currentImpact = Math.round(Math.random() * 100);
     const nextImpact = Math.round(Math.random() * 100);
 
-    Logger.info('Calculating impact of', {
+    Logger.info('Impact retrieved:', {
       namespace: 'lib:speculationEngine:getImpact',
       pullRequestId: currentRequestStatus.request.pullRequestId,
       nextPullRequestId: nextRequestStatus.request.pullRequestId,
@@ -74,7 +75,7 @@ export class SepculationEngine {
       queued: queued.map(({ request }) => request.pullRequestId),
     });
 
-    if (availableSlots < 2 || position >= availableSlots - 1 || queued.length < 2) {
+    if (availableSlots < 2 || queued.length < 2 || position >= availableSlots - 1) {
       logMessage('Not attempting to re-order the PR');
       return false;
     }

@@ -71,12 +71,6 @@ export class Runner {
     return running.length >= maxConcurrentBuilds;
   };
 
-  getAvailableSlots = async (processingLandRequestStatuses: LandRequestStatus[]) => {
-    const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
-    const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
-    return maxConcurrentBuilds - running.length;
-  };
-
   moveFromQueueToRunning = async (landRequestStatus: LandRequestStatus, lockId: Date) => {
     if (await StateService.getPauseState()) return;
     const landRequest = landRequestStatus.request;
