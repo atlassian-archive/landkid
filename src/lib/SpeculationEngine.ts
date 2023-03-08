@@ -76,7 +76,9 @@ export class SepculationEngine {
     });
 
     if (availableSlots < 2 || queued.length < 2 || position >= availableSlots - 1) {
-      logMessage('Not attempting to re-order the PR');
+      logMessage(
+        'Skipping re-order request. Speculation engine conditions to re-order PRs are not met.',
+      );
       return false;
     }
 
