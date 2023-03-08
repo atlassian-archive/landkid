@@ -80,6 +80,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   priority: number;
 
+  // Impact is used by the speculationEngine
   @AllowNull(true)
   @Default(0)
   @Column(Sequelize.INTEGER)
