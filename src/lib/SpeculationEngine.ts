@@ -2,7 +2,7 @@ import { LandRequest, LandRequestStatus } from '../db';
 import { Logger } from './Logger';
 import { StateService } from './StateService';
 
-export class SepculationEngine {
+export class SpeculationEngine {
   constructor() {}
 
   static async getAvailableSlots(running: LandRequestStatus[]): Promise<number> {
