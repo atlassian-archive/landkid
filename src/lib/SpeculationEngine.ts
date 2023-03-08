@@ -37,7 +37,7 @@ export class SepculationEngine {
    * Attempts to re-order if
    *      1. speculationEngineEnabled feature is enabled
    *      2. available free slots are atleast 2
-   *      3. Position of current requests in the queue compared to numner of slots.
+   *      3. Position of current requests in the queue compared to number of slots.
    *         for example if 2 slots are available consider re-ordering 1st request from the queue
    *                     if 3 slots are available consider re-ordering 1st and 2nd request from the queue
    *      4. Size of queue is more than 1
