@@ -65,7 +65,7 @@ declare interface IPriorityBranch {
 declare interface IAdminSettings {
   adminAaid?: string;
   mergeBlockingEnabled: boolean;
-  speculationEngineEnabled?: boolean;
+  speculationEngineEnabled: boolean;
 }
 
 declare type IStatusState =

@@ -168,12 +168,22 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
     requireAuth('admin'),
     wrap(async (req, res) => {
       const mergeBlockingEnabled = req?.body?.mergeBlockingEnabled;
-      Logger.verbose(`Updating mergeBlockingEnabled to ${mergeBlockingEnabled}`, {
-        namespace: 'routes:api:uupdate-admin-settings',
-      });
+      const speculationEngineEnabled = req?.body?.speculationEngineEnabled;
+      Logger.verbose(
+        `Updating mergeBlockingEnabled to ${mergeBlockingEnabled} and speculationEngineEnabled to ${speculationEngineEnabled}`,
+        {
+          namespace: 'routes:api:update-admin-settings',
+        },
+      );
 
-      if (typeof mergeBlockingEnabled == 'boolean') {
-        const success = await StateService.updateAdminSettings({ mergeBlockingEnabled }, req.user!);
+      if (
+        typeof mergeBlockingEnabled == 'boolean' &&
+        typeof speculationEngineEnabled == 'boolean'
+      ) {
+        const success = await StateService.updateAdminSettings(
+          { mergeBlockingEnabled, speculationEngineEnabled },
+          req.user!,
+        );
         if (success) {
           return res.status(200).json({ success: true });
         } else {
@@ -181,7 +191,9 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
         }
       }
 
-      return res.status(400).json({ err: 'req.body.mergeBlockingEnabled should be boolean' });
+      return res.status(400).json({
+        err: 'req.body.mergeBlockingEnabled and req.body.speculationEngineEnabled should be boolean',
+      });
     }),
   );
 

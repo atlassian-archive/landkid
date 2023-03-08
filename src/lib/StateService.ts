@@ -183,6 +183,7 @@ export class StateService {
 
   static async getAdminSettings(): Promise<IAdminSettings> {
     const defaultMergeBlockingEnabled = !!config.mergeSettings?.mergeBlocking?.enabled;
+    const defaultSpeculationEngineEnabled = !!config.speculationEngineEnabled;
     const settings = await AdminSettings.findOne<AdminSettings>({
       order: [['date', 'DESC']],
     });
@@ -190,13 +191,15 @@ export class StateService {
     if (!settings) {
       return {
         mergeBlockingEnabled: defaultMergeBlockingEnabled,
-        speculationEngineEnabled: true,
+        speculationEngineEnabled: defaultSpeculationEngineEnabled,
       };
     }
 
     return {
       mergeBlockingEnabled: defaultMergeBlockingEnabled ? settings.mergeBlockingEnabled : false,
-      speculationEngineEnabled: true,
+      speculationEngineEnabled: defaultSpeculationEngineEnabled
+        ? settings.speculationEngineEnabled
+        : false,
     };
   }
 
@@ -208,6 +211,7 @@ export class StateService {
       await AdminSettings.create<AdminSettings>({
         adminAaid: user.aaid,
         mergeBlockingEnabled: settings.mergeBlockingEnabled,
+        speculationEngineEnabled: settings.speculationEngineEnabled,
       });
       return true;
     } catch (error) {
@@ -246,7 +250,10 @@ export class StateService {
       maxConcurrentBuilds,
       priorityBranchList,
       adminSettings,
-      config: { mergeSettings: config.mergeSettings },
+      config: {
+        mergeSettings: config.mergeSettings,
+        speculationEngineEnabled: config.speculationEngineEnabled,
+      },
     };
   }
 }

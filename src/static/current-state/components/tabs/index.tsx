@@ -92,7 +92,7 @@ export type TabsProps = {
   permissionsMessage: string;
   priorityBranchList: IPriorityBranch[];
   adminSettings: IAdminSettings;
-  config: { mergeSettings?: MergeSettings };
+  config: { mergeSettings?: MergeSettings; speculationEngineEnabled: boolean };
   refreshData: () => void;
 };
 
