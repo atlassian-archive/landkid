@@ -419,11 +419,19 @@ export function apiRoutes(runner: Runner, client: BitbucketClient, config: Confi
       } else {
         request = await runner.enqueue(landRequestOptions);
       }
-      if (req.body.priority === 'low' && request) {
-        await request.decrementPriority();
-      } else if (req.body.priority === 'high' && request) {
-        await request.incrementPriority();
+
+      if (request) {
+        if (req.body.priority === 'low') {
+          await request.decrementPriority();
+        } else if (req.body.priority === 'high') {
+          await request.incrementPriority();
+        }
+
+        if (req.body.impact) {
+          await request.updateImpact(req.body.impact);
+        }
       }
+
       Logger.info('Land request created', {
         namespace: 'routes:api:create-landrequest',
         landRequestOptions,
