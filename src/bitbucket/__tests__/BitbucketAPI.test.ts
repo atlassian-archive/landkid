@@ -211,4 +211,26 @@ describe('getPullRequestPriority', () => {
 
     expect(await bitbucketAPI.getPullRequestPriority('commit-foo')).toBe('LOW');
   });
+  test('when build status includes "landkid-impact" then should return impact ', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        values: [
+          {
+            name: 'landkid-impact',
+            description: '10',
+          },
+        ],
+      },
+    });
+
+    expect(await bitbucketAPI.getPRImpact('commit-foo')).toBe(10);
+  });
+  test('when no "landkid-impact" build status is sent the default impact value should be sent', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        values: [],
+      },
+    });
+    expect(await bitbucketAPI.getPRImpact('commit-foo')).toBe(0);
+  });
 });

@@ -541,6 +541,10 @@ export class Runner {
     const user = await this.client.getUser(request.triggererAaid);
     await request.setStatus('queued', `Queued by ${user.displayName || user.aaid}`);
 
+    // TODO: add condition to check if the speculation engine is enabled from the admin settings
+    const impact = await this.client.bitbucket.getPRImpact(request.forCommit);
+    request.updateImpact(impact);
+
     return true;
   };
 

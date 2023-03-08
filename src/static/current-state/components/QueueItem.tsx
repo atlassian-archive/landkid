@@ -331,6 +331,13 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
             </StatusItem>
           </div>
         ) : null}
+        {status.request.impact ? (
+          <div className="queue-item__status-line">
+            <StatusItem id="impact" title="Impact:">
+              {status.request.impact}
+            </StatusItem>
+          </div>
+        ) : null}
         {status.state === 'queued' ? (
           <div className="queue-item__status-line">
             <StatusItem title="Admin Controls:">
