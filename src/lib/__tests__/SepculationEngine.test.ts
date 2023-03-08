@@ -33,6 +33,7 @@ describe('SepculationEngine', () => {
           created: new Date(120),
           forCommit: 'abc',
           id: '0',
+          impact: 100,
           triggererAaid: '123',
           pullRequestId: 0,
           pullRequest,
@@ -48,6 +49,7 @@ describe('SepculationEngine', () => {
           created: new Date(120),
           forCommit: 'abc',
           id: '1',
+          impact: 50,
           triggererAaid: '123',
           pullRequestId: 1,
           pullRequest,
@@ -109,9 +111,8 @@ describe('SepculationEngine', () => {
   test('getImpact > should return impact', async () => {
     const impact = await SepculationEngine.getImpact(mockQueued, 0);
 
-    // todo update after actual implementation of impact logic
-    expect(typeof impact.currentImpact).toBe('number');
-    expect(typeof impact.nextImpact).toBe('number');
+    expect(impact.currentImpact).toBe(100);
+    expect(impact.nextImpact).toBe(50);
   });
 
   describe('reOrderRequest', () => {

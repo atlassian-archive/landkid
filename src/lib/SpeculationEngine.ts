@@ -17,9 +17,9 @@ export class SepculationEngine {
   static async getImpact(queued: LandRequestStatus[], position: number) {
     const currentRequestStatus = queued[position];
     const nextRequestStatus = queued[position + 1];
-    // TODO: Replace with impact from land request.
-    const currentImpact = Math.round(Math.random() * 100);
-    const nextImpact = Math.round(Math.random() * 100);
+
+    const currentImpact = currentRequestStatus.request.impact;
+    const nextImpact = nextRequestStatus.request.impact;
 
     Logger.info('Impact retrieved:', {
       namespace: 'lib:speculationEngine:getImpact',
