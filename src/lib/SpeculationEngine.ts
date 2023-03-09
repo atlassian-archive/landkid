@@ -19,12 +19,13 @@ export class SpeculationEngine {
     const queuedRequestsLength = position + availableSlots - 1;
     const nextQueuedRequestStatus = queued.slice(position, queuedRequestsLength + 1);
 
-    const queuedRequestImpacts = nextQueuedRequestStatus.map((requestStatus) => {
-      return requestStatus.request.impact;
-    });
+    const queuedRequestImpacts = nextQueuedRequestStatus.map(
+      (requestStatus) => requestStatus.request.impact,
+    );
 
     Logger.info('Impact retrieved for next queued requests:', {
       namespace: 'lib:speculationEngine:getImpact',
+      pullRequestId: queued[position].request.pullRequestId,
       impact: queuedRequestImpacts,
     });
 
