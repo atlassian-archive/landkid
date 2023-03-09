@@ -5,10 +5,90 @@ import { StateService } from '../StateService';
 jest.mock('../StateService');
 jest.mock('../../db/index');
 
+let mockQueued: LandRequestStatus[] = [];
+let mockRunning: LandRequestStatus[] = [];
+let mockPullRequest: BB.PullRequest = {
+  pullRequestId: 1,
+  authorAaid: '123',
+  title: 'Foo',
+  sourceBranch: 'test',
+  targetBranch: 'master',
+  commit: 'abc',
+} as BB.PullRequest;
+
+const pullRequest = new PullRequest({
+  prId: mockPullRequest.pullRequestId,
+  authorAaid: mockPullRequest.authorAaid,
+  title: mockPullRequest.title,
+  targetBranch: mockPullRequest.targetBranch,
+});
+
+const landRequestA = new LandRequestStatus({
+  date: new Date(120),
+  id: '0',
+  isLatest: true,
+  request: new LandRequest({
+    created: new Date(120),
+    forCommit: 'abc',
+    id: '0',
+    impact: 100,
+    triggererAaid: '123',
+    pullRequestId: 0,
+    pullRequest,
+  }),
+  requestId: '0',
+  state: 'queued',
+});
+
+const landRequestB = new LandRequestStatus({
+  date: new Date(120),
+  id: '1',
+  isLatest: true,
+  request: new LandRequest({
+    created: new Date(120),
+    forCommit: 'abc',
+    id: '1',
+    impact: 50,
+    triggererAaid: '123',
+    pullRequestId: 1,
+    pullRequest,
+  }),
+  requestId: '0',
+  state: 'queued',
+});
+
+const landRequestC = new LandRequestStatus({
+  date: new Date(120),
+  id: '0',
+  isLatest: true,
+  request: new LandRequest({
+    created: new Date(120),
+    forCommit: 'abc',
+    id: '0',
+    triggererAaid: '123',
+    pullRequestId: 0,
+    pullRequest,
+  }),
+  requestId: '0',
+  state: 'running',
+});
+const landRequestD = new LandRequestStatus({
+  date: new Date(120),
+  id: '1',
+  isLatest: true,
+  request: new LandRequest({
+    created: new Date(120),
+    forCommit: 'abc',
+    id: '1',
+    triggererAaid: '123',
+    pullRequestId: 1,
+    pullRequest,
+  }),
+  requestId: '0',
+  state: 'running',
+});
+
 describe('SpeculationEngine', () => {
-  let mockQueued: LandRequestStatus[] = [];
-  let mockRunning: LandRequestStatus[] = [];
-  let mockPullRequest: BB.PullRequest;
   beforeEach(() => {
     mockPullRequest = {
       pullRequestId: 1,
@@ -18,79 +98,9 @@ describe('SpeculationEngine', () => {
       targetBranch: 'master',
       commit: 'abc',
     } as BB.PullRequest;
-    const pullRequest = new PullRequest({
-      prId: mockPullRequest.pullRequestId,
-      authorAaid: mockPullRequest.authorAaid,
-      title: mockPullRequest.title,
-      targetBranch: mockPullRequest.targetBranch,
-    });
-    mockQueued = [
-      new LandRequestStatus({
-        date: new Date(120),
-        id: '0',
-        isLatest: true,
-        request: new LandRequest({
-          created: new Date(120),
-          forCommit: 'abc',
-          id: '0',
-          impact: 100,
-          triggererAaid: '123',
-          pullRequestId: 0,
-          pullRequest,
-        }),
-        requestId: '0',
-        state: 'queued',
-      }),
-      new LandRequestStatus({
-        date: new Date(120),
-        id: '1',
-        isLatest: true,
-        request: new LandRequest({
-          created: new Date(120),
-          forCommit: 'abc',
-          id: '1',
-          impact: 50,
-          triggererAaid: '123',
-          pullRequestId: 1,
-          pullRequest,
-        }),
-        requestId: '0',
-        state: 'queued',
-      }),
-    ];
 
-    mockRunning = [
-      new LandRequestStatus({
-        date: new Date(120),
-        id: '0',
-        isLatest: true,
-        request: new LandRequest({
-          created: new Date(120),
-          forCommit: 'abc',
-          id: '0',
-          triggererAaid: '123',
-          pullRequestId: 0,
-          pullRequest,
-        }),
-        requestId: '0',
-        state: 'running',
-      }),
-      new LandRequestStatus({
-        date: new Date(120),
-        id: '1',
-        isLatest: true,
-        request: new LandRequest({
-          created: new Date(120),
-          forCommit: 'abc',
-          id: '1',
-          triggererAaid: '123',
-          pullRequestId: 1,
-          pullRequest,
-        }),
-        requestId: '0',
-        state: 'running',
-      }),
-    ];
+    mockQueued = [landRequestA, landRequestB];
+    mockRunning = [landRequestC, landRequestD];
   });
 
   afterEach(() => {
@@ -108,9 +118,9 @@ describe('SpeculationEngine', () => {
     expect(await SpeculationEngine.positionInQueue(mockQueued, mockQueued[0])).toBe(0);
   });
 
-  test('getImpact > should return list of next queued request`s impact', async () => {
-    const impact = await SpeculationEngine.getImpact(mockQueued, 0, 2);
-    expect(impact).toEqual([100, 50]);
+  test('getLowestImpact > should return list of next queued request`s impact', async () => {
+    const impact = await SpeculationEngine.getLowestImpact(mockQueued, 0, 2);
+    expect(impact).toEqual(landRequestB);
   });
 
   describe('reOrderRequest', () => {
@@ -118,14 +128,14 @@ describe('SpeculationEngine', () => {
       jest
         .spyOn(StateService, 'getAdminSettings')
         .mockResolvedValueOnce({ speculationEngineEnabled: false } as any);
-      jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([10, 100]);
+      jest.spyOn(SpeculationEngine, 'getLowestImpact').mockReturnValue(landRequestB);
       const reOrder = await SpeculationEngine.reOrderRequest(
         mockRunning,
         mockQueued,
         mockQueued[0],
       );
 
-      expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+      expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
       expect(reOrder).toBe(false);
     });
     describe('when feature is turned on', () => {
@@ -134,7 +144,7 @@ describe('SpeculationEngine', () => {
           speculationEngineEnabled: true,
         } as any);
         jest.spyOn(StateService, 'getMaxConcurrentBuilds').mockResolvedValueOnce(3);
-        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([10, 100]);
+        jest.spyOn(SpeculationEngine, 'getLowestImpact').mockReturnValue(landRequestA);
       });
       test('should not re-order when number of free slots are less than 2', async () => {
         // 1 free slots, getMaxConcurrentBuilds is 3 and running is 2
@@ -145,7 +155,7 @@ describe('SpeculationEngine', () => {
           mockQueued,
           mockQueued[0],
         );
-        expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+        expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
         expect(reOrder).toBe(false);
 
         // 0 free slots, getMaxConcurrentBuilds is 2 and running is 2
@@ -153,7 +163,7 @@ describe('SpeculationEngine', () => {
         // position in queue is 0
         jest.spyOn(StateService, 'getMaxConcurrentBuilds').mockResolvedValueOnce(2);
         reOrder = await SpeculationEngine.reOrderRequest(mockRunning, mockQueued, mockQueued[0]);
-        expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+        expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
         expect(reOrder).toBe(false);
       });
 
@@ -166,7 +176,7 @@ describe('SpeculationEngine', () => {
           [mockQueued[0]],
           mockQueued[0],
         );
-        expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+        expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
         expect(reOrder).toBe(false);
       });
 
@@ -179,7 +189,7 @@ describe('SpeculationEngine', () => {
           mockQueued,
           mockQueued[1],
         );
-        expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+        expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
         expect(reOrder).toBe(false);
       });
 
@@ -198,7 +208,7 @@ describe('SpeculationEngine', () => {
           [...mockQueued, queuedRequestStatus],
           queuedRequestStatus,
         );
-        expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
+        expect(SpeculationEngine.getLowestImpact).not.toHaveBeenCalled();
         expect(reOrder).toBe(false);
       });
 
@@ -213,7 +223,7 @@ describe('SpeculationEngine', () => {
           mockQueued[0],
         );
 
-        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
+        expect(SpeculationEngine.getLowestImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
         expect(reOrder).toBe(false);
       });
 
@@ -221,8 +231,8 @@ describe('SpeculationEngine', () => {
         // 2 free slots, getMaxConcurrentBuilds is 3 and running is 1
         // queued length is 2
         // position in queue is 0 ie 1st in the queue
-        (SpeculationEngine.getImpact as jest.Mock).mockReset();
-        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([100, 100]);
+        (SpeculationEngine.getLowestImpact as jest.Mock).mockReset();
+        jest.spyOn(SpeculationEngine, 'getLowestImpact').mockReturnValue(landRequestA);
 
         const reOrder = await SpeculationEngine.reOrderRequest(
           [mockRunning[0]],
@@ -230,15 +240,15 @@ describe('SpeculationEngine', () => {
           mockQueued[0],
         );
 
-        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
+        expect(SpeculationEngine.getLowestImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
         expect(reOrder).toBe(false);
       });
       test('should re-order when number of free slots are 2, current request is 1st in the queue and current request`s impact is greater than next', async () => {
         // 2 free slots, getMaxConcurrentBuilds is 3 and running is 1
         // queued length is 2
         // position in queue is 0 ie 1st in the queue
-        (SpeculationEngine.getImpact as jest.Mock).mockReset();
-        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([200, 100]);
+        (SpeculationEngine.getLowestImpact as jest.Mock).mockReset();
+        jest.spyOn(SpeculationEngine, 'getLowestImpact').mockReturnValue(landRequestB);
 
         const reOrder = await SpeculationEngine.reOrderRequest(
           [mockRunning[0]],
@@ -246,7 +256,7 @@ describe('SpeculationEngine', () => {
           mockQueued[0],
         );
 
-        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
+        expect(SpeculationEngine.getLowestImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
         expect(reOrder).toBe(true);
       });
     });

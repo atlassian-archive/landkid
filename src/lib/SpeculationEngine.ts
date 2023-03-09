@@ -14,45 +14,54 @@ export class SpeculationEngine {
     return queued.findIndex(({ id }) => id === landRequestStatus.id);
   }
 
-  static async getImpact(queued: LandRequestStatus[], position: number, availableSlots: number) {
-    // Compare current request with availableSlots - 1 number of next queue items
-    const queuedRequestsLength = position + availableSlots - 1;
-    const nextQueuedRequestStatus = queued.slice(position, queuedRequestsLength + 1);
+  // get the request with the lowest impact by comparing the current request with the next requests behind in the queue
+  static getLowestImpact(
+    queued: LandRequestStatus[],
+    position: number,
+    availableSlots: number,
+  ): LandRequestStatus {
+    // the number of queued requests we want to compare the impact with should equal to the number of available slots
+    const nextQueuedRequestStatus = queued.slice(0, availableSlots);
 
-    const queuedRequestImpacts = nextQueuedRequestStatus.map(
-      (requestStatus) => requestStatus.request.impact,
+    // sort the impact of next queued requests so that we can compare the lowest request's impact with the current request's impact
+    const queuedRequestImpacts = nextQueuedRequestStatus.sort(
+      (reqStatusA, reqStatusB) => reqStatusA.request.impact - reqStatusB.request.impact,
     );
 
     Logger.info('Impact retrieved for next queued requests:', {
       namespace: 'lib:speculationEngine:getImpact',
       pullRequestId: queued[position].request.pullRequestId,
       impact: queuedRequestImpacts,
+      lowestImpactRequest: queuedRequestImpacts[0],
     });
 
-    return queuedRequestImpacts;
+    // return the lowest impact request
+    return queuedRequestImpacts[0];
   }
 
   /**
    *
-   * Attempts to re-order if
-   *      1. speculationEngineEnabled feature is enabled
-   *      2. available free slots are atleast 2
-   *      3. Position of current requests in the queue compared to number of slots.
-   *         for example if 2 slots are available consider re-ordering 1st request from the queue
-   *                     if 3 slots are available consider re-ordering 1st and 2nd request from the queue
-   *      4. Size of queue is more than 1
-   *      5. Impact of the current request compared to the next requests in queue
+   *
+   * Determines whether the current land request should be reordered with requests behind it in the queue.
+   * Note that this is done in a way such that the current land request will only be reordered if it can simultaneously enter the running slots as the request(s)
+   * that it is reordered with. This ensures that we don't de-prioritise a PR and extend the amount of time it is in the queue.
+   *
+   * A request will be reordered if it meets the following conditions:
+   *  1. The speculationEngineEnabled toggle is enabled from admin settings
+   *  2. There are at least 2 available free slots
+   *  3. Size of the queue is greater than 1
+   *  4. Impact of the current request is not the lowest impact compared with the requests behind it in the queue
    *
    * @param running
    * @param queued
-   * @param currentlandRequestStatus
-   * @returns true if requests needs to be re-ordered.
+   * @param currentLandRequestStatus
+   * @returns true if requests needs to be reordered.
    *
    */
   static async reOrderRequest(
     running: LandRequestStatus[],
     queued: LandRequestStatus[],
-    currentlandRequestStatus: LandRequestStatus,
+    currentLandRequestStatus: LandRequestStatus,
   ): Promise<boolean> {
     const { speculationEngineEnabled } = await StateService.getAdminSettings();
     if (!speculationEngineEnabled) {
@@ -60,8 +69,8 @@ export class SpeculationEngine {
     }
 
     const availableSlots = await this.getAvailableSlots(running);
-    const landRequest: LandRequest = currentlandRequestStatus.request;
-    const position = await this.positionInQueue(queued, currentlandRequestStatus);
+    const landRequest: LandRequest = currentLandRequestStatus.request;
+    const positionInQueue = await this.positionInQueue(queued, currentLandRequestStatus);
     const logMessage = (message: string, extraProps = {}) =>
       Logger.info(message, {
         namespace: 'lib:speculationEngine:reOrderRequest',
@@ -71,30 +80,26 @@ export class SpeculationEngine {
 
     logMessage('Speculation engine details', {
       availableSlots,
-      position,
+      positionInQueue,
       queued: queued.map(({ request }) => request.pullRequestId),
     });
 
-    if (availableSlots < 2 || queued.length < 2 || position >= availableSlots - 1) {
+    if (availableSlots < 2 || queued.length < 2 || positionInQueue >= availableSlots - 1) {
       logMessage(
-        'Skipping re-order request. Speculation engine conditions to re-order PRs are not met.',
+        'Skipping reorder request. Speculation engine conditions to reorder current request are not met.',
       );
       return false;
     }
 
-    logMessage('Attempting to re-order PR based on impact');
-    // getImpactQueuedRequests will return an array of impact values from the current request and the next number (available slots - 1) of requests in the queue
-    const getImpactQueuedRequests = await this.getImpact(queued, position, availableSlots);
-    const getImpactQueuedRequestsSorted = [...getImpactQueuedRequests].sort();
+    logMessage('Attempting to reorder PR based on impact');
+    const lowestImpact = this.getLowestImpact(queued, positionInQueue, availableSlots);
 
-    //if our current request has a lower impact than the next queued requests, then we should reorder this request
-    if (getImpactQueuedRequests[position] !== getImpactQueuedRequestsSorted[position]) {
-      // re-order as current impact is greater than next impact
-      logMessage('PR re-ordered based on speculation');
-      return true;
+    // if the curent request has the lowest impact, we do not need to reorder this request.
+    if (queued[positionInQueue].request.id === lowestImpact.request.id) {
+      logMessage('PR will not be reordered since the current request is the lowest impact');
+      return false;
     }
-    // if reordering is not required, we continue with the current request
-    logMessage('PR not re-ordered based on speculation');
-    return false;
+    logMessage('PR will be reordered since the current request does not have the lowest impact');
+    return true;
   }
 }
