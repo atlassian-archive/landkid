@@ -14,22 +14,21 @@ export class SpeculationEngine {
     return queued.findIndex(({ id }) => id === landRequestStatus.id);
   }
 
-  static async getImpact(queued: LandRequestStatus[], position: number) {
-    const currentRequestStatus = queued[position];
-    const nextRequestStatus = queued[position + 1];
+  static async getImpact(queued: LandRequestStatus[], position: number, availableSlots: number) {
+    // Compare current request with availableSlots - 1 number of next queue items
+    const queuedRequestsLength = position + availableSlots - 1;
+    const nextQueuedRequestStatus = queued.slice(position, queuedRequestsLength + 1);
 
-    const currentImpact = currentRequestStatus.request.impact;
-    const nextImpact = nextRequestStatus.request.impact;
-
-    Logger.info('Impact retrieved:', {
-      namespace: 'lib:speculationEngine:getImpact',
-      pullRequestId: currentRequestStatus.request.pullRequestId,
-      nextPullRequestId: nextRequestStatus.request.pullRequestId,
-      currentImpact,
-      nextImpact,
+    const queuedRequestImpacts = nextQueuedRequestStatus.map((requestStatus) => {
+      return requestStatus.request.impact;
     });
 
-    return { currentImpact, nextImpact };
+    Logger.info('Impact retrieved for next queued requests:', {
+      namespace: 'lib:speculationEngine:getImpact',
+      impact: queuedRequestImpacts,
+    });
+
+    return queuedRequestImpacts;
   }
 
   /**
@@ -41,7 +40,7 @@ export class SpeculationEngine {
    *         for example if 2 slots are available consider re-ordering 1st request from the queue
    *                     if 3 slots are available consider re-ordering 1st and 2nd request from the queue
    *      4. Size of queue is more than 1
-   *      5. Impact of the current request compared to the next in queue
+   *      5. Impact of the current request compared to the next requests in queue
    *
    * @param running
    * @param queued
@@ -83,14 +82,17 @@ export class SpeculationEngine {
     }
 
     logMessage('Attempting to re-order PR based on impact');
+    // getImpactQueuedRequests will return an array of impact values from the current request and the next number (available slots - 1) of requests in the queue
+    const getImpactQueuedRequests = await this.getImpact(queued, position, availableSlots);
+    const getImpactQueuedRequestsSorted = [...getImpactQueuedRequests].sort();
 
-    const { currentImpact, nextImpact } = await this.getImpact(queued, position);
-    if (currentImpact > nextImpact) {
+    //if our current request has a lower impact than the next queued requests, then we should reorder this request
+    if (getImpactQueuedRequests[position] !== getImpactQueuedRequestsSorted[position]) {
       // re-order as current impact is greater than next impact
       logMessage('PR re-ordered based on speculation');
       return true;
     }
-
+    // if reordering is not required, we continue with the current request
     logMessage('PR not re-ordered based on speculation');
     return false;
   }

@@ -108,11 +108,9 @@ describe('SpeculationEngine', () => {
     expect(await SpeculationEngine.positionInQueue(mockQueued, mockQueued[0])).toBe(0);
   });
 
-  test('getImpact > should return impact', async () => {
-    const impact = await SpeculationEngine.getImpact(mockQueued, 0);
-
-    expect(impact.currentImpact).toBe(100);
-    expect(impact.nextImpact).toBe(50);
+  test('getImpact > should return list of next queued request`s impact', async () => {
+    const impact = await SpeculationEngine.getImpact(mockQueued, 0, 2);
+    expect(impact).toEqual([100, 50]);
   });
 
   describe('reOrderRequest', () => {
@@ -120,10 +118,7 @@ describe('SpeculationEngine', () => {
       jest
         .spyOn(StateService, 'getAdminSettings')
         .mockResolvedValueOnce({ speculationEngineEnabled: false } as any);
-      jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce({
-        currentImpact: 10,
-        nextImpact: 100,
-      });
+      jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([10, 100]);
       const reOrder = await SpeculationEngine.reOrderRequest(
         mockRunning,
         mockQueued,
@@ -133,17 +128,13 @@ describe('SpeculationEngine', () => {
       expect(SpeculationEngine.getImpact).not.toHaveBeenCalled();
       expect(reOrder).toBe(false);
     });
-
     describe('when feature is turned on', () => {
       beforeEach(() => {
         jest.spyOn(StateService, 'getAdminSettings').mockResolvedValue({
           speculationEngineEnabled: true,
         } as any);
         jest.spyOn(StateService, 'getMaxConcurrentBuilds').mockResolvedValueOnce(3);
-        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce({
-          currentImpact: 10,
-          nextImpact: 100,
-        });
+        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([10, 100]);
       });
       test('should not re-order when number of free slots are less than 2', async () => {
         // 1 free slots, getMaxConcurrentBuilds is 3 and running is 2
@@ -222,18 +213,16 @@ describe('SpeculationEngine', () => {
           mockQueued[0],
         );
 
-        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0);
+        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
         expect(reOrder).toBe(false);
       });
-      test('should re-order when number of free slots are 2, current request is 1st in the queue and current request`s impact is greater than next', async () => {
+
+      test('should not re-order when number of free slots are 2, current request is 1st in the queue and current request`s impact is equal to the next request', async () => {
         // 2 free slots, getMaxConcurrentBuilds is 3 and running is 1
         // queued length is 2
         // position in queue is 0 ie 1st in the queue
         (SpeculationEngine.getImpact as jest.Mock).mockReset();
-        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce({
-          currentImpact: 200,
-          nextImpact: 100,
-        });
+        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([100, 100]);
 
         const reOrder = await SpeculationEngine.reOrderRequest(
           [mockRunning[0]],
@@ -241,7 +230,23 @@ describe('SpeculationEngine', () => {
           mockQueued[0],
         );
 
-        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0);
+        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
+        expect(reOrder).toBe(false);
+      });
+      test('should re-order when number of free slots are 2, current request is 1st in the queue and current request`s impact is greater than next', async () => {
+        // 2 free slots, getMaxConcurrentBuilds is 3 and running is 1
+        // queued length is 2
+        // position in queue is 0 ie 1st in the queue
+        (SpeculationEngine.getImpact as jest.Mock).mockReset();
+        jest.spyOn(SpeculationEngine, 'getImpact').mockResolvedValueOnce([200, 100]);
+
+        const reOrder = await SpeculationEngine.reOrderRequest(
+          [mockRunning[0]],
+          mockQueued,
+          mockQueued[0],
+        );
+
+        expect(SpeculationEngine.getImpact).toHaveBeenCalledWith(mockQueued, 0, 2);
         expect(reOrder).toBe(true);
       });
     });
