@@ -205,9 +205,12 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
             landRequest,
           });
         }
-        // TODO: add condition to check if the speculation engine is enabled from the admin settings
-        const impact = await client.bitbucket.getPRImpact(commit);
-        request.updateImpact(impact);
+
+        const { speculationEngineEnabled } = await StateService.getAdminSettings();
+        if (speculationEngineEnabled) {
+          const impact = await client.bitbucket.getPRImpact(commit);
+          request.updateImpact(impact);
+        }
       }
       res.sendStatus(200);
       runner.next();

@@ -113,6 +113,7 @@ describe('StateService', () => {
 
     afterAll(() => {
       config.mergeSettings = oldMergeSettings;
+      config.speculationEngineEnabled = false;
     });
 
     const getMockMergeSettings = (mergeBlockingEnabled: boolean) =>
@@ -122,51 +123,65 @@ describe('StateService', () => {
         },
       } as any);
 
-    test('should return mergeBlockingEnabled as false when the feature is disabled via config (irrespective of the table data)', async () => {
+    test('should return mergeBlockingEnabled and speculationEngineEnabled as false when the feature is disabled via config (irrespective of the table data)', async () => {
       let settings = await StateService.getAdminSettings();
       expect(settings.mergeBlockingEnabled).toBe(false);
+      expect(settings.speculationEngineEnabled).toBe(false);
 
       config.mergeSettings = getMockMergeSettings(false);
       settings = await StateService.getAdminSettings();
       expect(settings.mergeBlockingEnabled).toBe(false);
+      expect(settings.speculationEngineEnabled).toBe(false);
 
       jest.spyOn(AdminSettings, 'findOne').mockResolvedValueOnce({
         mergeBlockingEnabled: true,
+        speculationEngineEnabled: true,
       } as any);
 
       settings = await StateService.getAdminSettings();
       expect(settings.mergeBlockingEnabled).toBe(false);
+      expect(settings.speculationEngineEnabled).toBe(false);
     });
 
-    test('should return mergeBlockingEnabled as false when the feature is enabled via config and disabled via UI', async () => {
+    test('should return mergeBlockingEnabled and speculationEngineEnabled as false when the feature is enabled via config and disabled via UI', async () => {
       config.mergeSettings = getMockMergeSettings(true);
+      config.speculationEngineEnabled = true;
       jest.spyOn(AdminSettings, 'findOne').mockResolvedValueOnce({
         mergeBlockingEnabled: false,
+        speculationEngineEnabled: false,
       } as any);
 
       const settings = await StateService.getAdminSettings();
       expect(settings.mergeBlockingEnabled).toBe(false);
+      expect(settings.speculationEngineEnabled).toBe(false);
     });
 
-    test('should return mergeBlockingEnabled as true when the feature is enabled via config and enabled via UI', async () => {
+    test('should return mergeBlockingEnabled and speculationEngineEnabled as true when the feature is enabled via config and enabled via UI', async () => {
       config.mergeSettings = getMockMergeSettings(true);
+      config.speculationEngineEnabled = true;
       jest.spyOn(AdminSettings, 'findOne').mockResolvedValueOnce({
         mergeBlockingEnabled: true,
+        speculationEngineEnabled: true,
       } as any);
 
       const settings = await StateService.getAdminSettings();
       expect(settings.mergeBlockingEnabled).toBe(true);
+      expect(settings.speculationEngineEnabled).toBe(true);
     });
   });
 
   test('updateAdminSettings > should update admin settings', async () => {
-    await StateService.updateAdminSettings({ mergeBlockingEnabled: true }, {
-      aaid: 'test-aaid',
-    } as any);
+    await StateService.updateAdminSettings(
+      { mergeBlockingEnabled: true, speculationEngineEnabled: true },
+      {
+        aaid: 'test-aaid',
+      } as any,
+    );
 
     expect(AdminSettings.create).toHaveBeenCalledWith({
       adminAaid: 'test-aaid',
       mergeBlockingEnabled: true,
+      speculationEngineEnabled: true,
     });
   });
 
@@ -180,7 +195,8 @@ describe('StateService', () => {
         pauseState: null,
         bannerMessageState: null,
         maxConcurrentBuilds: 2,
-        adminSettings: { mergeBlockingEnabled: false },
+        adminSettings: { mergeBlockingEnabled: false, speculationEngineEnabled: false },
+        config: { mergeSettings: {}, speculationEngineEnabled: false },
       }),
     );
   });

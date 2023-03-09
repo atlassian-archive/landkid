@@ -1085,7 +1085,7 @@ describe('Runner', () => {
       });
       jest
         .spyOn(StateService, 'getAdminSettings')
-        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true } as any);
       jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: true });
 
       const response = await runner.moveFromAwaitingMerge(status, new Date('2020-01-01'), []);
@@ -1119,7 +1119,7 @@ describe('Runner', () => {
       });
       jest
         .spyOn(StateService, 'getAdminSettings')
-        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true } as any);
       jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: false });
       jest.spyOn(mockClient, 'mergePullRequest').mockResolvedValueOnce({
         status: 'success',

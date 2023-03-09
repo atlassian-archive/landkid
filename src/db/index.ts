@@ -452,6 +452,12 @@ export class AdminSettings extends Model<AdminSettings> implements IAdminSetting
   @Default(false)
   @Column(Sequelize.BOOLEAN)
   readonly mergeBlockingEnabled: boolean;
+
+  /** Live feature toggling of config.speculationEngineEnabled. Must be first enabled in config to be enabled here */
+  @AllowNull(false)
+  @Default(false)
+  @Column(Sequelize.BOOLEAN)
+  readonly speculationEngineEnabled: boolean;
 }
 
 export const initializeSequelize = async () => {

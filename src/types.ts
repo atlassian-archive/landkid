@@ -107,6 +107,7 @@ export type Config = {
   eventListeners?: EventListener[];
   easterEgg?: any;
   mergeSettings?: MergeSettings;
+  speculationEngineEnabled: boolean;
 };
 
 export type MergeSettings = {
@@ -134,7 +135,7 @@ export type State = {
   daysSinceLastFailure: number;
   priorityBranchList: IPriorityBranch[];
   adminSettings: IAdminSettings;
-  config: { mergeSettings?: MergeSettings };
+  config: { mergeSettings?: MergeSettings; speculationEngineEnabled: boolean };
 };
 
 export type RunnerState = State & {

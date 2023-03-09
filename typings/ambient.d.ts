@@ -66,20 +66,23 @@ declare interface IPriorityBranch {
 declare interface IAdminSettings {
   adminAaid?: string;
   mergeBlockingEnabled: boolean;
+  speculationEngineEnabled: boolean;
 }
+
+declare type IStatusState =
+  | 'will-queue-when-ready'
+  | 'queued'
+  | 'running'
+  | 'awaiting-merge'
+  | 'merging'
+  | 'success'
+  | 'fail'
+  | 'aborted';
 
 declare interface IStatusUpdate {
   id: string;
   date: Date;
-  state:
-    | 'will-queue-when-ready'
-    | 'queued'
-    | 'running'
-    | 'awaiting-merge'
-    | 'merging'
-    | 'success'
-    | 'fail'
-    | 'aborted';
+  state: IStatusState;
   reason: string | null;
   requestId: string;
   isLatest: boolean;

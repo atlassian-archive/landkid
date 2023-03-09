@@ -22,12 +22,14 @@ export class LandRequestQueue {
 
   // returns the list of queued, running, awaiting-merge, and merging items as these are the actual "queue" per se
   // all the status' we display on the frontend
-  public getQueue = async () => {
+  public getQueue = async (
+    state: IStatusState[] = ['queued', 'running', 'awaiting-merge', 'merging'],
+  ) => {
     const queue = await LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {
-          $in: ['queued', 'running', 'awaiting-merge', 'merging'],
+          $in: state,
         },
       },
       order: [
@@ -46,12 +48,12 @@ export class LandRequestQueue {
 
   // returns builds that are running, awaiting-merge, or merging, used to find the dependencies of a request
   // that is about to move to running state
-  public getRunning = async () => {
+  public getRunning = async (state: IStatusState[] = ['running', 'awaiting-merge', 'merging']) => {
     return LandRequestStatus.findAll<LandRequestStatus>({
       where: {
         isLatest: true,
         state: {
-          $in: ['running', 'awaiting-merge', 'merging'],
+          $in: state,
         },
       },
       order: [['date', 'ASC']],

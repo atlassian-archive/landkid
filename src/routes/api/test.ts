@@ -191,21 +191,51 @@ describe('API Routes', () => {
     });
     it('should fail with status 400 if mergeBlockingEnabled is not supplied', async () => {
       expect(mockResponse.status).not.toHaveBeenCalled();
-      await updateAdminSettingsHandler({ body: {} }, mockExpress.response, () => {});
+      await updateAdminSettingsHandler(
+        {
+          body: {
+            speculationEngineEnabled: true,
+          },
+        },
+        mockExpress.response,
+        () => {},
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({ err: 'req.body.mergeBlockingEnabled should be boolean' }),
+        expect.objectContaining({
+          err: 'req.body.mergeBlockingEnabled and req.body.speculationEngineEnabled should be boolean',
+        }),
+      );
+    });
+
+    it('should fail with status 400 if speculationEngineEnabled is not supplied', async () => {
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      await updateAdminSettingsHandler(
+        {
+          body: {
+            mergeBlockingEnabled: true,
+          },
+        },
+        mockExpress.response,
+        () => {},
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          err: 'req.body.mergeBlockingEnabled and req.body.speculationEngineEnabled should be boolean',
+        }),
       );
     });
 
     it.each([[null], ['true']])(
-      'should fail with status 400 if mergeBlockingEnabled %s is not boolean',
+      'should fail with status 400 if mergeBlockingEnabled and speculationEngineEnabled %s is not boolean',
       async (input) => {
         expect(mockResponse.status).not.toHaveBeenCalled();
         await updateAdminSettingsHandler(
           {
             body: {
               mergeBlockingEnabled: input,
+              speculationEngineEnabled: input,
             },
           },
           mockExpress.response,
@@ -214,7 +244,7 @@ describe('API Routes', () => {
         expect(mockResponse.status).toHaveBeenCalledWith(400);
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
-            err: 'req.body.mergeBlockingEnabled should be boolean',
+            err: 'req.body.mergeBlockingEnabled and req.body.speculationEngineEnabled should be boolean',
           }),
         );
       },
@@ -228,6 +258,7 @@ describe('API Routes', () => {
         {
           body: {
             mergeBlockingEnabled: true,
+            speculationEngineEnabled: true,
           },
           user: { aaid: 'mock-user-aaid' },
         },
@@ -235,7 +266,7 @@ describe('API Routes', () => {
         () => {},
       );
       expect(StateService.updateAdminSettings).toHaveBeenCalledWith(
-        { mergeBlockingEnabled: true },
+        { mergeBlockingEnabled: true, speculationEngineEnabled: true },
         {
           aaid: 'mock-user-aaid',
         },
@@ -252,6 +283,7 @@ describe('API Routes', () => {
         {
           body: {
             mergeBlockingEnabled: true,
+            speculationEngineEnabled: true,
           },
           user: { aaid: 'mock-user-aaid' },
         },
@@ -259,7 +291,7 @@ describe('API Routes', () => {
         () => {},
       );
       expect(StateService.updateAdminSettings).toHaveBeenCalledWith(
-        { mergeBlockingEnabled: true },
+        { mergeBlockingEnabled: true, speculationEngineEnabled: true },
         {
           aaid: 'mock-user-aaid',
         },

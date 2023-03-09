@@ -14,15 +14,15 @@ export type SystemTabProps = {
   bannerMessageState: IMessageState | null;
   maxConcurrentBuilds: number;
   priorityBranchList: IPriorityBranch[];
-  adminSettings: { mergeBlockingEnabled: boolean };
-  config: { mergeSettings?: MergeSettings };
+  adminSettings: IAdminSettings;
+  config: { mergeSettings?: MergeSettings; speculationEngineEnabled: boolean };
   refreshData: () => void;
 };
 
 export type SystemTabsState = {
   paused: boolean;
   maxConcurrentBuilds: number;
-  adminSettings: { mergeBlockingEnabled: boolean };
+  adminSettings: { mergeBlockingEnabled: boolean; speculationEngineEnabled: boolean };
 };
 
 export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> {
@@ -60,24 +60,37 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
   };
 
   handleMergeBlockingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { refreshData } = this.props;
     const mergeBlockingEnabled = e.target.checked;
+    const { speculationEngineEnabled } = this.state.adminSettings;
 
-    fetch('/api/update-admin-settings', {
+    this.updateAdminSettings(mergeBlockingEnabled, speculationEngineEnabled);
+  };
+
+  handleSpeculationEngineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const speculationEngineEnabled = e.target.checked;
+    const { mergeBlockingEnabled } = this.state.adminSettings;
+
+    this.updateAdminSettings(mergeBlockingEnabled, speculationEngineEnabled);
+  };
+
+  updateAdminSettings = async (
+    mergeBlockingEnabled: boolean,
+    speculationEngineEnabled: boolean,
+  ) => {
+    const { refreshData } = this.props;
+    const json = await fetch('/api/update-admin-settings', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ mergeBlockingEnabled }),
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        if (json.error) {
-          console.error(json.error);
-          window.alert(json.error);
-        } else {
-          this.setState({ adminSettings: { mergeBlockingEnabled } });
-          refreshData();
-        }
-      });
+      body: JSON.stringify({ mergeBlockingEnabled, speculationEngineEnabled }),
+    }).then((response) => response.json());
+
+    if (json.error) {
+      console.error(json.error);
+      window.alert(json.error);
+    } else {
+      this.setState({ adminSettings: { mergeBlockingEnabled, speculationEngineEnabled } });
+      refreshData();
+    }
   };
 
   handleNextClick = () => {
@@ -170,6 +183,36 @@ export class SystemTab extends React.Component<SystemTabProps, SystemTabsState> 
                     onChange={this.handleMergeBlockingChange}
                   />
                   <label htmlFor="merge-blocking-toggle">Merge blocking enabled</label>
+                </div>
+              )}
+
+              {config.speculationEngineEnabled && (
+                <div
+                  className="ak-field-toggle ak-field-toggle__size-large"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    fontSize: '14px',
+                    marginTop: '10px',
+                  }}
+                >
+                  <span>Speculation engine: </span>
+                  <Tooltip
+                    content="Re-order PRs based on their impact before placing them on the running slots"
+                    position="top"
+                  >
+                    <Info label="info" size="small"></Info>
+                  </Tooltip>
+                  <input
+                    type="checkbox"
+                    name="speculation-engine-toggle"
+                    id="speculation-engine-toggle"
+                    value="speculation-engine-toggle"
+                    checked={this.state.adminSettings.speculationEngineEnabled}
+                    onChange={this.handleSpeculationEngineChange}
+                  />
+                  <label htmlFor="speculation-engine-toggle">Speculation engine enabled</label>
                 </div>
               )}
 
