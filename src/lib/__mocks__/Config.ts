@@ -36,5 +36,7 @@ export const config: Config = {
   maxConcurrentBuilds: 2,
   permissionsMessage: '',
   mergeSettings: {},
-  speculationEngineEnabled: false,
+  queueSettings: {
+    speculationEngineEnabled: false,
+  },
 };

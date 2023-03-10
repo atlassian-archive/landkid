@@ -7,7 +7,7 @@ import {
 } from '../../db';
 import { StateService } from '../StateService';
 import { config } from '../Config';
-import { MergeSettings } from '../../types';
+import { MergeSettings, QueueSettings } from '../../types';
 
 jest.mock('../../db/index');
 jest.mock('../Config');
@@ -107,13 +107,15 @@ describe('StateService', () => {
 
   describe('getAdminSettings', () => {
     let oldMergeSettings: MergeSettings | undefined;
+    let oldQueueSettings: QueueSettings | undefined;
     beforeAll(() => {
       oldMergeSettings = config.mergeSettings;
+      oldQueueSettings = config.queueSettings;
     });
 
     afterAll(() => {
       config.mergeSettings = oldMergeSettings;
-      config.speculationEngineEnabled = false;
+      config.queueSettings = oldQueueSettings;
     });
 
     const getMockMergeSettings = (mergeBlockingEnabled: boolean) =>
@@ -145,7 +147,7 @@ describe('StateService', () => {
 
     test('should return mergeBlockingEnabled and speculationEngineEnabled as false when the feature is enabled via config and disabled via UI', async () => {
       config.mergeSettings = getMockMergeSettings(true);
-      config.speculationEngineEnabled = true;
+      config.queueSettings = { speculationEngineEnabled: true };
       jest.spyOn(AdminSettings, 'findOne').mockResolvedValueOnce({
         mergeBlockingEnabled: false,
         speculationEngineEnabled: false,
@@ -158,7 +160,7 @@ describe('StateService', () => {
 
     test('should return mergeBlockingEnabled and speculationEngineEnabled as true when the feature is enabled via config and enabled via UI', async () => {
       config.mergeSettings = getMockMergeSettings(true);
-      config.speculationEngineEnabled = true;
+      config.queueSettings = { speculationEngineEnabled: true };
       jest.spyOn(AdminSettings, 'findOne').mockResolvedValueOnce({
         mergeBlockingEnabled: true,
         speculationEngineEnabled: true,

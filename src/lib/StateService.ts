@@ -183,7 +183,7 @@ export class StateService {
 
   static async getAdminSettings(): Promise<IAdminSettings> {
     const defaultMergeBlockingEnabled = !!config.mergeSettings?.mergeBlocking?.enabled;
-    const defaultSpeculationEngineEnabled = !!config.speculationEngineEnabled;
+    const defaultSpeculationEngineEnabled = !!config.queueSettings?.speculationEngineEnabled;
     const settings = await AdminSettings.findOne<AdminSettings>({
       order: [['date', 'DESC']],
     });
@@ -252,7 +252,7 @@ export class StateService {
       adminSettings,
       config: {
         mergeSettings: config.mergeSettings,
-        speculationEngineEnabled: config.speculationEngineEnabled,
+        speculationEngineEnabled: !!config.queueSettings?.speculationEngineEnabled,
       },
     };
   }
