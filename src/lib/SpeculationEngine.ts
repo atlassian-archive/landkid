@@ -10,33 +10,39 @@ export class SpeculationEngine {
     return maxConcurrentBuilds - running.filter(({ state }) => state === 'running').length;
   }
 
-  static async positionInQueue(queued: LandRequestStatus[], landRequestStatus: LandRequestStatus) {
-    return queued.findIndex(({ id }) => id === landRequestStatus.id);
+  static async getPositionInQueue(
+    queue: LandRequestStatus[],
+    landRequestStatus: LandRequestStatus,
+  ) {
+    return queue.findIndex(({ id }) => id === landRequestStatus.id);
   }
 
   // get the request with the lowest impact by comparing the current request with the next requests behind in the queue
-  static getLowestImpact(
-    queued: LandRequestStatus[],
+  static getLowestImpactedRequestStatus(
+    queue: LandRequestStatus[],
     position: number,
     availableSlots: number,
   ): LandRequestStatus {
-    // the number of queued requests we want to compare the impact with should equal to the number of available slots
-    const nextQueuedRequestStatus = queued.slice(0, availableSlots);
+    // the number of queue requests we want to compare the impact with should equal to the number of available slots
+    const nextqueueRequestStatus = queue.slice(0, availableSlots);
 
-    // sort the impact of next queued requests so that we can compare the lowest request's impact with the current request's impact
-    const queuedRequestImpacts = nextQueuedRequestStatus.sort(
+    // sort the impact of next queue requests so that we can compare the lowest request's impact with the current request's impact
+    const sortedRequestStatuses = nextqueueRequestStatus.sort(
       (reqStatusA, reqStatusB) => reqStatusA.request.impact - reqStatusB.request.impact,
     );
 
-    Logger.info('Impact retrieved for next queued requests:', {
+    Logger.info('Impact retrieved for next queue requests:', {
       namespace: 'lib:speculationEngine:getImpact',
-      pullRequestId: queued[position].request.pullRequestId,
-      impact: queuedRequestImpacts,
-      lowestImpactRequest: queuedRequestImpacts[0],
+      pullRequestId: queue[position].request.pullRequestId,
+      impact: sortedRequestStatuses,
+      lowestImpactRequest: sortedRequestStatuses[0],
+      sortedRequestStatuses: sortedRequestStatuses.map(
+        ({ request }) => request.pullRequestId + ' ' + request.impact,
+      ),
     });
 
     // return the lowest impact request
-    return queuedRequestImpacts[0];
+    return sortedRequestStatuses[0];
   }
 
   /**
@@ -53,14 +59,14 @@ export class SpeculationEngine {
    *  4. Impact of the current request is not the lowest impact compared with the requests behind it in the queue
    *
    * @param running
-   * @param queued
+   * @param queue
    * @param currentLandRequestStatus
    * @returns true if requests needs to be reordered.
    *
    */
-  static async reOrderRequest(
+  static async reorderRequest(
     running: LandRequestStatus[],
-    queued: LandRequestStatus[],
+    queue: LandRequestStatus[],
     currentLandRequestStatus: LandRequestStatus,
   ): Promise<boolean> {
     const { speculationEngineEnabled } = await StateService.getAdminSettings();
@@ -70,10 +76,10 @@ export class SpeculationEngine {
 
     const availableSlots = await this.getAvailableSlots(running);
     const landRequest: LandRequest = currentLandRequestStatus.request;
-    const positionInQueue = await this.positionInQueue(queued, currentLandRequestStatus);
+    const positionInQueue = await this.getPositionInQueue(queue, currentLandRequestStatus);
     const logMessage = (message: string, extraProps = {}) =>
       Logger.info(message, {
-        namespace: 'lib:speculationEngine:reOrderRequest',
+        namespace: 'lib:speculationEngine:reorderRequest',
         pullRequestId: landRequest.pullRequestId,
         ...extraProps,
       });
@@ -81,10 +87,10 @@ export class SpeculationEngine {
     logMessage('Speculation engine details', {
       availableSlots,
       positionInQueue,
-      queued: queued.map(({ request }) => request.pullRequestId),
+      queue: queue.map(({ request }) => request.pullRequestId),
     });
 
-    if (availableSlots < 2 || queued.length < 2 || positionInQueue >= availableSlots - 1) {
+    if (availableSlots < 2 || queue.length < 2 || positionInQueue >= availableSlots - 1) {
       logMessage(
         'Skipping reorder request. Speculation engine conditions to reorder current request are not met.',
       );
@@ -92,10 +98,14 @@ export class SpeculationEngine {
     }
 
     logMessage('Attempting to reorder PR based on impact');
-    const lowestImpact = this.getLowestImpact(queued, positionInQueue, availableSlots);
+    const lowestImpact = this.getLowestImpactedRequestStatus(
+      queue,
+      positionInQueue,
+      availableSlots,
+    );
 
     // if the curent request has the lowest impact, we do not need to reorder this request.
-    if (queued[positionInQueue].request.id === lowestImpact.request.id) {
+    if (queue[positionInQueue].request.id === lowestImpact.request.id) {
       logMessage('PR will not be reordered since the current request is the lowest impact');
       return false;
     }
