@@ -4,7 +4,7 @@ import { StateService } from './StateService';
 
 /**
  *  SpeculationEngine uses impact of a PR to reorder it while placing the PRs on the running slots.
- *  The lower impact PRs are given higher precedence.
+ *  The lower impact PRs are given higher precedence. It reduces the likelihood of a land request failures due to dependencies.
  *  Impact meta data is processed and send to landkid by the consuming repo using build statuses.
  * */
 
@@ -107,7 +107,7 @@ export class SpeculationEngine {
     );
 
     // if the curent request has the lowest impact, we do not need to reorder this request.
-    if (queue[positionInQueue].request.id === lowestImpact.request.id) {
+    if (landRequest.id === lowestImpact.request.id) {
       logMessage('PR will not be reordered since the current request is the lowest impact');
       return false;
     }
