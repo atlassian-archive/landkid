@@ -82,7 +82,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   priority: number;
 
   /**
-   * Impact is used by SpeculationEngine to reorder the PR while placing them on the running slots. The lower impact PR are given higher precedence. Impact meta data is processed and send to landkid by the consuming repo using build statuses.
+   * Impact is used by SpeculationEngine to reorder the PR while placing them on the running slots. The lower impact PRs are given higher precedence. Impact meta data is processed and send to landkid by the consuming repo using build statuses.
    * */
 
   @AllowNull(true)

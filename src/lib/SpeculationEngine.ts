@@ -2,6 +2,12 @@ import { LandRequest, LandRequestStatus } from '../db';
 import { Logger } from './Logger';
 import { StateService } from './StateService';
 
+/**
+ *  SpeculationEngine uses impact of a PR to reorder it while placing the PRs on the running slots.
+ *  The lower impact PRs are given higher precedence.
+ *  Impact meta data is processed and send to landkid by the consuming repo using build statuses.
+ * */
+
 export class SpeculationEngine {
   constructor() {}
 
@@ -31,7 +37,6 @@ export class SpeculationEngine {
     Logger.info('Impact retrieved for next queue requests:', {
       namespace: 'lib:speculationEngine:getImpact',
       pullRequestId: queue[position].request.pullRequestId,
-      impact: sortedRequestStatuses,
       lowestImpactRequest: sortedRequestStatuses[0],
       sortedRequestStatuses: sortedRequestStatuses.map(
         ({ request }) => request.pullRequestId + ' ' + request.impact,
