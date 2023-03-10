@@ -112,13 +112,13 @@ describe('SpeculationEngine', () => {
     expect(await SpeculationEngine.getAvailableSlots([])).toBe(3);
   });
 
-  test('positionInQueue > should return position in queue', async () => {
-    expect(await SpeculationEngine.getPositionInQueue(mockQueued, mockQueued[1])).toBe(1);
-    expect(await SpeculationEngine.getPositionInQueue(mockQueued, mockQueued[0])).toBe(0);
+  test('positionInQueue > should return position in queue', () => {
+    expect(SpeculationEngine.getPositionInQueue(mockQueued, mockQueued[1])).toBe(1);
+    expect(SpeculationEngine.getPositionInQueue(mockQueued, mockQueued[0])).toBe(0);
   });
 
-  test('getLowestImpactedRequestStatus > should return the lowest impact land request', async () => {
-    const impact = await SpeculationEngine.getLowestImpactedRequestStatus(mockQueued, 0, 2);
+  test('getLowestImpactedRequestStatus > should return the lowest impact land request', () => {
+    const impact = SpeculationEngine.getLowestImpactedRequestStatus(mockQueued, 0, 2);
     expect(impact).toEqual(landRequestB);
   });
 

@@ -10,10 +10,7 @@ export class SpeculationEngine {
     return maxConcurrentBuilds - running.filter(({ state }) => state === 'running').length;
   }
 
-  static async getPositionInQueue(
-    queue: LandRequestStatus[],
-    landRequestStatus: LandRequestStatus,
-  ) {
+  static getPositionInQueue(queue: LandRequestStatus[], landRequestStatus: LandRequestStatus) {
     return queue.findIndex(({ id }) => id === landRequestStatus.id);
   }
 
@@ -76,7 +73,7 @@ export class SpeculationEngine {
 
     const availableSlots = await this.getAvailableSlots(running);
     const landRequest: LandRequest = currentLandRequestStatus.request;
-    const positionInQueue = await this.getPositionInQueue(queue, currentLandRequestStatus);
+    const positionInQueue = this.getPositionInQueue(queue, currentLandRequestStatus);
     const logMessage = (message: string, extraProps = {}) =>
       Logger.info(message, {
         namespace: 'lib:speculationEngine:reorderRequest',
