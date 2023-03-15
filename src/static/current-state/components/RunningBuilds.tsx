@@ -1,6 +1,7 @@
 import React from 'react';
 import { Section } from './Section';
 import { QueueItemsList } from './QueueItemsList';
+import { getGroupedByTargetBranch } from '../utils/LandRequestUtils';
 
 export type Props = {
   queue: IStatusUpdate[];
@@ -9,9 +10,7 @@ export type Props = {
 };
 
 function findRunning(updates: IStatusUpdate[]) {
-  return updates.filter((update) =>
-    ['running', 'awaiting-merge', 'merging'].includes(update.state),
-  );
+  return updates.filter(({ state }) => state === 'running');
 }
 
 export const RunningBuilds: React.FunctionComponent<Props> = (props) => {
@@ -25,15 +24,8 @@ export const RunningBuilds: React.FunctionComponent<Props> = (props) => {
     );
   }
 
-  const groupedByTargetBranch: { [branch: string]: IStatusUpdate[] } = {};
-  running.forEach((item) => {
-    const targetBranch = item.request.pullRequest.targetBranch || item.requestId;
-    if (!groupedByTargetBranch[targetBranch]) {
-      groupedByTargetBranch[targetBranch] = [item];
-    } else {
-      groupedByTargetBranch[targetBranch].push(item);
-    }
-  });
+  const groupedByTargetBranch: { [branch: string]: IStatusUpdate[] } =
+    getGroupedByTargetBranch(running);
 
   return (
     <Section>

@@ -5,6 +5,8 @@ import { SystemTab } from './SystemTab';
 import { QueueTab } from './QueueTab';
 import { HistoryTab } from './HistoryTab';
 import { MergeSettings } from '../../../../types';
+import { MergingTab } from './MergingTab';
+import { Badge } from '../Badge';
 
 let controlsStyles = css({
   border: '1px solid var(--n20-color)',
@@ -48,11 +50,15 @@ let controlsStyles = css({
 
 export type TabsControlsProps = {
   selected: number;
+  merging: IStatusUpdate[];
   selectTab: (tab: number) => void;
 };
 
+const getMerging = (updates: IStatusUpdate[]) =>
+  updates.filter(({ state }) => ['awaiting-merge', 'merging'].includes(state));
+
 const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
-  const { selected, selectTab } = props;
+  const { selected, merging, selectTab } = props;
   return (
     <div className={controlsStyles}>
       <button
@@ -72,6 +78,13 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
       <button
         onClick={() => selectTab(2)}
         className={`ak-button__appearance-subtle ${selected === 2 ? '--selected' : ''}`}
+        data-test-id="merging-tab"
+      >
+        Merging {merging.length ? <Badge appearance="added">{merging}</Badge> : ''}
+      </button>
+      <button
+        onClick={() => selectTab(3)}
+        className={`ak-button__appearance-subtle ${selected === 3 ? '--selected' : ''}`}
         data-test-id="history-tab"
       >
         History
@@ -139,7 +152,11 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
 
     return (
       <Section important last>
-        <TabsControls selectTab={this.onTabSelected} selected={selected} />
+        <TabsControls
+          selectTab={this.onTabSelected}
+          selected={selected}
+          merging={getMerging(queue)}
+        />
         {selected === 0 ? (
           <SystemTab
             users={users}
@@ -163,6 +180,15 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
           />
         ) : null}
         {selected === 2 ? (
+          <MergingTab
+            bitbucketBaseUrl={bitbucketBaseUrl}
+            loggedInUser={loggedInUser}
+            merging={getMerging(queue)}
+            permissionsMessage={permissionsMessage}
+            refreshData={refreshData}
+          />
+        ) : null}
+        {selected === 3 ? (
           <HistoryTab
             bitbucketBaseUrl={bitbucketBaseUrl}
             loggedInUser={loggedInUser}
