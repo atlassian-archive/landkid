@@ -27,7 +27,7 @@ export const MergingTab: React.FunctionComponent<Props> = (props) => {
   return (
     <>
       {Object.keys(groupedByTargetBranch).map((branch) => (
-        <div style={{ paddingTop: '27px' }}>
+        <div style={{ paddingTop: '27px' }} key={branch}>
           <QueueItemsList
             bitbucketBaseUrl={bitbucketBaseUrl}
             queue={groupedByTargetBranch[branch]}

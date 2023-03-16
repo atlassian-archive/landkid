@@ -80,7 +80,7 @@ const TabsControls: React.FunctionComponent<TabsControlsProps> = (props) => {
         className={`ak-button__appearance-subtle ${selected === 2 ? '--selected' : ''}`}
         data-test-id="merging-tab"
       >
-        Merging {merging.length ? <Badge appearance="added">{merging}</Badge> : ''}
+        Merging {merging.length ? <Badge appearance="primary">{merging.length}</Badge> : ''}
       </button>
       <button
         onClick={() => selectTab(3)}
