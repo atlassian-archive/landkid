@@ -22,6 +22,10 @@ const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
 
 const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
 
+// Impose a hard limit of 25 land request dependencies to ensure we do not exceed the 1000 char max length of the `dependsOn` column
+// of the `LandRequest` table
+const MAX_LAND_DEPENDENCIES = 25;
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -65,6 +69,18 @@ export class Runner {
   };
 
   areMaxConcurrentBuildsRunning = async (processingLandRequestStatuses: LandRequestStatus[]) => {
+    if (processingLandRequestStatuses.length > MAX_LAND_DEPENDENCIES) {
+      // Set a hard limit on the total number of running + awaiting-merge + merge
+      Logger.warn('Hit max number of landkid dependencies', {
+        namespace: 'lib:runner:areMaxConcurrentBuildsRunning',
+        maxNumber: processingLandRequestStatuses.length,
+      });
+      eventEmitter.emit('QUEUE.MAX_DEPENDENCIES', {
+        maxNumber: processingLandRequestStatuses.length,
+      });
+      return true;
+    }
+
     const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
     const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
     return running.length >= maxConcurrentBuilds;
@@ -179,12 +195,27 @@ export class Runner {
         dependencies.map((queueItem) => queueItem.request.pullRequestId).join(', ');
     }
 
-    // Todo: these should really be functions on landRequest
-    landRequest.buildId = buildId;
-    landRequest.dependsOn = dependsOnStr;
-    await landRequest.setStatus('running', depPrsStr);
+    let newLandRequest: LandRequest;
 
-    const newLandRequest = await landRequest.save();
+    try {
+      // Todo: these should really be functions on landRequest
+      landRequest.buildId = buildId;
+      landRequest.dependsOn = dependsOnStr;
+      await landRequest.setStatus('running', depPrsStr);
+
+      newLandRequest = await landRequest.save();
+    } catch (e) {
+      Logger.error('Unable to transition request to running', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        landRequestId: landRequest.id,
+        pullRequestId: landRequest.pullRequestId,
+        landRequest,
+        buildId,
+        lockId,
+        err: { message: e.message, stack: e.stack },
+      });
+      return landRequest.setStatus('fail', 'Unable to transition request to running');
+    }
 
     Logger.info('LandRequest now running', {
       namespace: 'lib:runner:moveFromQueueToRunning',
@@ -647,11 +678,18 @@ export class Runner {
             });
 
             for (const landRequestStatus of runningRequests) {
+              const landRequest = landRequestStatus.request;
+              if (!landRequest.buildId) {
+                Logger.error('Land request missing buildId', {
+                  pullRequestId: landRequest.pullRequestId,
+                  landRequestId: landRequest.id,
+                  namespace: 'lib:runner:checkRunningLandRequests',
+                });
+                await landRequest.setStatus('fail', 'Missing buildId');
+              }
               const timeElapsed = Date.now() - landRequestStatus.date.getTime();
 
               if (timeElapsed > LAND_BUILD_TIMEOUT_TIME) {
-                const landRequest = landRequestStatus.request;
-
                 Logger.warn('Failing running land request as timeout period is breached', {
                   pullRequestId: landRequest.pullRequestId,
                   landRequestId: landRequest.id,
@@ -659,7 +697,7 @@ export class Runner {
                 });
                 await landRequest.setStatus('fail', 'Build timeout period breached');
               } else {
-                const { buildId } = landRequestStatus.request;
+                const { buildId } = landRequest;
                 const { state } = await this.client.getLandBuild(buildId);
 
                 // buildStatus can be SUCCESSFUL, FAILED or STOPPED

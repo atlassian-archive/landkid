@@ -54,6 +54,7 @@ Landkid emits events for metrics integrations:
 - 'PULL_REQUEST.QUEUE_WHEN_ABLE.SUCCESS'
 - 'PULL_REQUEST.QUEUE_WHEN_ABLE.FAIL'
 - 'LAND_REQUEST.STATUS.CHANGED'
+- 'QUEUE.MAX_DEPENDENCIES'
 
 Add event listeners to `config.js` to use these events.
 

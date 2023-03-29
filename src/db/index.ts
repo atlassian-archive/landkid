@@ -72,7 +72,8 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   pullRequest: PullRequest;
 
   @AllowNull(true)
-  @Column(Sequelize.STRING)
+  // Handle up to 25 dependencies ((36 char request IDs + 1 comma separator) * 25) = 925
+  @Column(Sequelize.STRING({ length: 1000 }))
   dependsOn: string;
 
   @AllowNull(true)
