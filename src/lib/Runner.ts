@@ -195,12 +195,27 @@ export class Runner {
         dependencies.map((queueItem) => queueItem.request.pullRequestId).join(', ');
     }
 
-    // Todo: these should really be functions on landRequest
-    landRequest.buildId = buildId;
-    landRequest.dependsOn = dependsOnStr;
-    await landRequest.setStatus('running', depPrsStr);
+    let newLandRequest: LandRequest;
 
-    const newLandRequest = await landRequest.save();
+    try {
+      // Todo: these should really be functions on landRequest
+      landRequest.buildId = buildId;
+      landRequest.dependsOn = dependsOnStr;
+      await landRequest.setStatus('running', depPrsStr);
+
+      newLandRequest = await landRequest.save();
+    } catch (e) {
+      Logger.error('Unable to transition request to running', {
+        namespace: 'lib:runner:moveFromQueueToRunning',
+        landRequestId: landRequest.id,
+        pullRequestId: landRequest.pullRequestId,
+        landRequest,
+        buildId,
+        lockId,
+        err: { message: e.message, stack: e.stack },
+      });
+      return landRequest.setStatus('fail', 'Unable to transition request to running');
+    }
 
     Logger.info('LandRequest now running', {
       namespace: 'lib:runner:moveFromQueueToRunning',

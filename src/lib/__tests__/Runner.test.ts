@@ -753,6 +753,46 @@ describe('Runner', () => {
       expect(request.setStatus).toHaveBeenCalledTimes(1);
       expect(request.setStatus).toHaveBeenCalledWith('aborted', 'Already has existing Land build');
     });
+
+    test('should fail land request if an error occurs when transitioning to running', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'queued',
+      });
+
+      (request.setStatus as jest.Mock).mockImplementation((status: string) => {
+        if (status === 'running') {
+          throw new Error('DB Error');
+        }
+      });
+      expectLoggerError(loggerSpies.error);
+      await runner.moveFromQueueToRunning(status, new Date(123));
+      expect(request.setStatus).toHaveBeenCalledWith(
+        'fail',
+        'Unable to transition request to running',
+      );
+      expect(loggerSpies.error).toHaveBeenCalledWith(
+        'Unable to transition request to running',
+        expect.anything(),
+      );
+    });
   });
 
   describe('Pause builds', () => {
