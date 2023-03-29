@@ -438,6 +438,24 @@ describe('Runner', () => {
         'Build timeout period breached',
       );
     });
+
+    test('should fail land request if build ID is missing', async () => {
+      //running state is beyond the timeout period of 2 hours
+      const mockLandRequestStatus = getLandRequestStatus(new Date());
+      mockLandRequestStatus.request.buildId = null as any;
+
+      mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
+
+      expectLoggerError(loggerSpies.error);
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      await runner.checkRunningLandRequests();
+
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledTimes(1);
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledWith(
+        'fail',
+        'Missing buildId',
+      );
+    });
   });
 
   describe('areMaxConcurrentBuildsRunning', () => {

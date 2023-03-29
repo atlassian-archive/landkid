@@ -678,11 +678,18 @@ export class Runner {
             });
 
             for (const landRequestStatus of runningRequests) {
+              const landRequest = landRequestStatus.request;
+              if (!landRequest.buildId) {
+                Logger.error('Land request missing buildId', {
+                  pullRequestId: landRequest.pullRequestId,
+                  landRequestId: landRequest.id,
+                  namespace: 'lib:runner:checkRunningLandRequests',
+                });
+                await landRequest.setStatus('fail', 'Missing buildId');
+              }
               const timeElapsed = Date.now() - landRequestStatus.date.getTime();
 
               if (timeElapsed > LAND_BUILD_TIMEOUT_TIME) {
-                const landRequest = landRequestStatus.request;
-
                 Logger.warn('Failing running land request as timeout period is breached', {
                   pullRequestId: landRequest.pullRequestId,
                   landRequestId: landRequest.id,
@@ -690,7 +697,7 @@ export class Runner {
                 });
                 await landRequest.setStatus('fail', 'Build timeout period breached');
               } else {
-                const { buildId } = landRequestStatus.request;
+                const { buildId } = landRequest;
                 const { state } = await this.client.getLandBuild(buildId);
 
                 // buildStatus can be SUCCESSFUL, FAILED or STOPPED
