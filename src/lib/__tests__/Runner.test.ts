@@ -52,6 +52,9 @@ function suppressAndSpyLogging() {
   const warn = jest.spyOn(Logger, 'warn').mockImplementation(() => {
     return undefined as any;
   });
+  const verbose = jest.spyOn(Logger, 'verbose').mockImplementation(() => {
+    return undefined as any;
+  });
   // Log the actual error from catch-all error handlers and throw to ensure we explicitly handle
   // error cases in tests
   const origLoggerError = Logger.error;
@@ -60,13 +63,14 @@ function suppressAndSpyLogging() {
     const err = payload.err || msg;
     throw err;
   }) as any);
-  return { info, warn, error };
+  return { info, warn, error, verbose };
 }
 
 describe('Runner', () => {
   let runner: Runner;
   let mockQueue: LandRequestQueue;
   let loggerSpies: {
+    verbose: jest.SpyInstance<any, any>;
     info: jest.SpyInstance<any, any>;
     warn: jest.SpyInstance<any, any>;
     error: jest.SpyInstance<any, any>;
@@ -495,6 +499,79 @@ describe('Runner', () => {
       expect(runner.areMaxConcurrentBuildsRunning).toHaveBeenCalledWith([]);
       expect(response).toBe(false);
       expect(request.setStatus).not.toHaveBeenCalled();
+    });
+
+    test('should return false if total number of running, awaiting merge & merge requests exceed the max number of land dependencies (25)', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const status = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'queued',
+      });
+
+      // Cannot run any more when 26 total running PRs
+      jest.spyOn(runner, 'getRunning').mockResolvedValueOnce(
+        Array.from({ length: 26 }).map(() => ({
+          request: { pullRequest: { targetBranch: mockPullRequest.targetBranch } },
+        })) as any,
+      );
+      const response = await runner.moveFromQueueToRunning(status, new Date());
+      expect(response).toBe(false);
+      expect(request.setStatus).not.toHaveBeenCalled();
+      expect(loggerSpies.verbose).toHaveBeenCalledWith(
+        'No concurrent build slots left',
+        expect.anything(),
+      );
+
+      // Can run when there are 25 total running PRs (since it is less than 26)
+      jest.clearAllMocks();
+      jest.spyOn(runner, 'getRunning').mockResolvedValueOnce(
+        Array.from({ length: 25 }).map(
+          (v, i) =>
+            new LandRequestStatus({
+              date: new Date(i + 2),
+              id: `${i + 2}`,
+              isLatest: true,
+              requestId: `${i + 2}`,
+              state: 'awaiting-merge',
+              request: new LandRequest({
+                created: new Date(i + 2),
+                forCommit: 'abc',
+                id: `${i + 2}`,
+                triggererAaid: '123',
+                pullRequestId: i + 2,
+                pullRequest: new PullRequest({
+                  prId: i + 2,
+                  authorAaid: '123',
+                  title: 'Title',
+                  targetBranch: mockPullRequest.targetBranch,
+                }),
+              }),
+            }),
+        ),
+      );
+      const responseTwo = await runner.moveFromQueueToRunning(status, new Date());
+      expect(responseTwo).toBe(true);
+      expect(request.setStatus).toHaveBeenCalledTimes(1);
+      expect(request.setStatus).toHaveBeenCalledWith(
+        'running',
+        'Started with PR dependencies: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26',
+      );
     });
 
     test('should successfully transition land request from queued to running if all checks pass', async () => {

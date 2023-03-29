@@ -22,6 +22,10 @@ const MAX_CHECK_WAITING_REQUESTS_TIME = 1000 * 60 * 60 * 3; // 3 hours
 
 const LAND_BUILD_TIMEOUT_TIME = 1000 * 60 * 60 * 2; // 2 hours
 
+// Impose a hard limit of 25 land request dependencies to ensure we do not exceed the 1000 char max length of the `dependsOn` column
+// of the `LandRequest` table
+const MAX_LAND_DEPENDENCIES = 25;
+
 export class Runner {
   constructor(
     public queue: LandRequestQueue,
@@ -65,6 +69,18 @@ export class Runner {
   };
 
   areMaxConcurrentBuildsRunning = async (processingLandRequestStatuses: LandRequestStatus[]) => {
+    if (processingLandRequestStatuses.length > MAX_LAND_DEPENDENCIES) {
+      // Set a hard limit on the total number of running + awaiting-merge + merge
+      Logger.warn('Hit max number of landkid dependencies', {
+        namespace: 'lib:runner:areMaxConcurrentBuildsRunning',
+        maxNumber: processingLandRequestStatuses.length,
+      });
+      eventEmitter.emit('QUEUE.MAX_DEPENDENCIES', {
+        maxNumber: processingLandRequestStatuses.length,
+      });
+      return true;
+    }
+
     const maxConcurrentBuilds = await StateService.getMaxConcurrentBuilds();
     const running = processingLandRequestStatuses.filter(({ state }) => state === 'running');
     return running.length >= maxConcurrentBuilds;
