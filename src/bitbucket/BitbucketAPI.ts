@@ -42,7 +42,7 @@ export class BitbucketAPI {
     options: MergeOptions = {},
   ): Promise<MergePullRequestResult> => {
     const {
-      id: landRequestId,
+      requestId: landRequestId,
       request: {
         pullRequestId,
         pullRequest: { targetBranch },

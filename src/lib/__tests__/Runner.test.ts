@@ -77,6 +77,7 @@ describe('Runner', () => {
   };
   let mockPullRequest: BB.PullRequest;
   let mockClient: BitbucketClient;
+  let mockConfig: Config;
 
   beforeEach(() => {
     mockQueue = {
@@ -104,10 +105,12 @@ describe('Runner', () => {
         pullRequest: mockPullRequest,
       } as any;
     });
-    runner = new Runner(mockQueue, {} as any, mockClient, {
+    mockConfig = {
       maxConcurrentBuilds: 2,
       repoConfig: {},
-    } as Config);
+      prSettings: {},
+    } as any;
+    runner = new Runner(mockQueue, {} as any, mockClient, mockConfig as Config);
   });
 
   afterEach(() => {
@@ -372,6 +375,7 @@ describe('Runner', () => {
 
     afterEach(() => {
       onStatusUpdateSpy.mockRestore();
+      mockConfig.prSettings = {} as any;
     });
 
     test('should get land build status (failed) if timeout period is not breached', async () => {
@@ -424,6 +428,23 @@ describe('Runner', () => {
     });
 
     test('should fail land request if timeout period is breached', async () => {
+      //running state is beyond the timeout period of 2 hours
+      const mockLandRequestStatus = getLandRequestStatus(new Date('2022-12-13T03:42:48.071Z'));
+
+      mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
+
+      expect(mockLandRequestStatus.request.setStatus).not.toHaveBeenCalled();
+      await runner.checkRunningLandRequests();
+
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledTimes(1);
+      expect(mockLandRequestStatus.request.setStatus).toHaveBeenCalledWith(
+        'fail',
+        'Build timeout period breached',
+      );
+    });
+
+    test('should fail land request if timeout period configured via config is breached', async () => {
+      mockConfig.prSettings.landBuildTimeoutTime = 1000 * 60 * 60;
       //running state is beyond the timeout period of 2 hours
       const mockLandRequestStatus = getLandRequestStatus(new Date('2022-12-13T03:42:48.071Z'));
 
