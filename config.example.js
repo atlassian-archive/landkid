@@ -40,6 +40,7 @@ module.exports = {
     requireClosedTasks: true,
     requireGreenBuild: false,
     allowLandWhenAble: true,
+    landBuildTimeoutTime: 1000 * 60 * 60 * 2, // 2 hours
     /** What is provided to a custom rule:
      *  {
      *    pullRequest: BB.PullRequest -- see /src/bitbucket/types.d.ts

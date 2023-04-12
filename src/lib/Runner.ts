@@ -688,11 +688,15 @@ export class Runner {
                 await landRequest.setStatus('fail', 'Missing buildId');
               }
               const timeElapsed = Date.now() - landRequestStatus.date.getTime();
+              const landBuildTimeoutTime =
+                this.config.prSettings.landBuildTimeoutTime || LAND_BUILD_TIMEOUT_TIME;
 
-              if (timeElapsed > LAND_BUILD_TIMEOUT_TIME) {
+              if (timeElapsed > landBuildTimeoutTime) {
                 Logger.warn('Failing running land request as timeout period is breached', {
                   pullRequestId: landRequest.pullRequestId,
                   landRequestId: landRequest.id,
+                  landBuildTimeoutTime,
+                  timeElapsed,
                   namespace: 'lib:runner:checkRunningLandRequests',
                 });
                 await landRequest.setStatus('fail', 'Build timeout period breached');

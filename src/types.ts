@@ -52,6 +52,7 @@ export type PullRequestSettings = {
   allowLandWhenAble: boolean;
   customChecks?: CustomRule[];
   customWarnings?: CustomRule[];
+  landBuildTimeoutTime?: number;
 };
 
 export type ApprovalChecks = {
