@@ -444,8 +444,8 @@ describe('Runner', () => {
     });
 
     test('should fail land request if timeout period configured via config is breached', async () => {
+      //running state is beyond the timeout period of 1 hours
       mockConfig.prSettings.landBuildTimeoutTime = 1000 * 60 * 60;
-      //running state is beyond the timeout period of 2 hours
       const mockLandRequestStatus = getLandRequestStatus(new Date('2022-12-13T03:42:48.071Z'));
 
       mockQueue.getRunning = jest.fn(async () => [mockLandRequestStatus]);
