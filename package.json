@@ -50,7 +50,7 @@
     "@types/ioredis-mock": "^5.6.0",
     "@types/jest": "^26.0.5",
     "@types/joi": "^14.3.4",
-    "@types/node": "^18.14.1",
+    "@types/node": "^18.16.13",
     "@types/p-retry": "^2.0.0",
     "@types/passport": "^1.0.6",
     "@types/passport-http": "^0.3.9",
