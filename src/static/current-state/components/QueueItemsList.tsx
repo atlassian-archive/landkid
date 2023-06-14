@@ -20,12 +20,13 @@ export type QueueItemsListProps = {
   fading?: boolean;
   renderEmpty?: () => JSX.Element;
   running?: boolean;
+  allQueueItems: IStatusUpdate[];
   bitbucketBaseUrl: string;
   refreshData: () => void;
 };
 
 export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = (props) => {
-  const { queue, fading, renderEmpty, running, refreshData } = props;
+  const { queue, fading, renderEmpty, running, refreshData, allQueueItems } = props;
   const filteredQueue = queue.filter((item) => running || item.state === 'queued');
   if (!filteredQueue.length) {
     return renderEmpty ? renderEmpty() : <EmptyState>Empty...</EmptyState>;
@@ -40,6 +41,7 @@ export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = (pro
             status={item}
             key={item.requestId}
             queue={queue}
+            allQueueItems={allQueueItems}
             refreshData={refreshData}
           />
         ) : (
@@ -48,6 +50,7 @@ export const QueueItemsList: React.FunctionComponent<QueueItemsListProps> = (pro
             status={item}
             key={item.requestId}
             queue={queue}
+            allQueueItems={allQueueItems}
             refreshData={refreshData}
           />
         ),

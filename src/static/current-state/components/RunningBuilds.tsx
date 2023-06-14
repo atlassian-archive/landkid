@@ -14,7 +14,8 @@ function findRunning(updates: IStatusUpdate[]) {
 }
 
 export const RunningBuilds: React.FunctionComponent<Props> = (props) => {
-  const running = findRunning(props.queue);
+  const { bitbucketBaseUrl, refreshData, queue } = props;
+  const running = findRunning(queue);
 
   if (running.length === 0) {
     return React.createElement(
@@ -33,9 +34,10 @@ export const RunningBuilds: React.FunctionComponent<Props> = (props) => {
       {Object.keys(groupedByTargetBranch).map((branch) => (
         <div style={{ paddingTop: '27px' }}>
           <QueueItemsList
-            bitbucketBaseUrl={props.bitbucketBaseUrl}
+            bitbucketBaseUrl={bitbucketBaseUrl}
             queue={groupedByTargetBranch[branch]}
-            refreshData={props.refreshData}
+            allQueueItems={queue}
+            refreshData={refreshData}
             running
           />
         </div>

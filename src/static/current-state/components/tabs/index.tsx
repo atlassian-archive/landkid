@@ -175,6 +175,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             bitbucketBaseUrl={bitbucketBaseUrl}
             loggedInUser={loggedInUser}
             queue={queue}
+            allQueueItems={queue}
             permissionsMessage={permissionsMessage}
             refreshData={refreshData}
           />
@@ -184,6 +185,7 @@ export class Tabs extends React.Component<TabsProps, TabsState> {
             bitbucketBaseUrl={bitbucketBaseUrl}
             loggedInUser={loggedInUser}
             merging={getMerging(queue)}
+            allQueueItems={queue}
             permissionsMessage={permissionsMessage}
             refreshData={refreshData}
           />

@@ -8,12 +8,13 @@ export type Props = {
   bitbucketBaseUrl: string;
   loggedInUser: ISessionUser;
   merging: IStatusUpdate[];
+  allQueueItems: IStatusUpdate[];
   permissionsMessage: string;
   refreshData: () => void;
 };
 
 export const MergingTab: React.FunctionComponent<Props> = (props) => {
-  const { bitbucketBaseUrl, merging, refreshData } = props;
+  const { bitbucketBaseUrl, merging, allQueueItems, refreshData } = props;
   if (merging.length === 0) {
     return (
       <TabContent>
@@ -31,6 +32,7 @@ export const MergingTab: React.FunctionComponent<Props> = (props) => {
           <QueueItemsList
             bitbucketBaseUrl={bitbucketBaseUrl}
             queue={groupedByTargetBranch[branch]}
+            allQueueItems={allQueueItems}
             refreshData={refreshData}
             running={true}
             fading

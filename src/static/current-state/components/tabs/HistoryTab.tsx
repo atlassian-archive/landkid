@@ -81,6 +81,7 @@ export class HistoryTab extends React.Component<HistoryTabProps, HistoryState> {
                   key={item.request.id}
                   queue={history}
                   refreshData={refresh}
+                  allQueueItems={history}
                 />
               ))}
               <div style={{ marginTop: '30px' }}>
