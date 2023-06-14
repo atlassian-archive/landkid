@@ -642,6 +642,65 @@ describe('Runner', () => {
       expect(request.setStatus).toHaveBeenCalledWith('running', undefined);
     });
 
+    test('should filter queue by target branch', async () => {
+      const request = new LandRequest({
+        created: new Date(123),
+        forCommit: 'abc',
+        id: '1',
+        triggererAaid: '123',
+        pullRequestId: 1,
+        pullRequest: new PullRequest({
+          prId: mockPullRequest.pullRequestId,
+          authorAaid: mockPullRequest.authorAaid,
+          title: mockPullRequest.title,
+          targetBranch: mockPullRequest.targetBranch,
+        }),
+      });
+      const landRequestA = new LandRequestStatus({
+        date: new Date(123),
+        id: '1',
+        isLatest: true,
+        request,
+        requestId: '1',
+        state: 'queued',
+      });
+      const landRequestB = new LandRequestStatus({
+        date: new Date(1234),
+        id: '2',
+        isLatest: true,
+        request: new LandRequest({
+          created: new Date(120),
+          forCommit: 'abc',
+          id: '2',
+          triggererAaid: '123',
+          pullRequestId: 2,
+          pullRequest: { ...mockPullRequest, prId: 2, targetBranch: 'feature-branch/test' },
+        }),
+        requestId: '2',
+        state: 'queued',
+      });
+      const landRequestC = new LandRequestStatus({
+        date: new Date(12345),
+        id: '3',
+        isLatest: true,
+        request: new LandRequest({
+          created: new Date(120),
+          forCommit: 'abc',
+          id: '3',
+          triggererAaid: '123',
+          pullRequestId: 3,
+          pullRequest: { ...mockPullRequest, prId: 3 },
+        }),
+        requestId: '3',
+        state: 'queued',
+      });
+      // landRequestB has a different targetBranch to landRequestA and landRequestC
+      mockQueue.getQueue = jest.fn(async () => [landRequestA, landRequestB, landRequestC]);
+
+      const queue = await runner.filterQueueByTargetBranch(request.pullRequest.targetBranch);
+      expect(queue).toEqual([landRequestA, landRequestC]);
+    });
+
     test('should fail land request if not all land checks pass', async () => {
       const request = new LandRequest({
         created: new Date(123),
@@ -1085,7 +1144,7 @@ describe('Runner', () => {
       });
       jest
         .spyOn(StateService, 'getAdminSettings')
-        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true } as any);
       jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: true });
 
       const response = await runner.moveFromAwaitingMerge(status, new Date('2020-01-01'), []);
@@ -1119,7 +1178,7 @@ describe('Runner', () => {
       });
       jest
         .spyOn(StateService, 'getAdminSettings')
-        .mockResolvedValueOnce({ mergeBlockingEnabled: true });
+        .mockResolvedValueOnce({ mergeBlockingEnabled: true } as any);
       jest.spyOn(mockClient, 'isBlockingBuildRunning').mockResolvedValueOnce({ running: false });
       jest.spyOn(mockClient, 'mergePullRequest').mockResolvedValueOnce({
         status: 'success',

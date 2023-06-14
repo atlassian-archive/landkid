@@ -259,6 +259,27 @@ export class BitbucketAPI {
     return priority;
   };
 
+  getPRImpact = async (commit: string): Promise<number> => {
+    const endpoint = `${this.baseUrl}/commit/${commit}/statuses`;
+    const { data } = await axios.get<{ values: BB.BuildPriorityImpact[] }>(
+      endpoint,
+      await bitbucketAuthenticator.getAuthConfig(fromMethodAndUrl('get', endpoint)),
+    );
+
+    const allBuildStatuses = data.values;
+    const impact =
+      allBuildStatuses.find((buildStatus) => buildStatus.name === 'landkid-impact')?.description ||
+      '0';
+
+    Logger.info('PR impact', {
+      namespace: 'bitbucket:api:getPRImpact',
+      commit,
+      impact,
+    });
+
+    return parseInt(impact);
+  };
+
   getUser = async (aaid: string): Promise<ISessionUser> => {
     const endpoint = `https://api.bitbucket.org/2.0/users/${aaid}`;
     const resp = await axios.get(

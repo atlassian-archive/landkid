@@ -14,6 +14,10 @@ StateService.getPriorityBranches.mockResolvedValue([
     date: '2023-01-25T04:28:07.817Z',
   },
 ]);
+StateService.getAdminSettings.mockResolvedValue({
+  speculationEngineEnabled: false,
+  mergeBlockingEnabled: false,
+});
 StateService.getState.mockResolvedValue({
   bannerMessageState: null,
   pauseState: null,

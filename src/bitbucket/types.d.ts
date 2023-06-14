@@ -144,6 +144,11 @@ declare namespace BB {
     description: PRPriority;
   };
 
+  type BuildPriorityImpact = {
+    name: string;
+    description: string;
+  };
+
   type BuildStatus = {
     name: string;
     state: BuildState;
