@@ -144,13 +144,9 @@ export class Runner {
       });
       return landRequest.setStatus('fail', 'Unable to land due to failed land checks');
     }
-
+    const queue = await this.filterQueue(landRequest);
     if (
-      await SpeculationEngine.reorderRequest(
-        runningTargetingSameBranch,
-        await this.getQueue(['queued']),
-        landRequestStatus,
-      )
+      await SpeculationEngine.reorderRequest(runningTargetingSameBranch, queue, landRequestStatus)
     ) {
       return false;
     }
@@ -778,7 +774,13 @@ export class Runner {
     });
     return landRequestStatus;
   };
-
+  // filter queue by target branch - used by speculation engine to reorder PRs by target branch
+  filterQueue = async (landRequest: LandRequest) => {
+    const queue = await this.getQueue(['queued']);
+    return queue.filter(
+      (queue) => queue.request.pullRequest.targetBranch === landRequest.pullRequest.targetBranch,
+    );
+  };
   getHistory = async (page: number) => {
     return this.history.getHistory(page);
   };
