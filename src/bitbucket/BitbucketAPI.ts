@@ -45,10 +45,10 @@ export class BitbucketAPI {
       requestId: landRequestId,
       request: {
         pullRequestId,
-        pullRequest: { targetBranch },
+        pullRequest: { title, targetBranch },
       },
     } = landRequestStatus;
-    let message = `pull request #${pullRequestId} merged by Landkid after a successful build rebased on ${targetBranch}`;
+    let message = `Merged pull request #${pullRequestId} via Landkid: ${title}`;
     if (options.skipCI) {
       message += '\n\n[skip ci]';
     }

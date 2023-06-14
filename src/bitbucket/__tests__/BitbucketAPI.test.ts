@@ -21,6 +21,7 @@ const landRequestStatus = {
   request: {
     pullRequestId: 1,
     pullRequest: {
+      title: 'Introduce bug I can later fix for karma',
       targetBranch: 'master',
     },
   },
@@ -148,7 +149,7 @@ describe('mergePullRequest', () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
     const data = JSON.stringify({
       close_source_branch: true,
-      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      message: `Merged pull request #${landRequestStatus.request.pullRequestId} via Landkid: ${landRequestStatus.request.pullRequest.title}`,
       merge_strategy: 'merge_commit',
     });
     await mergePullRequest(landRequestStatus, { mergeStrategy: 'merge-commit' });
@@ -159,7 +160,7 @@ describe('mergePullRequest', () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
     const data = JSON.stringify({
       close_source_branch: true,
-      message: `pull request #${landRequestStatus.request.pullRequestId} merged by Landkid after a successful build rebased on ${landRequestStatus.request.pullRequest.targetBranch}`,
+      message: `Merged pull request #${landRequestStatus.request.pullRequestId} via Landkid: ${landRequestStatus.request.pullRequest.title}`,
       merge_strategy: 'squash',
     });
     await mergePullRequest(landRequestStatus, { mergeStrategy: 'squash' });
