@@ -697,7 +697,7 @@ describe('Runner', () => {
       // landRequestB has a different targetBranch to landRequestA and landRequestC
       mockQueue.getQueue = jest.fn(async () => [landRequestA, landRequestB, landRequestC]);
 
-      const queue = await runner.filterQueue(request);
+      const queue = await runner.filterQueueByTargetBranch(request.pullRequest.targetBranch);
       expect(queue).toEqual([landRequestA, landRequestC]);
     });
 
