@@ -15,6 +15,7 @@ export const LandRequest = jest.fn((props) => {
     incrementPriority: jest.fn(),
     decrementPriority: jest.fn(),
     getQueuedDate: jest.fn(() => new Date('2020-01-01')),
+    updateImpact: jest.fn(),
   });
   return req;
 });

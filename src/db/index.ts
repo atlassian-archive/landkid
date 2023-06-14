@@ -81,6 +81,15 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   @Column(Sequelize.INTEGER)
   priority: number;
 
+  /**
+   * Impact is used by SpeculationEngine to reorder the PR while placing them on the running slots. The lower impact PRs are given higher precedence. Impact meta data is processed and send to landkid by the consuming repo using build statuses.
+   * */
+
+  @AllowNull(true)
+  @Default(0)
+  @Column(Sequelize.INTEGER)
+  impact: number;
+
   @AllowNull(true)
   @Column(
     Sequelize.ENUM({
@@ -218,6 +227,11 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       order: [['date', 'ASC']],
     });
     return status ? status.date : null;
+  };
+
+  updateImpact = (impact: number) => {
+    this.impact = impact;
+    return this.save();
   };
 }
 
@@ -441,6 +455,12 @@ export class AdminSettings extends Model<AdminSettings> implements IAdminSetting
   @Default(false)
   @Column(Sequelize.BOOLEAN)
   readonly mergeBlockingEnabled: boolean;
+
+  /** Live feature toggling of config.queueSettings.speculationEngineEnabled. Must be first enabled in config to be enabled here */
+  @AllowNull(false)
+  @Default(false)
+  @Column(Sequelize.BOOLEAN)
+  readonly speculationEngineEnabled: boolean;
 }
 
 export const initializeSequelize = async () => {

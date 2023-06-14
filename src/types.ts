@@ -107,6 +107,7 @@ export type Config = {
   eventListeners?: EventListener[];
   easterEgg?: any;
   mergeSettings?: MergeSettings;
+  queueSettings?: QueueSettings;
 };
 
 export type MergeSettings = {
@@ -127,6 +128,14 @@ export type MergeSettings = {
   };
 };
 
+export type QueueSettings = {
+  /**
+   * Speculation engine reorders top n PRs where n is the available free slots based on the impact of the PRs. The lower impact PRs are given preference.
+   * Impact meta data is processed and send to landkid by the consuming repo using build statuses.
+   */
+  speculationEngineEnabled: boolean;
+};
+
 export type State = {
   pauseState: IPauseState | null;
   bannerMessageState: IMessageState | null;
@@ -134,7 +143,7 @@ export type State = {
   daysSinceLastFailure: number;
   priorityBranchList: IPriorityBranch[];
   adminSettings: IAdminSettings;
-  config: { mergeSettings?: MergeSettings };
+  config: { mergeSettings?: MergeSettings; speculationEngineEnabled: boolean };
 };
 
 export type RunnerState = State & {

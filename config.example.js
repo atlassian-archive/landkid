@@ -77,6 +77,9 @@ module.exports = {
       ],
     },
   },
+  queueSettings: {
+    speculationEngineEnabled: false,
+  },
   eventListeners: [
     {
       event: 'PULL_REQUEST.MERGE.SUCCESS',

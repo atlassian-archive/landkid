@@ -196,15 +196,22 @@ export function proxyRoutes(runner: Runner, client: BitbucketClient) {
 
       const priority = await client.bitbucket.getPullRequestPriority(commit);
 
-      if (priority === 'HIGH' && request) {
-        await request.incrementPriority();
-        Logger.info('Pull request priority increased', {
-          namespace: 'routes:bitbucket:proxy:land',
-          pullRequestId: prId,
-          landRequest,
-        });
-      }
+      if (request) {
+        if (priority === 'HIGH') {
+          await request.incrementPriority();
+          Logger.info('Pull request priority increased', {
+            namespace: 'routes:bitbucket:proxy:land',
+            pullRequestId: prId,
+            landRequest,
+          });
+        }
 
+        const { speculationEngineEnabled } = await StateService.getAdminSettings();
+        if (speculationEngineEnabled) {
+          const impact = await client.bitbucket.getPRImpact(commit);
+          request.updateImpact(impact);
+        }
+      }
       res.sendStatus(200);
       runner.next();
     }),
