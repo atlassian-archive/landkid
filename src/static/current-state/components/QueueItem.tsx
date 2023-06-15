@@ -367,7 +367,7 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
   };
 
   render() {
-    const { bitbucketBaseUrl, queue } = this.props;
+    const { bitbucketBaseUrl } = this.props;
     const { status } = this.state;
     const {
       request: { dependsOn, pullRequestId, pullRequest },
@@ -375,19 +375,8 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
 
     const buildId = status.request.buildId;
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
-    const dependsOnPRs: string[] = [];
-    if (dependsOn && queue) {
-      dependsOn.split(',').forEach((depId) => {
-        const depItem = queue.find((item) => item.requestId === depId);
-        if (!depItem) {
-          console.error(`Cannot find dependency PR with request id ${status.requestId}`);
-          dependsOnPRs.push('??');
-        } else {
-          dependsOnPRs.push(`#${depItem.request.pullRequestId}`);
-        }
-      });
-    }
-
+    const dependsOnPRs: string[] = dependsOn?.split(',') ?? [];
+    console.log('dependsOnPrs: ', dependsOnPRs);
     return (
       <div className={`${queueItemStyles} queue-item`}>
         <div className="queue-item__title">

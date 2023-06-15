@@ -164,8 +164,7 @@ export class Runner {
 
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
-    const dependsOnStr = dependencies.map((queueItem) => queueItem.request.id).join(',');
-
+    const dependsOnStr = dependencies.map((queueItem) => queueItem.request.pullRequestId).join(',');
     Logger.info('Attempting to move from queued to running', {
       namespace: 'lib:runner:moveFromQueueToRunning',
       landRequestId: landRequest.id,
@@ -900,7 +899,7 @@ export class Runner {
     return queue.filter(
       (status) =>
         status.state === 'awaiting-merge' &&
-        status.request.dependsOn.split(',').includes(String(currentStatus.request.id)),
+        status.request.dependsOn.split(',').includes(String(currentStatus.request.pullRequestId)),
     );
   }
 }
