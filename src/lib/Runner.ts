@@ -165,7 +165,7 @@ export class Runner {
     // Dependencies will be all `running` or `awaiting-merge` builds that target the same branch
     // as yourself
     const dependsOnStr = dependencies.map((queueItem) => queueItem.request.id).join(',');
-
+    const dependsOnPrIds = dependencies.map((queueItem) => '#' + queueItem.request.pullRequestId);
     Logger.info('Attempting to move from queued to running', {
       namespace: 'lib:runner:moveFromQueueToRunning',
       landRequestId: landRequest.id,
@@ -208,10 +208,7 @@ export class Runner {
       // Todo: these should really be functions on landRequest
       landRequest.buildId = buildId;
       landRequest.dependsOn = dependsOnStr;
-      const getDependsOnPrs = await landRequest.getDependencies();
-      landRequest.dependsOnPrIds = getDependsOnPrs
-        .map((dependency) => dependency.pullRequestId)
-        .toString();
+      landRequest.dependsOnPrIds = dependsOnPrIds.toString();
       console.log('dependsonPrIds: ', landRequest.dependsOnPrIds);
       await landRequest.setStatus('running', depPrsStr);
 
