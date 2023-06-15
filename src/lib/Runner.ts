@@ -209,7 +209,6 @@ export class Runner {
       landRequest.buildId = buildId;
       landRequest.dependsOn = dependsOnStr;
       landRequest.dependsOnPrIds = dependsOnPrIds.toString();
-      console.log('dependsonPrIds: ', landRequest.dependsOnPrIds);
       await landRequest.setStatus('running', depPrsStr);
 
       newLandRequest = await landRequest.save();
