@@ -208,6 +208,11 @@ export class Runner {
       // Todo: these should really be functions on landRequest
       landRequest.buildId = buildId;
       landRequest.dependsOn = dependsOnStr;
+      const getDependsOnPrs = await landRequest.getDependencies();
+      landRequest.dependsOnPrIds = getDependsOnPrs
+        .map((dependency) => dependency.pullRequestId)
+        .toString();
+      console.log('dependsonPrIds: ', landRequest.dependsOnPrIds);
       await landRequest.setStatus('running', depPrsStr);
 
       newLandRequest = await landRequest.save();

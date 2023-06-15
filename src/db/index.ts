@@ -77,6 +77,10 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
   dependsOn: string;
 
   @AllowNull(true)
+  @Column(Sequelize.STRING({ length: 1000 }))
+  dependsOnPrIds: string;
+
+  @AllowNull(true)
   @Default(0)
   @Column(Sequelize.INTEGER)
   priority: number;
@@ -160,6 +164,7 @@ export class LandRequest extends Model<LandRequest> implements ILandRequest {
       stateDuration: prevStatus ? Date.now() - prevStatus.date.getTime() : null,
       durationSinceQueued: queuedDate ? Date.now() - queuedDate.getTime() : null,
       dependsOn: this.dependsOn,
+      dependsOnPrIds: this.dependsOnPrIds,
     });
     return true;
   };
