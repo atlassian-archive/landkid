@@ -7,10 +7,7 @@ export default {
       allowNull: true,
     });
   },
-  down: async function (query: QueryInterface, Sequelize: DataTypes) {
-    return query.addColumn('LandRequest', 'dependsOnPrIds', {
-      type: Sequelize.STRING(), // set the maximum length back to default 255
-      allowNull: true,
-    });
+  async down() {
+    throw new Error('NO DROP FUNCTION FOR THIS MIGRATION');
   },
 };
