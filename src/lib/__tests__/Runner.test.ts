@@ -663,7 +663,7 @@ describe('Runner', () => {
       const response = await runner.moveFromQueueToRunning(status, new Date());
       expect(response).toBe(true);
       expect(request.setStatus).toHaveBeenCalledTimes(1);
-      expect(request.dependsOnPrIds).toBe('#2,#3,#4');
+      expect(request.dependsOnPrIds).toBe('2,3,4');
     });
     test('should successfully transition land request from queued to running if all checks pass', async () => {
       const request = new LandRequest({

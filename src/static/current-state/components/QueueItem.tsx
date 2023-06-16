@@ -376,8 +376,9 @@ export class QueueItem extends React.Component<QueueItemProps, QueueItemState> {
     const buildId = status.request.buildId;
     const buildUrl = buildId ? buildUrlFromId(bitbucketBaseUrl, buildId) : '#';
 
-    const dependsOnPRs: string[] = dependsOnPrIds ? dependsOnPrIds?.split(',') : [];
-
+    const dependsOnPRs: string[] = dependsOnPrIds
+      ? dependsOnPrIds.split(',').map((dep) => '#' + dep)
+      : [];
     return (
       <div className={`${queueItemStyles} queue-item`}>
         <div className="queue-item__title">
