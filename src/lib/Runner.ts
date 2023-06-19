@@ -99,8 +99,8 @@ export class Runner {
         namespace: 'lib:runner:moveFromQueueToRunning',
         landRequestId: landRequest.id,
         pullRequestId: landRequest.pullRequestId,
-        landRequestStatus,
-        runningTargetingSameBranch,
+        // landRequestStatus,
+        // runningTargetingSameBranch,
         lockId,
       });
       return false;
@@ -365,7 +365,7 @@ export class Runner {
   ) => {
     const { request: landRequest } = landRequestStatus;
     Logger.info('LandRequest failed due to failing dependency', {
-      namespace: 'lib:runner:next',
+      namespace: 'lib:runner:failDueToDependency',
       lockId,
       landRequestId: landRequest.id,
       pullRequestId: landRequest.pullRequestId,
@@ -432,9 +432,7 @@ export class Runner {
       ({ state, request }) => state === 'running' && request.buildId === statusEvent.buildId,
     );
 
-    const landRequest = landRequestStatus?.request;
-
-    if (!landRequest) {
+    if (!landRequestStatus) {
       Logger.info('No running build for status event, ignoring', {
         namespace: 'lib:runner:onStatusUpdate',
         statusEvent,
@@ -442,6 +440,7 @@ export class Runner {
       return;
     }
 
+    const landRequest = landRequestStatus.request;
     const logMessage = (message: string) =>
       Logger.info(message, {
         namespace: 'lib:runner:onStatusUpdate',
@@ -458,16 +457,49 @@ export class Runner {
         return this.next();
       case 'FAILED':
         logMessage('Moving landRequest to failed state');
-        await landRequest.setStatus('fail', 'Landkid build failed');
+        await this.failAllDependents(landRequestStatus, 'fail', 'Landkid build failed');
         return this.next();
       case 'STOPPED':
-        logMessage('Moving landRequest to aborted state');
-        await landRequest.setStatus('aborted', 'Landkid pipelines build was stopped');
+        logMessage(`Moving landRequest to aborted state`);
+        await this.failAllDependents(
+          landRequestStatus,
+          'aborted',
+          'Landkid pipelines build was stopped',
+        );
         return this.next();
       default:
         logMessage('Dont know what to do with build status, ignoring');
         break;
     }
+  };
+
+  // Mark the current request as failed / aborted and fail all dependents within 'status-transition' lock.
+  // So, multiple free slots are available in one go for the speculation engine to process.
+  failAllDependents = async (
+    currentLandRequestStatus: LandRequestStatus,
+    currentRequestState: IStatusState,
+    currentRequestReason: string,
+  ) => {
+    await withLock(
+      'status-transition',
+      async (lockId: Date) => {
+        await currentLandRequestStatus.request.setStatus(currentRequestState, currentRequestReason);
+        const running = await this.getRunning();
+        const dependents = Runner.getDependents(running, currentLandRequestStatus);
+
+        Logger.info('Failing all dependents', {
+          namespace: 'lib:runner:failAllDependents',
+          landRequestId: currentLandRequestStatus.requestId,
+          pullRequestId: currentLandRequestStatus.request.pullRequestId,
+          dependentsPullRequestId: dependents.map((dependent) => dependent.request.pullRequestId),
+        });
+        for (const dependent of dependents) {
+          await this.failDueToDependency(dependent, [currentLandRequestStatus], lockId);
+        }
+      },
+      undefined,
+      100,
+    );
   };
 
   cancelRunningBuild = async (requestId: string, user: ISessionUser): Promise<boolean> => {
@@ -901,6 +933,12 @@ export class Runner {
       (status) =>
         status.state === 'awaiting-merge' &&
         status.request.dependsOn.split(',').includes(String(currentStatus.request.id)),
+    );
+  }
+
+  static getDependents(queue: LandRequestStatus[], currentStatus: LandRequestStatus) {
+    return queue.filter((status) =>
+      status.request.dependsOn.split(',').includes(String(currentStatus.request.id)),
     );
   }
 }
