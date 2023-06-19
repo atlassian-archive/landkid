@@ -99,8 +99,6 @@ export class Runner {
         namespace: 'lib:runner:moveFromQueueToRunning',
         landRequestId: landRequest.id,
         pullRequestId: landRequest.pullRequestId,
-        // landRequestStatus,
-        // runningTargetingSameBranch,
         lockId,
       });
       return false;
