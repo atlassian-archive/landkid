@@ -476,13 +476,13 @@ export class Runner {
   // So, multiple free slots are available in one go for the speculation engine to process.
   failAllDependents = async (
     currentLandRequestStatus: LandRequestStatus,
-    currentRequestState: IStatusState,
-    currentRequestReason: string,
+    state: IStatusState,
+    reason: string,
   ) => {
     await withLock(
       'status-transition',
       async (lockId: Date) => {
-        await currentLandRequestStatus.request.setStatus(currentRequestState, currentRequestReason);
+        await currentLandRequestStatus.request.setStatus(state, reason);
         const running = await this.getRunning();
         const dependents = Runner.getDependents(running, currentLandRequestStatus);
 
@@ -497,7 +497,6 @@ export class Runner {
         }
       },
       undefined,
-      100,
     );
   };
 
