@@ -971,6 +971,7 @@ describe('Runner', () => {
     let request: LandRequest;
     let nextSpy: jest.SpyInstance<any>;
     let runningStatuses: LandRequestStatus[];
+    let dependentRequest: LandRequest;
     beforeEach(() => {
       const pullRequest = new PullRequest({
         prId: mockPullRequest.pullRequestId,
@@ -978,22 +979,33 @@ describe('Runner', () => {
         title: mockPullRequest.title,
         targetBranch: mockPullRequest.targetBranch,
       });
-      request = new LandRequest({
+      const requestParam = {
         buildId: 1234,
         created: new Date(120),
         forCommit: 'abc',
-        id: '0',
+        id: '01',
         triggererAaid: '123',
         pullRequestId: 1,
         pullRequest,
-      });
+        dependsOn: '',
+      };
+      request = new LandRequest(requestParam);
+      dependentRequest = new LandRequest({ ...requestParam, buildId: 4567, dependsOn: '01' });
       runningStatuses = [
         new LandRequestStatus({
           date: new Date(120),
-          id: '0',
+          id: '01',
           isLatest: true,
           request,
-          requestId: '0',
+          requestId: '01',
+          state: 'running',
+        }),
+        new LandRequestStatus({
+          date: new Date(120),
+          id: '02',
+          isLatest: true,
+          request: dependentRequest,
+          requestId: '02',
           state: 'running',
         }),
       ];
@@ -1022,6 +1034,16 @@ describe('Runner', () => {
         buildStatus: 'FAILED',
       });
       expect(request.setStatus).toHaveBeenCalledWith('fail', 'Landkid build failed');
+      expect(dependentRequest.setStatus).toHaveBeenNthCalledWith(
+        1,
+        'fail',
+        'Failed due to failed dependency builds: 1',
+      );
+      expect(dependentRequest.setStatus).toHaveBeenNthCalledWith(
+        2,
+        'queued',
+        'Queued by undefined',
+      );
       expect(nextSpy).toHaveBeenCalledTimes(1);
     });
 
