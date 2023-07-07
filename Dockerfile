@@ -1,4 +1,4 @@
-FROM node:18.16-alpine@sha256:44aaf1ccc80eaed6572a0f2ef7d6b5a2982d54481e4255480041ac92221e2f11
+FROM node:18.16-alpine@sha256:67cb6aae3415f1a5106579aa1400b18368860f922d55fcac589f6c2af104bad5
 
 WORKDIR /opt/service
 
