@@ -1,3 +1,6 @@
+## ⚠️ Archived Repository
+
+This repository has ceased active maintenance and will no longer accept any additional pull requests.
 # Landkid
 
 [![CircleCI](https://circleci.com/gh/atlassian/landkid/tree/master.svg?style=svg)](https://circleci.com/gh/atlassian/landkid/tree/master)
